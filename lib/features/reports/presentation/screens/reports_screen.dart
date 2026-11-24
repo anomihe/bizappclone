@@ -48,7 +48,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
     // Writing the file needs `path_provider` + `pdf`/`csv` packages.
-    if (go == true && mounted) showToast(context, 'Sales report ($format) is being prepared');
+    if (go == true && mounted) showToast(context, '$format export is coming soon');
   }
 
   @override

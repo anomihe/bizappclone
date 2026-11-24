@@ -35,7 +35,7 @@ class PaymentDetailsScreen extends StatelessWidget {
             text: 'Download',
             variant: ButtonVariant.outline,
             icon: const Icon(Icons.download_outlined),
-            onPressed: () => showToast(context, 'Receipt saved as PDF'),
+            onPressed: () => showToast(context, 'PDF download is coming soon — use View Receipt to share it'),
           ),
         ),
         const SizedBox(width: 10),
