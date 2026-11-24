@@ -1,12 +1,31 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/bizpaddi_logo.dart';
+import '../../../../core/theme/palette.dart';
+import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import 'country_picker_sheet.dart';
+import '../../../../core/widgets/password_rules.dart';
+import '../../../../core/widgets/phone_field.dart';
+import '../../../../core/widgets/select_field.dart';
+import '../../../../core/widgets/ui_kit.dart';
+import '../widgets/auth_scaffold.dart';
+import 'biometrics_screen.dart';
 import 'login_screen.dart';
 import 'otp_verification_screen.dart';
+
+const businessCategories = [
+  'Food & Drinks',
+  'Fashion & Tailoring',
+  'Beauty & Cosmetics',
+  'Electronics & Gadgets',
+  'Retail & Provisions',
+  'Services',
+  'Other',
+];
+
+const currencies = ['Naira (NGN)', 'Ghana Cedi (GHS)', 'Kenyan Shilling (KES)', 'US Dollar (USD)', 'British Pound (GBP)'];
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,331 +35,162 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _phone = TextEditingController();
+  final _password = TextEditingController();
+  CountryInfo _country = CountryInfo.all.first;
+  String? _category;
+  String _currency = currencies.first;
+  bool _agreed = false;
+  bool _loading = false;
+  bool _emailTouched = false;
 
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _phone.dispose();
+    _password.dispose();
+    super.dispose();
+  }
 
-  CountryInfo _selectedCountry = const CountryInfo(
-    name: 'Nigeria',
-    flag: '🇳🇬',
-    dialCode: '+234',
-    currency: 'NGN',
-  );
+  bool get _emailValid => Fmt.isEmail(_email.text);
+  bool get _phoneValid => _phone.text.replaceAll(' ', '').length >= 7;
 
-  bool _agreeToTerms = true;
-  bool _isLoading = false;
+  bool get _valid =>
+      _name.text.trim().isNotEmpty &&
+      _emailValid &&
+      _phoneValid &&
+      _category != null &&
+      PasswordRules.isValid(_password.text) &&
+      _agreed;
 
-  void _openCountryPicker() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => CountryPickerSheet(
-        onSelect: (country) {
-          setState(() {
-            _selectedCountry = country;
-          });
-        },
+  Future<void> _submit() async {
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    final masked = Fmt.maskPhone(_country.dialCode, _phone.text);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OtpVerificationScreen(
+          title: 'Verify your phone',
+          subtitle: 'We sent a 6-digit code to $masked. It expires in 5 minutes.',
+          onVerified: (ctx) {
+            BizStore.instance.startNewWorkspace(
+              businessName: _name.text.trim(),
+              email: _email.text.trim(),
+              dialCode: _country.dialCode,
+              phone: _phone.text.trim(),
+              category: _category!,
+              currency: _currency,
+            );
+            Navigator.pushAndRemoveUntil(
+              ctx,
+              MaterialPageRoute(builder: (_) => const BiometricsScreen()),
+              (r) => r.isFirst,
+            );
+          },
+        ),
       ),
     );
   }
 
-  void _onContinue() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_agreeToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the Terms & Privacy Policy to continue.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OtpVerificationScreen(
-            email: _emailController.text.trim().isEmpty
-                ? 'alex@acme.com'
-                : _emailController.text.trim(),
-            currency: _selectedCountry.currency,
-          ),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final p = context.p;
+    void refresh(_) => setState(() {});
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: isDark ? Colors.white : AppColors.lightTextPrimary,
+    return AuthScaffold(
+      title: 'Create an account.',
+      subtitle: 'It takes about a minute.',
+      footer: Column(mainAxisSize: MainAxisSize.min, children: [
+        CustomButton(text: 'Continue', isLoading: _loading, onPressed: _valid ? _submit : null),
+        const SizedBox(height: 12),
+        Text.rich(TextSpan(children: [
+          TextSpan(text: 'Already have an account? ', style: tx(context, 12.5, color: p.textSecondary)),
+          TextSpan(
+            text: 'Log in',
+            style: tx(context, 12.5, weight: FontWeight.w700, color: context.p.brand),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
           ),
-          onPressed: () => Navigator.pop(context),
+        ])),
+      ]),
+      children: [
+        CustomTextField(
+          label: 'Business Name',
+          hint: 'Enter your business name',
+          controller: _name,
+          textCapitalization: TextCapitalization.words,
+          onChanged: refresh,
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: BizpaddiLogo(size: 26),
+        const SizedBox(height: 14),
+        Focus(
+          onFocusChange: (f) {
+            if (!f) setState(() => _emailTouched = true);
+          },
+          child: CustomTextField(
+            label: 'Business Email',
+            hint: 'Enter your email',
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            errorText: _emailTouched && _email.text.isNotEmpty && !_emailValid ? 'Invalid email address' : null,
+            onChanged: refresh,
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Headline
-                Text(
-                  'Create an account',
-                  style: GoogleFonts.figtree(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Start your 14-day full feature trial. No card required.',
-                  style: GoogleFonts.figtree(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                  ),
-                ),
-
-                const SizedBox(height: 28),
-
-                // Name Row (2 columns)
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextField(
-                        label: 'First Name',
-                        hint: 'John',
-                        controller: _firstNameController,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: CustomTextField(
-                        label: 'Last Name',
-                        hint: 'Doe',
-                        controller: _lastNameController,
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 18),
-
-                // Work Email
-                CustomTextField(
-                  label: 'Work Email Address',
-                  hint: 'name@company.com',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: Icon(
-                    Icons.email_outlined,
-                    size: 20,
-                    color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                  ),
-                  validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                ),
-
-                const SizedBox(height: 18),
-
-                // Phone with Country Code
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Phone Number',
-                      style: GoogleFonts.figtree(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 7),
-                    Row(
-                      children: [
-                        // Country Selector Pill
-                        InkWell(
-                          onTap: _openCountryPicker,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            height: 52,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppColors.surface : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.fromBorderSide(
-                                BorderSide(
-                                  color: isDark ? AppColors.border : AppColors.lightBorder,
-                                  width: 1.2,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(_selectedCountry.flag, style: const TextStyle(fontSize: 20)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _selectedCountry.dialCode,
-                                  style: GoogleFonts.figtree(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_drop_down, size: 18),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Number field
-                        Expanded(
-                          child: CustomTextField(
-                            hint: '801 234 5678',
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 18),
-
-                // Password
-                CustomTextField(
-                  label: 'Password',
-                  hint: '••••••••',
-                  controller: _passwordController,
-                  isPassword: true,
-                  prefixIcon: Icon(
-                    Icons.lock_outline,
-                    size: 20,
-                    color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                  ),
-                  validator: (v) =>
-                      v == null || v.length < 6 ? 'Minimum 6 characters' : null,
-                ),
-
-                const SizedBox(height: 18),
-
-                // Terms Checkbox
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: _agreeToTerms,
-                        activeColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        onChanged: (val) {
-                          setState(() {
-                            _agreeToTerms = val ?? false;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'I agree to the Terms of Service and Privacy Policy',
-                        style: GoogleFonts.figtree(
-                          fontSize: 13,
-                          color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Primary Submit Button
-                CustomButton(
-                  text: 'Continue',
-                  isLoading: _isLoading,
-                  onPressed: _onContinue,
-                ),
-
-                const SizedBox(height: 20),
-
-                // Already have an account?
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Already have an account? ',
-                        style: GoogleFonts.figtree(
-                          fontSize: 14,
-                          color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          );
-                        },
-                        child: Text(
-                          'Log In',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-              ],
+        ),
+        const SizedBox(height: 14),
+        PhoneField(
+          controller: _phone,
+          country: _country,
+          onCountryChanged: (c) => setState(() => _country = c),
+          onChanged: refresh,
+        ),
+        const SizedBox(height: 14),
+        SelectField(
+          label: 'Business Category',
+          hint: 'Select category',
+          value: _category,
+          options: businessCategories,
+          onChanged: (v) => setState(() => _category = v),
+        ),
+        const SizedBox(height: 14),
+        SelectField(
+          label: 'Currency',
+          hint: 'Select currency',
+          value: _currency,
+          options: currencies,
+          onChanged: (v) => setState(() => _currency = v),
+        ),
+        const SizedBox(height: 14),
+        CustomTextField(label: 'Password', hint: 'Enter Password', controller: _password, isPassword: true, onChanged: refresh),
+        const SizedBox(height: 10),
+        PasswordRulesView(password: _password.text),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: () => setState(() => _agreed = !_agreed),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: Checkbox(
+                value: _agreed,
+                onChanged: (v) => setState(() => _agreed = v ?? false),
+                activeColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('By continuing you accept the Bizpaddi terms and privacy policy.',
+                  style: tx(context, 12, color: p.textSecondary, height: 1.4)),
+            ),
+          ]),
         ),
-      ),
+      ],
     );
   }
 }

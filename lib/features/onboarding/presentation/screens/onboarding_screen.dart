@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
+import '../../../../core/layout/responsive.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../widgets/onboarding_illustrations.dart';
 import 'welcome_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -17,29 +17,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, dynamic>> _pages = [
+  // Copy and artwork from the latest Splash-Onboard frames.
+  final List<Map<String, String>> _pages = [
     {
-      'prefix': 'Run your ',
-      'highlight': 'business',
-      'suffix': '\nin one place',
-      'subtitle':
-          'Get an overview of your entire operations from invoicing, projects, staff to customer orders.',
+      'prefix': 'Send an ',
+      'highlight': 'invoice.',
+      'suffix': ' Get paid from your phone.',
+      'subtitle': 'Invoice customers, share the payment link and see who has paid.',
+      'image': 'assets/images/onboarding_1.png',
     },
     {
-      'prefix': 'Sell, bill and get\n',
-      'highlight': 'paid',
-      'suffix': ' easily',
-      'subtitle':
-          'Generate professional invoices, convert quotes, and accept automated instant bank transfers.',
-    },
-    {
-      'prefix': 'Everything works\n',
-      'highlight': 'together',
+      'prefix': 'Sell online with your own ',
+      'highlight': 'store.',
       'suffix': '',
-      'subtitle':
-          'Omnichannel CRM, staff attendance & payroll, contracts and autonomous AI staff.',
+      'subtitle': 'Add products, share your store link and fulfil orders as they come in.',
+      'image': 'assets/images/onboarding_2.png',
+    },
+    {
+      'prefix': 'Know where your ',
+      'highlight': 'money',
+      'suffix': ' is.',
+      'subtitle': 'Track payments, your wallet and simple reports in one place.',
+      'image': 'assets/images/onboarding_3.png',
     },
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Decode the artwork up front so swiping never shows a blank frame.
+    for (final p in _pages) {
+      precacheImage(AssetImage(p['image']!), context);
+    }
+  }
 
   void _onNext() {
     if (_currentPage < _pages.length - 1) {
@@ -71,7 +81,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       body: SafeArea(
-        child: Column(
+        child: ContentWidth(
+          maxWidth: 1000,
+          child: Column(
           children: [
             // Top Bar: 3 Progress Segments & Logo
             Padding(
@@ -122,76 +134,76 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final item = _pages[index];
 
+                  // Title with Highlighted Pill
+                  // One rich text so the sentence wraps naturally with the pill inline.
+                  final titleStyle = GoogleFonts.figtree(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                    color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+                  );
+                  final title = Text.rich(TextSpan(style: titleStyle, children: [
+                    TextSpan(text: item['prefix']),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(9999)),
+                        child: Text(item['highlight']!, style: titleStyle.copyWith(color: Colors.white, height: 1.2)),
+                      ),
+                    ),
+                    TextSpan(text: item['suffix']),
+                  ]));
+
+                  final subtitle = Text(
+                    item['subtitle']!,
+                    style: GoogleFonts.figtree(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      height: 1.5,
+                      color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                    ),
+                  );
+
+                  // Illustration scales down to whatever space is left.
+                  final art = Align(
+                    alignment: Alignment.topCenter,
+                    child: Image.asset(
+                      item['image']!,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                      semanticLabel: item['subtitle'],
+                    ),
+                  );
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
-
-                        // Title with Highlighted Pill
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              item['prefix']!,
-                              style: GoogleFonts.figtree(
-                                fontSize: 30,
-                                fontWeight: FontWeight.w800,
-                                height: 1.25,
-                                color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                              ),
+                    child: LayoutBuilder(builder: (context, c) {
+                      // Landscape / tablet: text left, illustration right.
+                      if (c.maxWidth >= 640 && c.maxWidth > c.maxHeight) {
+                        return Row(children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                title,
+                                const SizedBox(height: 14),
+                                ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: subtitle),
+                              ]),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(9999),
-                              ),
-                              child: Text(
-                                item['highlight']!,
-                                style: GoogleFonts.figtree(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            if (item['suffix']!.isNotEmpty)
-                              Text(
-                                item['suffix']!,
-                                style: GoogleFonts.figtree(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.25,
-                                  color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Subtitle
-                        Text(
-                          item['subtitle']!,
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            height: 1.5,
-                            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
                           ),
-                        ),
-
-                        const Spacer(),
-
-                        // Center Vector Illustration
-                        OnboardingIllustration(index: index),
-
-                        const Spacer(),
-                      ],
-                    ),
+                          const SizedBox(width: 24),
+                          Expanded(child: art),
+                        ]);
+                      }
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const SizedBox(height: 12),
+                        title,
+                        const SizedBox(height: 14),
+                        subtitle,
+                        const SizedBox(height: 24),
+                        Expanded(child: art),
+                      ]);
+                    }),
                   );
                 },
               ),
@@ -203,25 +215,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: _currentPage < 2
                   ? Row(
                       children: [
-                        // Skip Button
-                        TextButton(
-                          onPressed: _goToWelcome,
-                          child: Text(
-                            'Skip',
-                            style: GoogleFonts.figtree(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        // Continue Button
+                        // Boxed "Skip" + wide "Next →", as in the frames.
                         CustomButton(
-                          width: 140,
+                          width: 76,
                           height: 50,
-                          text: 'Continue',
-                          onPressed: _onNext,
+                          text: 'Skip',
+                          variant: ButtonVariant.soft,
+                          onPressed: _goToWelcome,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CustomButton(
+                            height: 50,
+                            text: 'Next',
+                            trailingIcon: const Icon(Icons.arrow_forward),
+                            onPressed: _onNext,
+                          ),
                         ),
                       ],
                     )
@@ -232,6 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
             ),
           ],
+        ),
         ),
       ),
     );

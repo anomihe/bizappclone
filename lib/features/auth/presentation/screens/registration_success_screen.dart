@@ -1,194 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/ui_kit.dart';
 import '../../../home/presentation/screens/main_navigation_screen.dart';
 
+/// "You're all set".
 class RegistrationSuccessScreen extends StatelessWidget {
-  final String businessName;
-  final String slug;
-
-  const RegistrationSuccessScreen({
-    super.key,
-    required this.businessName,
-    required this.slug,
-  });
+  const RegistrationSuccessScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    final p = context.p;
     return Scaffold(
-      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      backgroundColor: p.bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-
-              // Animated Green Checkmark Badge with Gold Arc
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.12),
-                  border: Border.all(
-                    color: AppColors.primary,
-                    width: 3,
-                  ),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.check_rounded,
-                    size: 54,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Headline
-              Text(
-                "You're all set!",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.figtree(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Subtitle
-              Text(
-                'Your business workspace has been successfully created with 14 days of full feature access.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.figtree(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                  color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Summary Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surface : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? AppColors.border : AppColors.lightBorder,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Business Name',
-                          style: GoogleFonts.figtree(
-                            fontSize: 13,
-                            color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        Text(
-                          businessName.isNotEmpty ? businessName : 'Acme Solutions',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(
-                      height: 24,
-                      color: isDark ? AppColors.borderSubtle : AppColors.lightBorder,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Storefront Link',
-                          style: GoogleFonts.figtree(
-                            fontSize: 13,
-                            color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        Text(
-                          'store/${slug.isNotEmpty ? slug : "acme"}',
-                          style: GoogleFonts.figtree(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(
-                      height: 24,
-                      color: isDark ? AppColors.borderSubtle : AppColors.lightBorder,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Active Plan',
-                          style: GoogleFonts.figtree(
-                            fontSize: 13,
-                            color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(9999),
-                          ),
-                          child: Text(
-                            '14-Day Free Trial',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.accent,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const Spacer(flex: 2),
-
-              // Button: "Go to Dashboard"
-              CustomButton(
-                text: 'Go to Dashboard',
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                    (route) => false,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
+        child: ContentWidth(maxWidth: Breakpoints.form, child: FillScroll(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+          child: Column(children: [
+            const Spacer(flex: 3),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2.5)),
+              child: Icon(Icons.done_all, color: context.p.brand, size: 30),
+            ),
+            const SizedBox(height: 18),
+            Text("You're all set", style: tx(context, 20, weight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text('Your 7-day free trial has started. Send your first invoice in under 10 minutes.',
+                textAlign: TextAlign.center, style: tx(context, 13, color: p.textSecondary, height: 1.45)),
+            const Spacer(flex: 4),
+            CustomButton(
+              text: 'Create Your First Invoice',
+              variant: ButtonVariant.accent,
+              onPressed: () => MainNavigationScreen.go(context, openNewInvoice: true),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => MainNavigationScreen.go(context),
+              child: Text('Go to dashboard', style: tx(context, 13, weight: FontWeight.w700, color: context.p.brand)),
+            ),
+          ]),
+        )),
       ),
     );
   }

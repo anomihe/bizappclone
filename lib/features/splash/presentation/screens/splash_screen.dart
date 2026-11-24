@@ -72,40 +72,12 @@ class _GreenSplashScreen extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Top-right decorative background watermarks
-          Positioned(
-            top: -60,
-            right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.04),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            left: -80,
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.04),
-              ),
-            ),
-          ),
+          // Corner watermarks: the logo mark, tinted a shade off the green and cropped.
+          Positioned(top: -70, right: -90, child: _Swoosh(size: 230, turns: 0.5)),
+          Positioned(bottom: -90, left: -80, child: _Swoosh(size: 250, turns: 0)),
 
-          // Central Icon
-          const Center(
-            child: BizpaddiLogo(
-              size: 110,
-              variant: LogoVariant.whiteOnGreen,
-              showText: false,
-            ),
-          ),
+          // Central icon: official mark artwork (white stem + gold arc).
+          Center(child: Image.asset('assets/images/logo_mark_on_green.png', width: 120, height: 120, semanticLabel: 'Bizpaddi')),
         ],
       ),
     );
@@ -126,13 +98,12 @@ class _WhiteSplashScreen extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Centered Brand Logo with Text
+          // Brand wordmark (official artwork in light mode; the drawn white
+          // version in dark mode, where the green text would disappear).
           Center(
-            child: BizpaddiLogo(
-              size: 58,
-              variant: isDark ? LogoVariant.whiteMonochrome : LogoVariant.emeraldAndGold,
-              showText: true,
-            ),
+            child: isDark
+                ? const BizpaddiLogo(size: 58, variant: LogoVariant.whiteMonochrome, showText: true)
+                : Image.asset('assets/images/bizpaddi_wordmark.png', width: 200, semanticLabel: 'Bizpaddi'),
           ),
 
           // Bottom Tagline
@@ -149,6 +120,28 @@ class _WhiteSplashScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The logo mark, recoloured as a subtle corner watermark.
+class _Swoosh extends StatelessWidget {
+  final double size;
+  final double turns;
+  const _Swoosh({required this.size, required this.turns});
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: AlwaysStoppedAnimation(turns),
+      child: Image.asset(
+        'assets/images/logo_mark_on_green.png',
+        width: size,
+        height: size,
+        color: Colors.white.withValues(alpha: 0.07),
+        colorBlendMode: BlendMode.srcIn,
+        excludeFromSemantics: true,
       ),
     );
   }

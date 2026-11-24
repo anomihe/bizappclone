@@ -1,160 +1,106 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/bizpaddi_logo.dart';
+import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/password_rules.dart';
+import '../../../../core/widgets/ui_kit.dart';
+import '../widgets/auth_scaffold.dart';
 import 'login_screen.dart';
 
+/// "Set New Password" — step 3 of reset.
 class ResetPasswordScreen extends StatefulWidget {
-  final String email;
-
-  const ResetPasswordScreen({super.key, required this.email});
+  const ResetPasswordScreen({super.key});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final _codeController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
+  bool _loading = false;
 
-  void _onReset() async {
-    if (_newPasswordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
+  @override
+  void dispose() {
+    _password.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
+  bool get _mismatch => _confirm.text.isNotEmpty && _confirm.text != _password.text;
+  bool get _valid => PasswordRules.isValid(_password.text) && _confirm.text == _password.text;
 
-    await Future.delayed(const Duration(milliseconds: 650));
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset successfully. Please log in.'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
-    }
+  Future<void> _save() async {
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PasswordUpdatedScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: isDark ? Colors.white : AppColors.lightTextPrimary,
-          ),
-          onPressed: () => Navigator.pop(context),
+    return AuthScaffold(
+      title: 'Set New Password',
+      children: [
+        CustomTextField(label: 'New Password', hint: 'Enter New Password', controller: _password, isPassword: true, onChanged: (_) => setState(() {})),
+        const SizedBox(height: 14),
+        CustomTextField(
+          label: 'Confirm New Password',
+          hint: 'Enter New Password',
+          controller: _confirm,
+          isPassword: true,
+          errorText: _mismatch ? 'Passwords do not match' : null,
+          onChanged: (_) => setState(() {}),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: BizpaddiLogo(size: 26),
-          ),
-        ],
-      ),
+        const SizedBox(height: 10),
+        PasswordRulesView(password: _password.text),
+        const SizedBox(height: 20),
+        CustomButton(text: 'Continue', isLoading: _loading, onPressed: _valid ? _save : null),
+      ],
+    );
+  }
+}
+
+class PasswordUpdatedScreen extends StatelessWidget {
+  const PasswordUpdatedScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.p;
+    return Scaffold(
+      backgroundColor: p.bg,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Create new password',
-                style: GoogleFonts.figtree(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                ),
+        child: FillScroll(child: Center(
+          child: ContentWidth(maxWidth: Breakpoints.form, alignment: Alignment.center, child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(14)),
+                child: const Icon(Icons.password, color: Colors.white, size: 30),
               ),
+              const SizedBox(height: 18),
+              Text('Password Updated\nSuccessfully', textAlign: TextAlign.center, style: tx(context, 19, weight: FontWeight.w800)),
               const SizedBox(height: 8),
               Text(
-                'Enter the reset code sent to ${widget.email} and create a strong new password.',
-                style: GoogleFonts.figtree(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                  color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                ),
+                'You can now login with your new password. All other devices have been signed out for your security.',
+                textAlign: TextAlign.center,
+                style: tx(context, 12.5, color: p.textSecondary, height: 1.45),
               ),
-
-              const SizedBox(height: 28),
-
-              CustomTextField(
-                label: 'Reset Code',
-                hint: '6-digit code',
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                prefixIcon: Icon(
-                  Icons.vpn_key_outlined,
-                  size: 20,
-                  color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              CustomTextField(
-                label: 'New Password',
-                hint: '••••••••',
-                controller: _newPasswordController,
-                isPassword: true,
-                prefixIcon: Icon(
-                  Icons.lock_outline,
-                  size: 20,
-                  color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              CustomTextField(
-                label: 'Confirm New Password',
-                hint: '••••••••',
-                controller: _confirmPasswordController,
-                isPassword: true,
-                prefixIcon: Icon(
-                  Icons.lock_outline,
-                  size: 20,
-                  color: isDark ? AppColors.textMuted : AppColors.lightTextMuted,
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
+              const SizedBox(height: 22),
               CustomButton(
-                text: 'Reset Password',
-                isLoading: _isLoading,
-                onPressed: _onReset,
+                text: 'Proceed to Login',
+                onPressed: () => Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (r) => r.isFirst,
+                ),
               ),
-            ],
-          ),
-        ),
+            ]),
+          )),
+        )),
       ),
     );
   }

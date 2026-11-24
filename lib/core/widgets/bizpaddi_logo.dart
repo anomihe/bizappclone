@@ -32,6 +32,8 @@ class BizpaddiLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // The emerald mark disappears on dark surfaces; use the white + gold version there.
+    final resolvedVariant = isDark && variant == LogoVariant.emeraldAndGold ? LogoVariant.whiteOnGreen : variant;
 
     final resolvedTextColor = textColor ??
         (variant == LogoVariant.whiteOnGreen
@@ -42,7 +44,7 @@ class BizpaddiLogo extends StatelessWidget {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _BizpaddiMarkPainter(variant: variant),
+        painter: _BizpaddiMarkPainter(variant: resolvedVariant),
       ),
     );
 

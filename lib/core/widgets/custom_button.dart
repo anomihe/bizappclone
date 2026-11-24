@@ -7,6 +7,15 @@ enum ButtonVariant {
   secondary,
   outline,
   white,
+
+  /// Gold call-to-action ("View Receipt", "Issue Invoice").
+  accent,
+
+  /// Destructive confirm ("Void Invoice", "Cancel Link").
+  danger,
+
+  /// Tinted green secondary ("Not Now", "Log in").
+  soft,
 }
 
 class CustomButton extends StatelessWidget {
@@ -15,6 +24,9 @@ class CustomButton extends StatelessWidget {
   final ButtonVariant variant;
   final bool isLoading;
   final Widget? icon;
+
+  /// Icon after the label ("Next →").
+  final Widget? trailingIcon;
   final double height;
   final double? width;
 
@@ -25,7 +37,8 @@ class CustomButton extends StatelessWidget {
     this.variant = ButtonVariant.primary,
     this.isLoading = false,
     this.icon,
-    this.height = 54,
+    this.trailingIcon,
+    this.height = 50,
     this.width,
   });
 
@@ -47,33 +60,48 @@ class CustomButton extends StatelessWidget {
         fg = isDark ? Colors.white : AppColors.lightTextPrimary;
         break;
       case ButtonVariant.outline:
-        bg = Colors.transparent;
+        bg = isDark ? Colors.transparent : Colors.white;
         fg = isDark ? Colors.white : AppColors.primary;
-        border = BorderSide(
-          color: isDark ? AppColors.border : AppColors.primary,
-          width: 1.5,
-        );
+        border = BorderSide(color: isDark ? AppColors.border : AppColors.lightBorder, width: 1.2);
         break;
       case ButtonVariant.white:
         bg = Colors.white;
         fg = const Color(0xFF0F1F1A);
         break;
+      case ButtonVariant.accent:
+        bg = AppColors.accent;
+        fg = const Color(0xFF111916);
+        break;
+      case ButtonVariant.danger:
+        bg = const Color(0xFFC62828);
+        fg = Colors.white;
+        break;
+      case ButtonVariant.soft:
+        bg = isDark ? const Color(0xFF173A30) : const Color(0xFFE3EFEB);
+        fg = isDark ? Colors.white : AppColors.primary;
+        break;
     }
+
+    final disabled = onPressed == null && !isLoading;
+    final disabledBg = isDark ? const Color(0xFF1E2B27) : const Color(0xFFDDE3E0);
+    final disabledFg = isDark ? AppColors.textMuted : AppColors.lightTextMuted;
+    final textColor = disabled ? disabledFg : fg;
 
     return SizedBox(
       height: height,
       width: width ?? double.infinity,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        // While loading keep the enabled colours (design shows a filled button with a spinner).
+        onPressed: isLoading ? () {} : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: bg,
           foregroundColor: fg,
+          disabledBackgroundColor: disabledBg,
+          disabledForegroundColor: disabledFg,
           elevation: 0,
           shadowColor: Colors.transparent,
-          side: border,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9999), // Pill shape
-          ),
+          side: disabled ? BorderSide.none : border,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           padding: const EdgeInsets.symmetric(horizontal: 14),
         ),
         child: isLoading
@@ -90,7 +118,7 @@ class CustomButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    icon!,
+                    IconTheme(data: IconThemeData(color: textColor, size: 18), child: icon!),
                     const SizedBox(width: 6),
                   ],
                   Flexible(
@@ -99,13 +127,17 @@ class CustomButton extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.figtree(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: fg,
+                        color: textColor,
                         letterSpacing: 0.1,
                       ),
                     ),
                   ),
+                  if (trailingIcon != null) ...[
+                    const SizedBox(width: 6),
+                    IconTheme(data: IconThemeData(color: textColor, size: 18), child: trailingIcon!),
+                  ],
                 ],
               ),
       ),
