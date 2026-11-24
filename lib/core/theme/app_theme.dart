@@ -48,7 +48,10 @@ class AppTheme {
     );
 
     return base.copyWith(
-      textTheme: GoogleFonts.figtreeTextTheme(base.textTheme).apply(bodyColor: p.text, displayColor: p.text),
+      // Font family is set above via `fontFamily`; avoid GoogleFonts.*TextTheme(),
+      // which returns material_ui's TextTheme on newer Flutter and no longer
+      // type-checks against ThemeData's.
+      textTheme: base.textTheme.apply(bodyColor: p.text, displayColor: p.text),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
