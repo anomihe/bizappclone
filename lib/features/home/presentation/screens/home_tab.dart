@@ -64,7 +64,11 @@ class _HomeTabState extends State<HomeTab> {
       builder: (context, _) => Scaffold(
         backgroundColor: context.p.bg,
         floatingActionButton: const CreateNewFab(),
-        body: CustomScrollView(slivers: [
+        // Figma: the cream → mint gradient sits behind the whole dashboard and
+        // stays put while the white cards scroll over it.
+        body: DecoratedBox(
+          decoration: BoxDecoration(gradient: context.p.screenGradient),
+          child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: _header()),
           SliverToBoxAdapter(
             child: ContentWidth(
@@ -76,6 +80,7 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
         ]),
+        ),
       ),
     );
   }
@@ -117,7 +122,8 @@ class _HomeTabState extends State<HomeTab> {
     final p = context.p;
     final a = store.account;
     return Container(
-      decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: p.headerGradient)),
+      // Transparent: the screen gradient shows through.
+      color: Colors.transparent,
       child: SafeArea(
         bottom: false,
         child: ContentWidth(
@@ -447,6 +453,7 @@ class _HomeTabState extends State<HomeTab> {
       else
         for (final pay in list)
           RecordTile(
+            color: p.card,
             leading: const LeadingIcon(Icons.receipt_outlined),
             title: pay.customerName,
             subtitle: '${pay.sourceLabel} · ${Fmt.relativeDay(pay.date)}',

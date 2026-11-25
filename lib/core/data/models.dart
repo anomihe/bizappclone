@@ -8,6 +8,9 @@ class Customer {
   String email;
   String notes;
 
+  /// Backend id when synced with the Bizpaddi API.
+  int? serverId;
+
   Customer({
     required this.id,
     required this.name,
@@ -135,6 +138,16 @@ class Invoice {
   String linkNumber;
   List<LineItem> items;
   double discount;
+
+  /// Tax from the backend (the app itself does not add tax to invoices).
+  double taxAmount;
+
+  /// Server-reported total, used until the line items are loaded (lists
+  /// arrive without items).
+  double? totalOverride;
+
+  /// Backend id when synced with the Bizpaddi API.
+  int? serverId;
   DateTime? dueDate;
   bool allowPartPayment;
   String notes;
@@ -154,6 +167,9 @@ class Invoice {
     this.linkNumber = '',
     required this.items,
     this.discount = 0,
+    this.taxAmount = 0,
+    this.totalOverride,
+    this.serverId,
     this.dueDate,
     this.allowPartPayment = false,
     this.notes = '',
@@ -169,7 +185,9 @@ class Invoice {
 
   String get customerName => customerNameOverride ?? customer?.name ?? 'No customer';
   double get subtotal => items.fold(0, (s, i) => s + i.total);
-  double get total => (subtotal - discount).clamp(0, double.infinity).toDouble();
+  double get total => items.isEmpty && totalOverride != null
+      ? totalOverride!
+      : (subtotal - discount + taxAmount).clamp(0, double.infinity).toDouble();
   double get paid => payments
       .where((p) => p.paidByCustomer)
       .fold(0, (s, p) => s + p.amount);
@@ -207,6 +225,10 @@ class Quotation {
   Customer? customer;
   List<LineItem> items;
   double discount;
+
+  /// See [Invoice.totalOverride].
+  double? totalOverride;
+  int? serverId;
   String notes;
   QuotationStatus _status;
   DateTime? validTill;
@@ -226,6 +248,8 @@ class Quotation {
     this.customer,
     required this.items,
     this.discount = 0,
+    this.totalOverride,
+    this.serverId,
     this.notes = '',
     QuotationStatus status = QuotationStatus.draft,
     this.validTill,
@@ -237,7 +261,7 @@ class Quotation {
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get net => (subtotal - discount).clamp(0, double.infinity).toDouble();
   double get vat => addVat ? net * vatRate : 0;
-  double get total => net + vat;
+  double get total => items.isEmpty && totalOverride != null ? totalOverride! : net + vat;
   String get link => 'bizpaddi.com/q/${id.hashCode.abs() % 900 + 100}';
 
   /// Sent quotations flip to expired on their own once the validity ends.
@@ -259,6 +283,7 @@ class AppNotification {
   final DateTime time;
   final NotificationType type;
   bool read;
+  final String? serverId;
 
   AppNotification({
     required this.title,
@@ -266,6 +291,7 @@ class AppNotification {
     required this.time,
     required this.type,
     this.read = false,
+    this.serverId,
   });
 }
 
@@ -286,6 +312,10 @@ class Account {
   bool verified;
   bool biometricsEnabled;
 
+  /// Profile photo URL (live mode) and backend user id.
+  String? avatarUrl;
+  int? userId;
+
   Account({
     required this.ownerFirstName,
     required this.ownerFullName,
@@ -300,6 +330,8 @@ class Account {
     this.trialDaysLeft = 7,
     this.verified = false,
     this.biometricsEnabled = false,
+    this.avatarUrl,
+    this.userId,
   });
 }
 

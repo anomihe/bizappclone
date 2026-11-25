@@ -27,6 +27,9 @@ import 'package:bizpaddi/features/onboarding/presentation/screens/onboarding_scr
 import 'package:bizpaddi/features/onboarding/presentation/screens/welcome_screen.dart';
 import 'package:bizpaddi/features/payments/presentation/screens/payment_details_screen.dart';
 import 'package:bizpaddi/features/payments/presentation/screens/receipt_screen.dart';
+import 'package:bizpaddi/features/workspace/resource_screens.dart';
+import 'package:bizpaddi/features/workspace/resource_specs.dart';
+import 'package:bizpaddi/features/workspace/workspace_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bizpaddi/features/business/presentation/screens/bank_settlement_screen.dart';
@@ -134,6 +137,14 @@ void main() {
     'link expired': () => PaymentLinkDetailsScreen(link: store.paymentLinks.firstWhere((l) => BizStatus.link(l).label == 'Expired')),
     'quotation expired': () => QuotationDetailsScreen(quotation: store.quotations.firstWhere((q) => q.status == QuotationStatus.expired)),
     'quotation accepted': () => QuotationDetailsScreen(quotation: store.quotations.firstWhere((q) => q.status == QuotationStatus.accepted)),
+    'leads list': () => ResourceListScreen(spec: Specs.leads),
+    'project form': () => ResourceFormScreen(spec: Specs.projects),
+    'contract details': () => ResourceDetailScreen(spec: Specs.contracts, item: Specs.contracts.demo().first),
+    'project details': () => projectDetails(Specs.projects.demo().first),
+    'project chat': () => const ProjectChatScreen(projectId: 1, projectName: 'Obi wedding outfits', type: ChatType.team),
+    'balance sheet': () => const BalanceSheetScreen(),
+    'my profile': () => const MyProfileScreen(),
+    'change password': () => const ChangePasswordScreen(),
   };
 
   // Logical sizes covering the layouts we support.

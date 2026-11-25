@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
@@ -31,6 +32,8 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    // Live mode: lists come without line items; load them now.
+    if (LiveSession.enabled && !_isLink) LiveSession.instance.refreshInvoice(widget.invoice);
     if (widget.justIssued && !_isLink) {
       // Offer the share sheet right after issuing — that's the next step.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -40,6 +43,15 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
   }
 
   bool get _isLink => widget.invoice.kind == DocKind.paymentLink;
+
+  Future<void> _deleteDraft() async {
+    final i = widget.invoice;
+    final ok = await showConfirmSheet(context, title: 'Delete draft ${i.number}?', message: 'The draft will be removed. This can’t be undone.', confirmLabel: 'Delete Draft', cancelLabel: 'Keep It');
+    if (!ok || !mounted) return;
+    BizStore.instance.deleteDraft(i);
+    showToast(context, 'Draft deleted');
+    Navigator.pop(context);
+  }
 
   Future<void> _void() async {
     final i = widget.invoice;
@@ -170,6 +182,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               icon: const Icon(Icons.edit_outlined),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.invoice(draft: i))),
             ),
+          if (status == InvoiceStatus.draft) ...[
+            const SizedBox(height: 8),
+            ActionTile(icon: Icons.delete_outline, title: 'Delete draft', danger: true, onTap: _deleteDraft),
+          ],
           if (open) ...[
             ActionTile(icon: Icons.notifications_active_outlined, title: 'Send Reminder', subtitle: 'Reminders stop once it is paid', onTap: () => showSendReminderSheet(context, i)),
             ActionTile(icon: Icons.share_outlined, title: 'Share pay link', subtitle: i.payLink, onTap: () => showSharePayLinkSheet(context, i)),

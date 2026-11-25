@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -14,6 +15,9 @@ import '../../../store/presentation/screens/store_screen.dart';
 import '../../../support/presentation/screens/about_screen.dart';
 import '../../../support/presentation/screens/help_support_screen.dart';
 import '../../../team/presentation/screens/team_screen.dart';
+import '../../../workspace/resource_screens.dart';
+import '../../../workspace/resource_specs.dart';
+import '../../../workspace/workspace_screens.dart';
 import 'coming_soon_screen.dart';
 import 'settings_screen.dart';
 
@@ -42,6 +46,8 @@ class MoreTab extends StatelessWidget {
       },
     );
     if (ok != true || !context.mounted) return;
+    if (LiveSession.enabled) await LiveSession.instance.logout();
+    if (!context.mounted) return;
     BizStore.instance.logOut();
     Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const WelcomeBackScreen()), (_) => false);
   }
@@ -106,9 +112,27 @@ class MoreTab extends StatelessWidget {
                     onTap: () => open(const OrdersScreen()),
                   ),
                 ]),
+                section('Customers & Marketing', [
+                  ActionTile(icon: Icons.person_search_outlined, title: 'Leads', subtitle: 'People interested in buying', onTap: () => open(ResourceListScreen(spec: Specs.leads))),
+                  ActionTile(icon: Icons.contacts_outlined, title: 'Contacts', subtitle: 'Your mailing list', onTap: () => open(ResourceListScreen(spec: Specs.contacts))),
+                  ActionTile(icon: Icons.campaign_outlined, title: 'Campaigns', subtitle: 'Email offers to your contacts', onTap: () => open(ResourceListScreen(spec: Specs.campaigns))),
+                  ActionTile(icon: Icons.support_agent, title: 'Support tickets', subtitle: 'Help requests from customers', onTap: () => open(const TicketsScreen())),
+                ]),
+                section('Projects & Contracts', [
+                  ActionTile(icon: Icons.work_outline, title: 'Projects', subtitle: 'Jobs, tasks, milestones and chat', onTap: () => open(const ProjectsScreen())),
+                  ActionTile(icon: Icons.task_alt, title: 'All tasks', subtitle: 'Every task across projects', onTap: () => open(ResourceListScreen(spec: Specs.tasks))),
+                  ActionTile(icon: Icons.schedule, title: 'Work logs', subtitle: 'Staff check-ins and hours', onTap: () => open(ResourceListScreen(spec: Specs.workLogs))),
+                  ActionTile(icon: Icons.history_edu_outlined, title: 'Contracts', subtitle: 'Agreements with customers and suppliers', onTap: () => open(ResourceListScreen(spec: Specs.contracts))),
+                  ActionTile(icon: Icons.file_copy_outlined, title: 'Contract templates', subtitle: 'Reusable contract wording', onTap: () => open(ResourceListScreen(spec: Specs.contractTemplates))),
+                ]),
                 section('Manage', [
                   ActionTile(icon: Icons.groups_outlined, title: 'Team', subtitle: 'Invite staff and set roles', onTap: () => open(const TeamScreen())),
                   ActionTile(icon: Icons.insights_outlined, title: 'Reports', subtitle: 'Revenue and payment insights', onTap: () => open(const ReportsScreen())),
+                  ActionTile(icon: Icons.account_tree_outlined, title: 'Departments', subtitle: 'Group your staff', onTap: () => open(ResourceListScreen(spec: Specs.departments))),
+                  ActionTile(icon: Icons.payments_outlined, title: 'Payroll', subtitle: 'Record salary payments', onTap: () => open(ResourceListScreen(spec: Specs.salaries))),
+                  ActionTile(icon: Icons.design_services_outlined, title: 'Services', subtitle: 'What you offer and starting prices', onTap: () => open(ResourceListScreen(spec: Specs.services))),
+                  ActionTile(icon: Icons.balance_outlined, title: 'Balance sheet', subtitle: 'What you own and owe', onTap: () => open(const BalanceSheetScreen())),
+                  ActionTile(icon: Icons.currency_exchange, title: 'Currencies', subtitle: 'Supported currencies and rates', onTap: () => open(ResourceListScreen(spec: Specs.currencies))),
                   ActionTile(icon: Icons.account_balance_wallet_outlined, title: 'Wallet & Billings', subtitle: 'Balance and subscription', onTap: () => open(const ComingSoonScreen(title: 'Wallet & Billings'))),
                 ]),
                 section('Account', [
@@ -123,6 +147,7 @@ class MoreTab extends StatelessWidget {
                     },
                     onTap: () => open(const BusinessProfileScreen()),
                   ),
+                  ActionTile(icon: Icons.person_outline, title: 'My Profile', subtitle: 'Photo, name and phone', onTap: () => open(const MyProfileScreen())),
                   ActionTile(icon: Icons.shield_outlined, title: 'Security', subtitle: 'Password, biometrics, sessions', onTap: () => open(const SecurityScreen())),
                   ActionTile(icon: Icons.settings_outlined, title: 'Settings', subtitle: 'Appearance and notifications', onTap: () => open(const SettingsScreen())),
                 ]),

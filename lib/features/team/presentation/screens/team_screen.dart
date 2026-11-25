@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
@@ -262,8 +265,70 @@ class _InviteStaffScreenState extends State<InviteStaffScreen> {
     return Fmt.isEmail(v) || v.replaceAll(RegExp(r'\D'), '').length >= 10;
   }
 
+
+  /// The API needs a password for new staff; show the generated one once so
+  /// the owner can pass it on.
+  Future<void> _showTempPassword(String email, String password) => showBpSheet(
+        context,
+        showHandle: true,
+        builder: (ctx) {
+          final p = ctx.p;
+          return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Icon(Icons.key_outlined, size: 36, color: p.brand),
+            const SizedBox(height: 10),
+            Text('Staff login created', textAlign: TextAlign.center, style: tx(ctx, 16, weight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text('Share this temporary password with $email. It is shown only once; they can change it after logging in.',
+                textAlign: TextAlign.center, style: tx(ctx, 12.5, color: p.textSecondary, height: 1.4)),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(color: p.cardAlt, borderRadius: BorderRadius.circular(10), border: Border.all(color: p.border)),
+              child: SelectableText(password, textAlign: TextAlign.center, style: tx(ctx, 18, weight: FontWeight.w800)),
+            ),
+            const SizedBox(height: 14),
+            CustomButton(
+              text: 'Copy Password',
+              icon: const Icon(Icons.copy),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: password));
+                showToast(ctx, 'Password copied');
+              },
+            ),
+            const SizedBox(height: 10),
+            CustomButton(text: 'Done', variant: ButtonVariant.outline, onPressed: () => Navigator.pop(ctx)),
+          ]);
+        },
+      );
   Future<void> _send() async {
     setState(() => _loading = true);
+    if (LiveSession.enabled) {
+      final contact = _contact.text.trim();
+      if (!Fmt.isEmail(contact)) {
+        setState(() => _loading = false);
+        showToast(context, 'Enter the staff member’s email — Bizpaddi creates their login with it');
+        return;
+      }
+      try {
+        final m = StaffMember(
+          id: 'new-${DateTime.now().microsecondsSinceEpoch}',
+          name: contact.split('@').first,
+          email: contact,
+          role: _role,
+          permissions: _perms,
+          lastActive: DateTime.now(),
+        );
+        final password = await LiveSession.instance.inviteStaff(m);
+        if (!mounted) return;
+        await _showTempPassword(contact, password);
+        if (mounted) Navigator.pop(context);
+      } on ApiException catch (e) {
+        if (mounted) showToast(context, e.message);
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+      return;
+    }
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     BizStore.instance.inviteStaff(contact: _contact.text.trim(), role: _role, permissions: _perms);

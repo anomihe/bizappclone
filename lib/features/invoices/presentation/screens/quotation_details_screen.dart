@@ -46,6 +46,15 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.invoice(draft: invoice)));
   }
 
+  Future<void> _delete() async {
+    final q = widget.quotation;
+    final ok = await showConfirmSheet(context, title: 'Delete quotation ${q.number}?', message: 'Your customer won’t be able to open it any more. This can’t be undone.', confirmLabel: 'Delete', cancelLabel: 'Keep It');
+    if (!ok || !mounted) return;
+    BizStore.instance.deleteQuotation(q);
+    showToast(context, 'Quotation deleted');
+    Navigator.pop(context);
+  }
+
   void _reuse() {
     final copy = BizStore.instance.duplicateQuotation(widget.quotation);
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.quotation(draft: copy)));
@@ -76,6 +85,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     return InnerScaffold(
       title: 'Quotation #${q.number.replaceAll('-', '')}',
       subtitle: q.customer?.name,
+      actions: [CircleIconButton(icon: Icons.delete_outline, tooltip: 'Delete quotation', color: p.error, onTap: _delete)],
       bottom: bottom,
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         DocHeaderCard(

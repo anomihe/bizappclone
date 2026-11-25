@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
 import '../../../../core/widgets/theme_toggle.dart';
 import '../../../../core/widgets/ui_kit.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../customers/presentation/screens/customer_form_screen.dart';
 import '../../../customers/presentation/screens/customers_tab.dart';
 import '../../../invoices/presentation/screens/create_document_screen.dart';
@@ -56,6 +58,30 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         if (mounted) CreateActions.newInvoice(context);
       });
     }
+    if (LiveSession.enabled) {
+      LiveSession.instance.syncError.addListener(_onSyncError);
+      LiveSession.instance.sessionExpired.addListener(_onSessionExpired);
+    }
+  }
+
+  @override
+  void dispose() {
+    LiveSession.instance.syncError.removeListener(_onSyncError);
+    LiveSession.instance.sessionExpired.removeListener(_onSessionExpired);
+    super.dispose();
+  }
+
+  /// A background save to the backend failed.
+  void _onSyncError() {
+    final msg = LiveSession.instance.syncError.value;
+    if (msg != null && mounted) showToast(context, msg);
+  }
+
+  /// The backend rejected the token (expired / revoked elsewhere).
+  void _onSessionExpired() {
+    if (!LiveSession.instance.sessionExpired.value || !mounted) return;
+    showToast(context, 'Your session ended. Please log in again.');
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
   }
 
   void _select(int i) => setState(() => _index = i);

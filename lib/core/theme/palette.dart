@@ -31,10 +31,28 @@ class Palette {
   Color get info => isDark ? const Color(0xFF7AA7FF) : AppColors.info;
   Color get error => isDark ? const Color(0xFFFF8A8A) : AppColors.error;
 
-  /// Soft gradient used behind the tab headers (Home, Payments, Invoices...).
+  /// Warm cream → mint brand gradient from the Figma (top-left cream-yellow,
+  /// fading to pale mint). Used behind tab headers.
   List<Color> get headerGradient => isDark
       ? [const Color(0xFF1B2A1F), AppColors.background]
-      : [const Color(0xFFF6EFD2), const Color(0xFFE6F0EA), const Color(0xFFF1F3F2)];
+      : [const Color(0xFFF7EECB), const Color(0xFFE8EFDC), const Color(0xFFE2ECE2)];
+
+  /// Same gradient stretched over a whole screen (Home dashboard): white
+  /// cards float on it. Opaque colours only — alpha gradients render muddy
+  /// on some GPUs.
+  LinearGradient get screenGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A2A20), Color(0xFF0F1C17), AppColors.background],
+          stops: [0, 0.45, 1],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF7EECB), Color(0xFFE9F0DD), Color(0xFFDDEADF)],
+          stops: [0, 0.4, 1],
+        );
 }
 
 extension PaletteX on BuildContext {

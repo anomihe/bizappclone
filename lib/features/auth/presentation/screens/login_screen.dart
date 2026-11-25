@@ -1,7 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
+import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/ui_kit.dart';
@@ -30,11 +33,30 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  bool get _valid => _id.text.trim().isNotEmpty && _password.text.isNotEmpty;
+  String? _error;
+
+  // The backend logs in by email only.
+  bool get _valid => (LiveSession.enabled ? Fmt.isEmail(_id.text) : _id.text.trim().isNotEmpty) && _password.text.isNotEmpty;
 
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    if (LiveSession.enabled) {
+      try {
+        await LiveSession.instance.login(_id.text, _password.text);
+        // The backend has no device-verification code; go straight in.
+        if (mounted) MainNavigationScreen.go(context);
+      } on ApiException catch (e) {
+        if (mounted) setState(() => _error = e.message);
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+      return;
+    }
+
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
     setState(() => _loading = false);
@@ -70,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ])),
       children: [
         CustomTextField(
-          label: 'Email or Phone',
+          label: LiveSession.enabled ? 'Email' : 'Email or Phone',
           hint: 'Enter your email',
           controller: _id,
           keyboardType: TextInputType.emailAddress,
@@ -93,6 +115,19 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        if (_error != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: p.errorSoft, borderRadius: BorderRadius.circular(10)),
+            child: Row(children: [
+              Icon(Icons.error_outline, size: 18, color: p.error),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_error!, style: tx(context, 12.5, color: p.error))),
+            ]),
+          ),
+          const SizedBox(height: 12),
+        ],
         CustomButton(text: 'Log in', isLoading: _loading, onPressed: _valid ? _login : null),
       ],
     );

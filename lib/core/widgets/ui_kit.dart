@@ -507,7 +507,10 @@ class RecordTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? footer;
 
-  const RecordTile({super.key, required this.leading, required this.title, required this.subtitle, required this.amount, this.status, this.onTap, this.footer});
+  /// Card colour; defaults to the soft grey used on white panels.
+  final Color? color;
+
+  const RecordTile({super.key, required this.leading, required this.title, required this.subtitle, required this.amount, this.status, this.onTap, this.footer, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -516,6 +519,7 @@ class RecordTile extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: BpCard(
         onTap: onTap,
+        color: color,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Column(children: [
           Row(children: [

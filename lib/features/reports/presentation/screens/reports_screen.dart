@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
+import '../../../../core/api/mappers.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
@@ -20,6 +22,46 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final store = BizStore.instance;
   int _period = 0; // 7, 30, 90, custom
   DateTimeRange? _custom;
+
+  /// Live mode: `GET /api/v1/admin/dashboard` stats (null in demo mode).
+  Map<String, dynamic>? _overview;
+
+  @override
+  void initState() {
+    super.initState();
+    if (LiveSession.enabled) {
+      LiveSession.instance.business.dashboard().then((d) {
+        final stats = d['stats'];
+        if (mounted && stats is Map<String, dynamic>) setState(() => _overview = stats);
+      }).catchError((_) {});
+    }
+  }
+
+  Widget _overviewCard(BuildContext context) {
+    final s = _overview!;
+    num n(String k) => ApiMappers.num0(s[k]);
+    final growth = n('revenue_growth');
+    return BpCard(
+      color: context.p.cardAlt,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('Account overview', style: tx(context, 14, weight: FontWeight.w800)),
+        const SizedBox(height: 10),
+        InfoRow(label: 'Revenue this month', value: '${Fmt.money(n('revenue_this_month'))}${growth == 0 ? '' : '  (${growth > 0 ? '+' : ''}${growth.toStringAsFixed(1)}%)'}'),
+        const SizedBox(height: 8),
+        InfoRow(label: 'Total revenue', value: Fmt.money(n('total_revenue'))),
+        const SizedBox(height: 8),
+        InfoRow(label: 'Unpaid invoices', value: '${n('unpaid_invoices_count').toInt()}'),
+        const SizedBox(height: 8),
+        InfoRow(label: 'Active projects', value: '${n('active_projects').toInt()}'),
+        const SizedBox(height: 8),
+        InfoRow(label: 'Salaries this month', value: Fmt.money(n('salaries_this_month'))),
+        if (n('safe_haven_balance') != 0) ...[
+          const SizedBox(height: 8),
+          InfoRow(label: 'Collection account balance', value: Fmt.money(n('safe_haven_balance'))),
+        ],
+      ]),
+    );
+  }
 
   (DateTime, DateTime?, int) get _range {
     final now = DateTime.now();
@@ -116,6 +158,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
       ],
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (_overview != null) ...[_overviewCard(context), const SizedBox(height: 16)],
         SizedBox(
           height: 34,
           child: ListView(scrollDirection: Axis.horizontal, children: [

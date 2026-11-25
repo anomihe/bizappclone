@@ -1,0 +1,1500 @@
+file	method	path	auth	handler
+Modules/AI/routes/api.php	GET	/api/v1/ais	auth:sanctum	AIController@index
+Modules/AI/routes/api.php	POST	/api/v1/ais	auth:sanctum	AIController@store
+Modules/AI/routes/api.php	GET	/api/v1/ais/{ai}	auth:sanctum	AIController@show
+Modules/AI/routes/api.php	PUT|PATCH	/api/v1/ais/{ai}	auth:sanctum	AIController@update
+Modules/AI/routes/api.php	DELETE	/api/v1/ais/{ai}	auth:sanctum	AIController@destroy
+Modules/AI/routes/web.php	POST	/ai/chat/start	public	ChatController@start
+Modules/AI/routes/web.php	POST	/ai/chat/send	public	ChatController@send
+Modules/AI/routes/web.php	GET	/dashboard/ai/settings	AdminAuth	AISettingController@index
+Modules/AI/routes/web.php	POST	/dashboard/ai/settings	AdminAuth	AISettingController@update
+Modules/AI/routes/web.php	GET	/dashboard/ai/chats	AdminAuth	ChatHistoryController@index
+Modules/AI/routes/web.php	GET	/dashboard/ai/chats/{id}	AdminAuth	ChatHistoryController@show
+Modules/AI/routes/web.php	GET	/dashboard/ai/models	AdminAuth	AIModelController@index
+Modules/AI/routes/web.php	GET	/dashboard/ai/models/create	AdminAuth	AIModelController@create
+Modules/AI/routes/web.php	POST	/dashboard/ai/models	AdminAuth	AIModelController@store
+Modules/AI/routes/web.php	GET	/dashboard/ai/models/{model}	AdminAuth	AIModelController@show
+Modules/AI/routes/web.php	GET	/dashboard/ai/models/{model}/edit	AdminAuth	AIModelController@edit
+Modules/AI/routes/web.php	PUT|PATCH	/dashboard/ai/models/{model}	AdminAuth	AIModelController@update
+Modules/AI/routes/web.php	DELETE	/dashboard/ai/models/{model}	AdminAuth	AIModelController@destroy
+Modules/About/routes/api.php	GET	/api/v1/abouts	auth:sanctum	AboutController@index
+Modules/About/routes/api.php	POST	/api/v1/abouts	auth:sanctum	AboutController@store
+Modules/About/routes/api.php	GET	/api/v1/abouts/{about}	auth:sanctum	AboutController@show
+Modules/About/routes/api.php	PUT|PATCH	/api/v1/abouts/{about}	auth:sanctum	AboutController@update
+Modules/About/routes/api.php	DELETE	/api/v1/abouts/{about}	auth:sanctum	AboutController@destroy
+Modules/About/routes/web.php	GET	/about	public	AboutController@index
+Modules/About/routes/web.php	GET	/abouts	auth, verified	AboutController@index
+Modules/About/routes/web.php	GET	/abouts/create	auth, verified	AboutController@create
+Modules/About/routes/web.php	POST	/abouts	auth, verified	AboutController@store
+Modules/About/routes/web.php	GET	/abouts/{about}	auth, verified	AboutController@show
+Modules/About/routes/web.php	GET	/abouts/{about}/edit	auth, verified	AboutController@edit
+Modules/About/routes/web.php	PUT|PATCH	/abouts/{about}	auth, verified	AboutController@update
+Modules/About/routes/web.php	DELETE	/abouts/{about}	auth, verified	AboutController@destroy
+Modules/Accounting/routes/api.php	GET	/api/v1/accountings	auth:sanctum	AccountingController@index
+Modules/Accounting/routes/api.php	POST	/api/v1/accountings	auth:sanctum	AccountingController@store
+Modules/Accounting/routes/api.php	GET	/api/v1/accountings/{accounting}	auth:sanctum	AccountingController@show
+Modules/Accounting/routes/api.php	PUT|PATCH	/api/v1/accountings/{accounting}	auth:sanctum	AccountingController@update
+Modules/Accounting/routes/api.php	DELETE	/api/v1/accountings/{accounting}	auth:sanctum	AccountingController@destroy
+Modules/Accounting/routes/web.php	POST	/webhooks/safehaven	public	WebhookController@handleSafeHaven
+Modules/Accounting/routes/web.php	GET	/accounting	public	closure
+Modules/Accounting/routes/web.php	GET	/accountings	public	AccountingController@index
+Modules/Accounting/routes/web.php	GET	/accountings/create	public	AccountingController@create
+Modules/Accounting/routes/web.php	POST	/accountings	public	AccountingController@store
+Modules/Accounting/routes/web.php	GET	/accountings/{accounting}	public	AccountingController@show
+Modules/Accounting/routes/web.php	GET	/accountings/{accounting}/edit	public	AccountingController@edit
+Modules/Accounting/routes/web.php	PUT|PATCH	/accountings/{accounting}	public	AccountingController@update
+Modules/Accounting/routes/web.php	DELETE	/accountings/{accounting}	public	AccountingController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/profile	auth:sanctum, user_type:admin	AuthController@profile
+Modules/Admin/routes/api.php	POST	/api/v1/admin/profile	auth:sanctum, user_type:admin	AuthController@updateProfile
+Modules/Admin/routes/api.php	POST	/api/v1/admin/profile/picture	auth:sanctum, user_type:admin	AuthController@updateProfilePicture
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/profile	auth:sanctum, user_type:admin	AuthController@deleteAccount
+Modules/Admin/routes/api.php	POST	/api/v1/admin/change-password	auth:sanctum, user_type:admin	AuthController@changePassword
+Modules/Admin/routes/api.php	POST	/api/v1/admin/logout	auth:sanctum, user_type:admin	AuthController@logout
+Modules/Admin/routes/api.php	GET	/api/v1/admin/dashboard	auth:sanctum, user_type:admin	DashboardController@index
+Modules/Admin/routes/api.php	GET	/api/v1/admin/clients	auth:sanctum, user_type:admin	ClientController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/clients	auth:sanctum, user_type:admin	ClientController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/clients/{client}	auth:sanctum, user_type:admin	ClientController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/clients/{client}	auth:sanctum, user_type:admin	ClientController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/clients/{client}	auth:sanctum, user_type:admin	ClientController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/team-members	auth:sanctum, user_type:admin	TeamMemberController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/team-members	auth:sanctum, user_type:admin	TeamMemberController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/team-members/{team_member}	auth:sanctum, user_type:admin	TeamMemberController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/team-members/{team_member}	auth:sanctum, user_type:admin	TeamMemberController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/team-members/{team_member}	auth:sanctum, user_type:admin	TeamMemberController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/departments	auth:sanctum, user_type:admin	DepartmentController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/departments	auth:sanctum, user_type:admin	DepartmentController@store
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/departments/{department}	auth:sanctum, user_type:admin	DepartmentController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/departments/{department}	auth:sanctum, user_type:admin	DepartmentController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/roles	auth:sanctum, user_type:admin	RoleController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/roles	auth:sanctum, user_type:admin	RoleController@store
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/roles/{role}	auth:sanctum, user_type:admin	RoleController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/roles/{role}	auth:sanctum, user_type:admin	RoleController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/permissions	auth:sanctum, user_type:admin	PermissionController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/permissions	auth:sanctum, user_type:admin	PermissionController@store
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/permissions/{permission}	auth:sanctum, user_type:admin	PermissionController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/permissions/{permission}	auth:sanctum, user_type:admin	PermissionController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/leads	auth:sanctum, user_type:admin	LeadController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/leads	auth:sanctum, user_type:admin	LeadController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/leads/{lead}	auth:sanctum, user_type:admin	LeadController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/leads/{lead}	auth:sanctum, user_type:admin	LeadController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/leads/{lead}	auth:sanctum, user_type:admin	LeadController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contacts	auth:sanctum, user_type:admin	ContactController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/contacts	auth:sanctum, user_type:admin	ContactController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contacts/{contact}	auth:sanctum, user_type:admin	ContactController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/contacts/{contact}	auth:sanctum, user_type:admin	ContactController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/contacts/{contact}	auth:sanctum, user_type:admin	ContactController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/tickets	auth:sanctum, user_type:admin	TicketController@index
+Modules/Admin/routes/api.php	GET	/api/v1/admin/tickets/{ticket}	auth:sanctum, user_type:admin	TicketController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/tickets/{ticket}	auth:sanctum, user_type:admin	TicketController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/tickets/{ticket}	auth:sanctum, user_type:admin	TicketController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/campaigns	auth:sanctum, user_type:admin	CampaignController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/campaigns	auth:sanctum, user_type:admin	CampaignController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/campaigns/{campaign}	auth:sanctum, user_type:admin	CampaignController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/campaigns/{campaign}	auth:sanctum, user_type:admin	CampaignController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/campaigns/{campaign}	auth:sanctum, user_type:admin	CampaignController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/notifications	auth:sanctum, user_type:admin	NotificationController@index
+Modules/Admin/routes/api.php	PATCH	/api/v1/admin/notifications/{id}/read	auth:sanctum, user_type:admin	NotificationController@markAsRead
+Modules/Admin/routes/api.php	POST	/api/v1/admin/notifications/read-all	auth:sanctum, user_type:admin	NotificationController@markAllAsRead
+Modules/Admin/routes/api.php	GET	/api/v1/admin/settings	auth:sanctum, user_type:admin	SettingController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/settings	auth:sanctum, user_type:admin	SettingController@update
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/invoices	auth:sanctum, user_type:admin	InvoiceController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/invoices	auth:sanctum, user_type:admin	InvoiceController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/invoices/{invoice}	auth:sanctum, user_type:admin	InvoiceController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/accounting/invoices/{invoice}	auth:sanctum, user_type:admin	InvoiceController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/accounting/invoices/{invoice}	auth:sanctum, user_type:admin	InvoiceController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/quotes	auth:sanctum, user_type:admin	QuoteController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/quotes	auth:sanctum, user_type:admin	QuoteController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/quotes/{quote}	auth:sanctum, user_type:admin	QuoteController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/accounting/quotes/{quote}	auth:sanctum, user_type:admin	QuoteController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/accounting/quotes/{quote}	auth:sanctum, user_type:admin	QuoteController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/service-orders	auth:sanctum, user_type:admin	ServiceOrderController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/service-orders	auth:sanctum, user_type:admin	ServiceOrderController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/service-orders/{service_order}	auth:sanctum, user_type:admin	ServiceOrderController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/accounting/service-orders/{service_order}	auth:sanctum, user_type:admin	ServiceOrderController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/accounting/service-orders/{service_order}	auth:sanctum, user_type:admin	ServiceOrderController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/transactions	auth:sanctum, user_type:admin	TransactionController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/transactions	auth:sanctum, user_type:admin	TransactionController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/transactions/{transaction}	auth:sanctum, user_type:admin	TransactionController@show
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/currencies	auth:sanctum, user_type:admin	CurrencyController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/currencies	auth:sanctum, user_type:admin	CurrencyController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/currencies/{currencie}	auth:sanctum, user_type:admin	CurrencyController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/accounting/currencies/{currencie}	auth:sanctum, user_type:admin	CurrencyController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/accounting/currencies/{currencie}	auth:sanctum, user_type:admin	CurrencyController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/balance-sheet	auth:sanctum, user_type:admin	BalanceSheetController@index
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/salaries	auth:sanctum, user_type:admin	SalaryController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/accounting/salaries	auth:sanctum, user_type:admin	SalaryController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/accounting/salaries/{salarie}	auth:sanctum, user_type:admin	SalaryController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/accounting/salaries/{salarie}	auth:sanctum, user_type:admin	SalaryController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/accounting/salaries/{salarie}	auth:sanctum, user_type:admin	SalaryController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contracts/templates	auth:sanctum, user_type:admin	ContractTemplateController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/contracts/templates	auth:sanctum, user_type:admin	ContractTemplateController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contracts/templates/{template}	auth:sanctum, user_type:admin	ContractTemplateController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/contracts/templates/{template}	auth:sanctum, user_type:admin	ContractTemplateController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/contracts/templates/{template}	auth:sanctum, user_type:admin	ContractTemplateController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contracts/manage	auth:sanctum, user_type:admin	ContractController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/contracts/manage	auth:sanctum, user_type:admin	ContractController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/contracts/manage/{contract}	auth:sanctum, user_type:admin	ContractController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/contracts/manage/{contract}	auth:sanctum, user_type:admin	ContractController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/contracts/manage/{contract}	auth:sanctum, user_type:admin	ContractController@destroy
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/projects	auth:sanctum, user_type:admin	ProjectController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/projects	auth:sanctum, user_type:admin	ProjectController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/projects/{project}	auth:sanctum, user_type:admin	ProjectController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/pm/projects/{project}	auth:sanctum, user_type:admin	ProjectController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/pm/projects/{project}	auth:sanctum, user_type:admin	ProjectController@destroy
+Modules/Admin/routes/api.php	PATCH	/api/v1/admin/pm/projects/{id}/status	auth:sanctum, user_type:admin	ProjectController@updateStatus
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/milestones	auth:sanctum, user_type:admin	MilestoneController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/milestones	auth:sanctum, user_type:admin	MilestoneController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/milestones/{milestone}	auth:sanctum, user_type:admin	MilestoneController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/pm/milestones/{milestone}	auth:sanctum, user_type:admin	MilestoneController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/pm/milestones/{milestone}	auth:sanctum, user_type:admin	MilestoneController@destroy
+Modules/Admin/routes/api.php	PATCH	/api/v1/admin/pm/milestones/{id}/status	auth:sanctum, user_type:admin	MilestoneController@updateStatus
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/tasks	auth:sanctum, user_type:admin	TaskController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/tasks	auth:sanctum, user_type:admin	TaskController@store
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/tasks/{task}	auth:sanctum, user_type:admin	TaskController@show
+Modules/Admin/routes/api.php	PUT|PATCH	/api/v1/admin/pm/tasks/{task}	auth:sanctum, user_type:admin	TaskController@update
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/pm/tasks/{task}	auth:sanctum, user_type:admin	TaskController@destroy
+Modules/Admin/routes/api.php	PATCH	/api/v1/admin/pm/tasks/{id}/status	auth:sanctum, user_type:admin	TaskController@updateStatus
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/work-logs	auth:sanctum, user_type:admin	WorkLogController@index
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/work-logs/{work_log}	auth:sanctum, user_type:admin	WorkLogController@show
+Modules/Admin/routes/api.php	PUT	/api/v1/admin/pm/work-logs/{id}	auth:sanctum, user_type:admin	WorkLogController@update
+Modules/Admin/routes/api.php	GET	/api/v1/admin/pm/projects/{id}/chat	auth:sanctum, user_type:admin	ProjectChatController@index
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/projects/{id}/chat	auth:sanctum, user_type:admin	ProjectChatController@store
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/projects/{id}/chat/status	auth:sanctum, user_type:admin	ProjectChatController@updateConversationStatus
+Modules/Admin/routes/api.php	PUT	/api/v1/admin/pm/projects/chat/messages/{messageId}	auth:sanctum, user_type:admin	ProjectChatController@updateMessage
+Modules/Admin/routes/api.php	DELETE	/api/v1/admin/pm/projects/chat/messages/{messageId}	auth:sanctum, user_type:admin	ProjectChatController@deleteMessage
+Modules/Admin/routes/api.php	POST	/api/v1/admin/pm/projects/chat/messages/{messageId}/read	auth:sanctum, user_type:admin	ProjectChatController@markAsRead
+Modules/Admin/routes/web.php	GET	/dashboard/login	guest:admin	LoginController@showLoginForm
+Modules/Admin/routes/web.php	POST	/dashboard/login	guest:admin	LoginController@login
+Modules/Admin/routes/web.php	GET	/dashboard/register	guest:admin	RegisterController@showRegistrationForm
+Modules/Admin/routes/web.php	POST	/dashboard/register/send-otp	guest:admin	RegisterController@sendOtp
+Modules/Admin/routes/web.php	POST	/dashboard/register/verify-otp	guest:admin	RegisterController@verifyOtp
+Modules/Admin/routes/web.php	POST	/dashboard/register	guest:admin	RegisterController@register
+Modules/Admin/routes/web.php	GET	/dashboard/forgot-password	guest:admin	ForgotPasswordController@showLinkRequestForm
+Modules/Admin/routes/web.php	POST	/dashboard/forgot-password	guest:admin	ForgotPasswordController@sendResetLinkEmail
+Modules/Admin/routes/web.php	GET	/dashboard/reset-password/{token}	guest:admin	ForgotPasswordController@showResetForm
+Modules/Admin/routes/web.php	POST	/dashboard/reset-password	guest:admin	ForgotPasswordController@reset
+Modules/Admin/routes/web.php	GET	/dashboard	Modules\Admin\Http\Middleware\AdminAuth	DashboardController@index
+Modules/Admin/routes/web.php	GET	/dashboard/dashboard	Modules\Admin\Http\Middleware\AdminAuth	DashboardController@index
+Modules/Admin/routes/web.php	POST	/dashboard/logout	Modules\Admin\Http\Middleware\AdminAuth	LoginController@logout
+Modules/Admin/routes/web.php	GET	/dashboard/billing	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@index
+Modules/Admin/routes/web.php	POST	/dashboard/billing/checkout	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@renewOrUpgrade
+Modules/Admin/routes/web.php	POST	/dashboard/billing/topup	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@topupWallet
+Modules/Admin/routes/web.php	POST	/dashboard/billing/switch-model	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@switchModel
+Modules/Admin/routes/web.php	GET	/dashboard/billing/pay	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@pay
+Modules/Admin/routes/web.php	GET	/dashboard/billing/check-status	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@checkStatus
+Modules/Admin/routes/web.php	GET|POST	/dashboard/billing/verify-now	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@verifyNow
+Modules/Admin/routes/web.php	GET	/dashboard/billing/callback	Modules\Admin\Http\Middleware\AdminAuth	BusinessBillingController@callback
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/products	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@index
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/products/create	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@create
+Modules/Admin/routes/web.php	POST	/dashboard/storefront/products	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@store
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/products/{product}/edit	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@edit
+Modules/Admin/routes/web.php	PUT	/dashboard/storefront/products/{product}	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/storefront/products/{product}	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/settings	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@settings
+Modules/Admin/routes/web.php	PUT	/dashboard/storefront/settings	Modules\Admin\Http\Middleware\AdminAuth	StorefrontController@updateSettings
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/orders	Modules\Admin\Http\Middleware\AdminAuth	StoreOrderController@index
+Modules/Admin/routes/web.php	GET	/dashboard/storefront/orders/{order}	Modules\Admin\Http\Middleware\AdminAuth	StoreOrderController@show
+Modules/Admin/routes/web.php	PATCH	/dashboard/storefront/orders/{order}/status	Modules\Admin\Http\Middleware\AdminAuth	StoreOrderController@updateStatus
+Modules/Admin/routes/web.php	GET	/dashboard/account/profile	Modules\Admin\Http\Middleware\AdminAuth	AdminProfileController@edit
+Modules/Admin/routes/web.php	PUT	/dashboard/account/profile	Modules\Admin\Http\Middleware\AdminAuth	AdminProfileController@update
+Modules/Admin/routes/web.php	GET	/dashboard/account/password	Modules\Admin\Http\Middleware\AdminAuth	AdminPasswordController@edit
+Modules/Admin/routes/web.php	PUT	/dashboard/account/password	Modules\Admin\Http\Middleware\AdminAuth	AdminPasswordController@update
+Modules/Admin/routes/web.php	GET	/dashboard/account/2fa	Modules\Admin\Http\Middleware\AdminAuth	TwoFactorAuthController@showSettings
+Modules/Admin/routes/web.php	POST	/dashboard/account/2fa/confirm	Modules\Admin\Http\Middleware\AdminAuth	TwoFactorAuthController@confirm
+Modules/Admin/routes/web.php	POST	/dashboard/account/2fa/disable	Modules\Admin\Http\Middleware\AdminAuth	TwoFactorAuthController@disable
+Modules/Admin/routes/web.php	GET	/dashboard/administrators	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@index
+Modules/Admin/routes/web.php	GET	/dashboard/administrators/create	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@create
+Modules/Admin/routes/web.php	POST	/dashboard/administrators	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@store
+Modules/Admin/routes/web.php	GET	/dashboard/administrators/{administrator}	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@show
+Modules/Admin/routes/web.php	GET	/dashboard/administrators/{administrator}/edit	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/administrators/{administrator}	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/administrators/{administrator}	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@destroy
+Modules/Admin/routes/web.php	PATCH	/dashboard/administrators/{administrator}/status	Modules\Admin\Http\Middleware\AdminAuth	AdminManagementController@updateStatus
+Modules/Admin/routes/web.php	GET	/dashboard/notifications	Modules\Admin\Http\Middleware\AdminAuth	NotificationController@index
+Modules/Admin/routes/web.php	POST	/dashboard/notifications/send	Modules\Admin\Http\Middleware\AdminAuth	NotificationController@send
+Modules/Admin/routes/web.php	POST	/dashboard/notifications/team/send	Modules\Admin\Http\Middleware\AdminAuth	NotificationController@sendToTeam
+Modules/Admin/routes/web.php	GET	/dashboard/passwords	Modules\Admin\Http\Middleware\AdminAuth	PasswordManagementController@index
+Modules/Admin/routes/web.php	POST	/dashboard/passwords	Modules\Admin\Http\Middleware\AdminAuth	PasswordManagementController@update
+Modules/Admin/routes/web.php	GET	/dashboard/clients	Modules\Admin\Http\Middleware\AdminAuth	ClientController@index
+Modules/Admin/routes/web.php	GET	/dashboard/clients/create	Modules\Admin\Http\Middleware\AdminAuth	ClientController@create
+Modules/Admin/routes/web.php	POST	/dashboard/clients	Modules\Admin\Http\Middleware\AdminAuth	ClientController@store
+Modules/Admin/routes/web.php	GET	/dashboard/clients/{client}	Modules\Admin\Http\Middleware\AdminAuth	ClientController@show
+Modules/Admin/routes/web.php	GET	/dashboard/clients/{client}/edit	Modules\Admin\Http\Middleware\AdminAuth	ClientController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/clients/{client}	Modules\Admin\Http\Middleware\AdminAuth	ClientController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/clients/{client}	Modules\Admin\Http\Middleware\AdminAuth	ClientController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/team-members	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@index
+Modules/Admin/routes/web.php	GET	/dashboard/team-members/create	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@create
+Modules/Admin/routes/web.php	POST	/dashboard/team-members	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@store
+Modules/Admin/routes/web.php	GET	/dashboard/team-members/{team_member}	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@show
+Modules/Admin/routes/web.php	GET	/dashboard/team-members/{team_member}/edit	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/team-members/{team_member}	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/team-members/{team_member}	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@destroy
+Modules/Admin/routes/web.php	PATCH	/dashboard/team-members/{user}/status	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@updateStatus
+Modules/Admin/routes/web.php	GET	/dashboard/team-members/{user}/login-as	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@impersonate
+Modules/Admin/routes/web.php	GET	/dashboard/impersonate/stop	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@stopImpersonate
+Modules/Admin/routes/web.php	GET	/dashboard/team-performance	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@performance
+Modules/Admin/routes/web.php	GET	/dashboard/team-performance/export-pdf	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@exportPdf
+Modules/Admin/routes/web.php	GET	/dashboard/team-performance/assessment/{user}	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@assessment
+Modules/Admin/routes/web.php	POST	/dashboard/team-performance/send-weekly-review	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@sendWeeklyReviewEmail
+Modules/Admin/routes/web.php	GET	/dashboard/team-performance/preview-review-email/{user}	Modules\Admin\Http\Middleware\AdminAuth	TeamMemberController@previewWeeklyReviewEmail
+Modules/Admin/routes/web.php	GET	/dashboard/team-emails/create	Modules\Admin\Http\Middleware\AdminAuth	TeamEmailController@create
+Modules/Admin/routes/web.php	POST	/dashboard/team-emails	Modules\Admin\Http\Middleware\AdminAuth	TeamEmailController@send
+Modules/Admin/routes/web.php	GET	/dashboard/departments	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@index
+Modules/Admin/routes/web.php	GET	/dashboard/departments/create	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@create
+Modules/Admin/routes/web.php	POST	/dashboard/departments	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@store
+Modules/Admin/routes/web.php	GET	/dashboard/departments/{department}	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@show
+Modules/Admin/routes/web.php	GET	/dashboard/departments/{department}/edit	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/departments/{department}	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/departments/{department}	Modules\Admin\Http\Middleware\AdminAuth	DepartmentController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/roles	Modules\Admin\Http\Middleware\AdminAuth	RoleController@index
+Modules/Admin/routes/web.php	GET	/dashboard/roles/create	Modules\Admin\Http\Middleware\AdminAuth	RoleController@create
+Modules/Admin/routes/web.php	POST	/dashboard/roles	Modules\Admin\Http\Middleware\AdminAuth	RoleController@store
+Modules/Admin/routes/web.php	GET	/dashboard/roles/{role}	Modules\Admin\Http\Middleware\AdminAuth	RoleController@show
+Modules/Admin/routes/web.php	GET	/dashboard/roles/{role}/edit	Modules\Admin\Http\Middleware\AdminAuth	RoleController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/roles/{role}	Modules\Admin\Http\Middleware\AdminAuth	RoleController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/roles/{role}	Modules\Admin\Http\Middleware\AdminAuth	RoleController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/team-utilities	Modules\Admin\Http\Middleware\AdminAuth	TeamUtilityController@index
+Modules/Admin/routes/web.php	POST	/dashboard/team-utilities/purchase	Modules\Admin\Http\Middleware\AdminAuth	TeamUtilityController@purchase
+Modules/Admin/routes/web.php	GET	/dashboard/vas/service/{serviceId}/categories	Modules\Admin\Http\Middleware\AdminAuth	TeamUtilityController@fetchServiceCategories
+Modules/Admin/routes/web.php	GET	/dashboard/vas/service-category/{categoryId}/products	Modules\Admin\Http\Middleware\AdminAuth	TeamUtilityController@fetchCategoryProducts
+Modules/Admin/routes/web.php	GET	/dashboard/team-utilities/success/{transaction}	Modules\Admin\Http\Middleware\AdminAuth	TeamUtilityController@success
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/invoices	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/invoices/create	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/invoices	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/invoices/{invoice}	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/invoices/{invoice}/edit	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/invoices/{invoice}	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/invoices/{invoice}	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/invoices/{invoice}/send	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@send
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/invoices/{invoice}/mark-paid	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@markPaid
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/invoices/{invoice}/pdf	Modules\Admin\Http\Middleware\AdminAuth	InvoiceController@downloadPDF
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-orders	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-orders/create	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/service-orders	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-orders/{service_order}	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-orders/{service_order}/edit	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/service-orders/{service_order}	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/service-orders/{service_order}	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/service-orders/{id}/convert-quote	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@convertToQuote
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/service-orders/{id}/convert-invoice	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@convertToInvoice
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/service-orders/{id}/convert-contract	Modules\Admin\Http\Middleware\AdminAuth	ServiceOrderController@convertToContract
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/quotes	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/quotes/create	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/quotes	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/quotes/{quote}	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/quotes/{quote}/edit	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/quotes/{quote}	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/quotes/{quote}	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/quotes/{quote}/send	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@send
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/quotes/{quote}/approve	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@approve
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/quotes/{quote}/convert	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@convertToInvoice
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/quotes/{quote}/pdf	Modules\Admin\Http\Middleware\AdminAuth	QuoteController@downloadPDF
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/currencies	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/currencies/create	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/currencies	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/currencies/{currencie}	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/currencies/{currencie}/edit	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/currencies/{currencie}	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/currencies/{currencie}	Modules\Admin\Http\Middleware\AdminAuth	CurrencyController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/services	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/services/create	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/services	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/services/{service}/edit	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-categories	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-categories/create	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/service-categories	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-categories/{service_categorie}	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/service-categories/{service_categorie}/edit	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/service-categories/{service_categorie}	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/service-categories/{service_categorie}	Modules\Admin\Http\Middleware\AdminAuth	ServiceCategoryController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/transactions	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/transactions/create	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/transactions	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/transactions/{transaction}	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/transactions/{transaction}/edit	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/transactions/{transaction}	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/transactions/{transaction}	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/transactions/{transaction}/complete	Modules\Admin\Http\Middleware\AdminAuth	TransactionController@markComplete
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/accounts	Modules\Admin\Http\Middleware\AdminAuth	AccountController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/accounts/create	Modules\Admin\Http\Middleware\AdminAuth	AccountController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/accounts	Modules\Admin\Http\Middleware\AdminAuth	AccountController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/accounts/{account}	Modules\Admin\Http\Middleware\AdminAuth	AccountController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/accounts/{account}/edit	Modules\Admin\Http\Middleware\AdminAuth	AccountController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/accounts/{account}	Modules\Admin\Http\Middleware\AdminAuth	AccountController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/accounts/{account}	Modules\Admin\Http\Middleware\AdminAuth	AccountController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/accounts/{account}/update-balance	Modules\Admin\Http\Middleware\AdminAuth	AccountController@updateBalance
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/balance-sheet	Modules\Admin\Http\Middleware\AdminAuth	BalanceSheetController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/feature-pricing	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/feature-pricing/create	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/feature-pricing	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/feature-pricing/{feature_pricing}	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/feature-pricing/{feature_pricing}/edit	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/feature-pricing/{feature_pricing}	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/feature-pricing/{feature_pricing}	Modules\Admin\Http\Middleware\AdminAuth	FeaturePricingController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/payroll	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/payroll/create	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/payroll	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/payroll/{payroll}	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/payroll/{payroll}/edit	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/payroll/{payroll}	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/payroll/{payroll}	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@destroy
+Modules/Admin/routes/web.php	PATCH	/dashboard/accounting/payroll/{payroll}/toggle-status	Modules\Admin\Http\Middleware\AdminAuth	StaffSalaryController@toggleStatus
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/salaries	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/salaries/create	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/accounting/salaries	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/salaries/{salarie}	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/salaries/{salarie}/edit	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/accounting/salaries/{salarie}	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/accounting/salaries/{salarie}	Modules\Admin\Http\Middleware\AdminAuth	SalaryController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/accounting/bank-transactions	Modules\Admin\Http\Middleware\AdminAuth	SafeHavenController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/templates	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/templates/create	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@create
+Modules/Admin/routes/web.php	POST	/dashboard/contracts/templates	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@store
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/templates/{template}/edit	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@edit
+Modules/Admin/routes/web.php	PUT	/dashboard/contracts/templates/{template}	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/contracts/templates/{template}	Modules\Admin\Http\Middleware\AdminAuth	ContractTemplateController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/contracts	Modules\Admin\Http\Middleware\AdminAuth	ContractController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/create	Modules\Admin\Http\Middleware\AdminAuth	ContractController@create
+Modules/Admin/routes/web.php	POST	/dashboard/contracts	Modules\Admin\Http\Middleware\AdminAuth	ContractController@store
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/expiring-soon	Modules\Admin\Http\Middleware\AdminAuth	ContractController@expiringSoon
+Modules/Admin/routes/web.php	POST	/dashboard/contracts/load-template	Modules\Admin\Http\Middleware\AdminAuth	ContractController@loadTemplate
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/{contract}	Modules\Admin\Http\Middleware\AdminAuth	ContractController@show
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/{contract}/edit	Modules\Admin\Http\Middleware\AdminAuth	ContractController@edit
+Modules/Admin/routes/web.php	PUT	/dashboard/contracts/{contract}	Modules\Admin\Http\Middleware\AdminAuth	ContractController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/contracts/{contract}	Modules\Admin\Http\Middleware\AdminAuth	ContractController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/{contract}/pdf	Modules\Admin\Http\Middleware\AdminAuth	ContractController@downloadPDF
+Modules/Admin/routes/web.php	GET	/dashboard/contracts/{contract}/docx	Modules\Admin\Http\Middleware\AdminAuth	ContractController@downloadDocx
+Modules/Admin/routes/web.php	POST	/dashboard/contracts/{contract}/signature	Modules\Admin\Http\Middleware\AdminAuth	ContractController@uploadSignature
+Modules/Admin/routes/web.php	POST	/dashboard/contracts/{contract}/status	Modules\Admin\Http\Middleware\AdminAuth	ContractController@updateStatus
+Modules/Admin/routes/web.php	ANY	/dashboard/hero-sliders/{any?}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	
+Modules/Admin/routes/web.php	GET	/dashboard/featured-content	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@index
+Modules/Admin/routes/web.php	GET	/dashboard/featured-content/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@create
+Modules/Admin/routes/web.php	POST	/dashboard/featured-content	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@store
+Modules/Admin/routes/web.php	GET	/dashboard/featured-content/{featured_content}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@show
+Modules/Admin/routes/web.php	GET	/dashboard/featured-content/{featured_content}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/featured-content/{featured_content}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/featured-content/{featured_content}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FeaturedContentController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/testimonials	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@index
+Modules/Admin/routes/web.php	GET	/dashboard/testimonials/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@create
+Modules/Admin/routes/web.php	POST	/dashboard/testimonials	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@store
+Modules/Admin/routes/web.php	GET	/dashboard/testimonials/{testimonial}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@show
+Modules/Admin/routes/web.php	GET	/dashboard/testimonials/{testimonial}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/testimonials/{testimonial}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/testimonials/{testimonial}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TestimonialController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/leaders	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@index
+Modules/Admin/routes/web.php	GET	/dashboard/leaders/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@create
+Modules/Admin/routes/web.php	POST	/dashboard/leaders	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@store
+Modules/Admin/routes/web.php	GET	/dashboard/leaders/{leader}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@show
+Modules/Admin/routes/web.php	GET	/dashboard/leaders/{leader}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/leaders/{leader}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/leaders/{leader}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	LeaderController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/timeline	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@index
+Modules/Admin/routes/web.php	GET	/dashboard/timeline/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@create
+Modules/Admin/routes/web.php	POST	/dashboard/timeline	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@store
+Modules/Admin/routes/web.php	GET	/dashboard/timeline/{timeline}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@show
+Modules/Admin/routes/web.php	GET	/dashboard/timeline/{timeline}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/timeline/{timeline}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/timeline/{timeline}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TimelineController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/awards	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@index
+Modules/Admin/routes/web.php	GET	/dashboard/awards/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@create
+Modules/Admin/routes/web.php	POST	/dashboard/awards	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@store
+Modules/Admin/routes/web.php	GET	/dashboard/awards/{award}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@show
+Modules/Admin/routes/web.php	GET	/dashboard/awards/{award}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/awards/{award}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/awards/{award}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	AwardController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/projects	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@index
+Modules/Admin/routes/web.php	GET	/dashboard/projects/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@create
+Modules/Admin/routes/web.php	POST	/dashboard/projects	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@store
+Modules/Admin/routes/web.php	GET	/dashboard/projects/{project}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@show
+Modules/Admin/routes/web.php	GET	/dashboard/projects/{project}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/projects/{project}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/projects/{project}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ProjectController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/industries	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/industries/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/industries	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/industries/{industrie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/industries/{industrie}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/industries/{industrie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/industries/{industrie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	IndustryController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/posts	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@index
+Modules/Admin/routes/web.php	GET	/dashboard/posts/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@create
+Modules/Admin/routes/web.php	POST	/dashboard/posts	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@store
+Modules/Admin/routes/web.php	GET	/dashboard/posts/{post}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@show
+Modules/Admin/routes/web.php	GET	/dashboard/posts/{post}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/posts/{post}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/posts/{post}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	PostController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/categories	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/categories/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/categories	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/categories/{categorie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/categories/{categorie}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/categories/{categorie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/categories/{categorie}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	CategoryController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/jobs	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@index
+Modules/Admin/routes/web.php	GET	/dashboard/jobs/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@create
+Modules/Admin/routes/web.php	POST	/dashboard/jobs	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@store
+Modules/Admin/routes/web.php	GET	/dashboard/jobs/{job}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@show
+Modules/Admin/routes/web.php	GET	/dashboard/jobs/{job}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/jobs/{job}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/jobs/{job}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	JobController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/applications/{application}/download-resume	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ApplicationController@downloadResume
+Modules/Admin/routes/web.php	GET	/dashboard/applications	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ApplicationController@index
+Modules/Admin/routes/web.php	GET	/dashboard/applications/{application}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ApplicationController@show
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/applications/{application}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ApplicationController@update
+Modules/Admin/routes/web.php	GET	/dashboard/seo	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	SeoController@index
+Modules/Admin/routes/web.php	PUT	/dashboard/seo	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	SeoController@update
+Modules/Admin/routes/web.php	GET	/dashboard/navigation	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@index
+Modules/Admin/routes/web.php	GET	/dashboard/navigation/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@create
+Modules/Admin/routes/web.php	POST	/dashboard/navigation	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@store
+Modules/Admin/routes/web.php	GET	/dashboard/navigation/{navigation}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@show
+Modules/Admin/routes/web.php	GET	/dashboard/navigation/{navigation}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/navigation/{navigation}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/navigation/{navigation}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	NavigationItemController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/stats	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/stats/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/stats	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/stats/{stat}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/stats/{stat}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/stats/{stat}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/stats/{stat}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeStatsController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/features	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/features/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/features	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/features/{feature}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/features/{feature}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/features/{feature}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/features/{feature}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeFeaturesController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/processes	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/processes/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/processes	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/processes/{processe}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/processes/{processe}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/processes/{processe}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/processes/{processe}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeProcessesController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/ctas	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/ctas/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/ctas	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/ctas/{cta}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/ctas/{cta}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/ctas/{cta}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/ctas/{cta}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	HomeCtaController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/client-logos	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/client-logos/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/client-logos	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/client-logos/{client_logo}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/client-logos/{client_logo}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/client-logos/{client_logo}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/client-logos/{client_logo}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ClientLogoController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/home/trust-badges	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@index
+Modules/Admin/routes/web.php	GET	/dashboard/home/trust-badges/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@create
+Modules/Admin/routes/web.php	POST	/dashboard/home/trust-badges	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@store
+Modules/Admin/routes/web.php	GET	/dashboard/home/trust-badges/{trust_badge}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@show
+Modules/Admin/routes/web.php	GET	/dashboard/home/trust-badges/{trust_badge}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/home/trust-badges/{trust_badge}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/home/trust-badges/{trust_badge}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	TrustBadgeController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/investor/financial-reports	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@index
+Modules/Admin/routes/web.php	GET	/dashboard/investor/financial-reports/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@create
+Modules/Admin/routes/web.php	POST	/dashboard/investor/financial-reports	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@store
+Modules/Admin/routes/web.php	GET	/dashboard/investor/financial-reports/{financial_report}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@show
+Modules/Admin/routes/web.php	GET	/dashboard/investor/financial-reports/{financial_report}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/investor/financial-reports/{financial_report}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/investor/financial-reports/{financial_report}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	FinancialReportController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/investor/press-releases	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@index
+Modules/Admin/routes/web.php	GET	/dashboard/investor/press-releases/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@create
+Modules/Admin/routes/web.php	POST	/dashboard/investor/press-releases	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@store
+Modules/Admin/routes/web.php	GET	/dashboard/investor/press-releases/{press_release}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@show
+Modules/Admin/routes/web.php	GET	/dashboard/investor/press-releases/{press_release}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/investor/press-releases/{press_release}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/investor/press-releases/{press_release}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	InvestorPressReleaseController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/investor/stock-data	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@index
+Modules/Admin/routes/web.php	GET	/dashboard/investor/stock-data/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@create
+Modules/Admin/routes/web.php	POST	/dashboard/investor/stock-data	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@store
+Modules/Admin/routes/web.php	GET	/dashboard/investor/stock-data/{stock_data}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@show
+Modules/Admin/routes/web.php	GET	/dashboard/investor/stock-data/{stock_data}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/investor/stock-data/{stock_data}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/investor/stock-data/{stock_data}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	StockDataController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/investor/shareholder-meetings	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@index
+Modules/Admin/routes/web.php	GET	/dashboard/investor/shareholder-meetings/create	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@create
+Modules/Admin/routes/web.php	POST	/dashboard/investor/shareholder-meetings	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@store
+Modules/Admin/routes/web.php	GET	/dashboard/investor/shareholder-meetings/{shareholder_meeting}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@show
+Modules/Admin/routes/web.php	GET	/dashboard/investor/shareholder-meetings/{shareholder_meeting}/edit	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/investor/shareholder-meetings/{shareholder_meeting}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/investor/shareholder-meetings/{shareholder_meeting}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	ShareholderMeetingController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/visitors	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	VisitorController@index
+Modules/Admin/routes/web.php	GET	/dashboard/visitors/{visitor}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	VisitorController@show
+Modules/Admin/routes/web.php	DELETE	/dashboard/visitors/{visitor}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	VisitorController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/visitors/bulk-delete	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	VisitorController@bulkDelete
+Modules/Admin/routes/web.php	GET	/dashboard/rate-limits/sync	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	
+Modules/Admin/routes/web.php	ANY	/dashboard/rate-limits/{any?}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	
+Modules/Admin/routes/web.php	POST	/dashboard/system/run	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	SystemController@runCommand
+Modules/Admin/routes/web.php	ANY	/dashboard/system/{any?}	Modules\Admin\Http\Middleware\AdminAuth, EnsureSuperAdmin	
+Modules/Admin/routes/web.php	GET	/dashboard/services	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@index
+Modules/Admin/routes/web.php	GET	/dashboard/services/create	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@create
+Modules/Admin/routes/web.php	POST	/dashboard/services	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@store
+Modules/Admin/routes/web.php	GET	/dashboard/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@show
+Modules/Admin/routes/web.php	GET	/dashboard/services/{service}/edit	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/services/{service}	Modules\Admin\Http\Middleware\AdminAuth	ServiceController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/contact-submissions/bulk-delete	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@bulkDestroy
+Modules/Admin/routes/web.php	GET	/dashboard/contact-submissions	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contact-submissions/{contact_submission}	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@show
+Modules/Admin/routes/web.php	GET	/dashboard/contact-submissions/{contact_submission}/edit	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/contact-submissions/{contact_submission}	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/contact-submissions/{contact_submission}	Modules\Admin\Http\Middleware\AdminAuth	ContactSubmissionController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/leads	Modules\Admin\Http\Middleware\AdminAuth	LeadController@index
+Modules/Admin/routes/web.php	GET	/dashboard/leads/create	Modules\Admin\Http\Middleware\AdminAuth	LeadController@create
+Modules/Admin/routes/web.php	POST	/dashboard/leads	Modules\Admin\Http\Middleware\AdminAuth	LeadController@store
+Modules/Admin/routes/web.php	GET	/dashboard/leads/{lead}	Modules\Admin\Http\Middleware\AdminAuth	LeadController@show
+Modules/Admin/routes/web.php	GET	/dashboard/leads/{lead}/edit	Modules\Admin\Http\Middleware\AdminAuth	LeadController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/leads/{lead}	Modules\Admin\Http\Middleware\AdminAuth	LeadController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/leads/{lead}	Modules\Admin\Http\Middleware\AdminAuth	LeadController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/leads/{lead}/assign	Modules\Admin\Http\Middleware\AdminAuth	LeadController@assign
+Modules/Admin/routes/web.php	PATCH	/dashboard/leads/{lead}/status	Modules\Admin\Http\Middleware\AdminAuth	LeadController@updateStatus
+Modules/Admin/routes/web.php	POST	/dashboard/leads/{lead}/contact	Modules\Admin\Http\Middleware\AdminAuth	LeadController@markAsContacted
+Modules/Admin/routes/web.php	POST	/dashboard/leads/{lead}/convert	Modules\Admin\Http\Middleware\AdminAuth	LeadController@convertToContact
+Modules/Admin/routes/web.php	GET	/dashboard/leads/export/csv	Modules\Admin\Http\Middleware\AdminAuth	LeadController@exportCsv
+Modules/Admin/routes/web.php	GET	/dashboard/leads/export/pdf	Modules\Admin\Http\Middleware\AdminAuth	LeadController@exportPdf
+Modules/Admin/routes/web.php	POST	/dashboard/leads/import/csv	Modules\Admin\Http\Middleware\AdminAuth	LeadController@importCsv
+Modules/Admin/routes/web.php	GET	/dashboard/tickets	Modules\Admin\Http\Middleware\AdminAuth	TicketController@index
+Modules/Admin/routes/web.php	GET	/dashboard/tickets/create	Modules\Admin\Http\Middleware\AdminAuth	TicketController@create
+Modules/Admin/routes/web.php	POST	/dashboard/tickets	Modules\Admin\Http\Middleware\AdminAuth	TicketController@store
+Modules/Admin/routes/web.php	GET	/dashboard/tickets/{ticket}	Modules\Admin\Http\Middleware\AdminAuth	TicketController@show
+Modules/Admin/routes/web.php	GET	/dashboard/tickets/{ticket}/edit	Modules\Admin\Http\Middleware\AdminAuth	TicketController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/tickets/{ticket}	Modules\Admin\Http\Middleware\AdminAuth	TicketController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/tickets/{ticket}	Modules\Admin\Http\Middleware\AdminAuth	TicketController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/tickets/{ticket}/reply	Modules\Admin\Http\Middleware\AdminAuth	TicketController@reply
+Modules/Admin/routes/web.php	GET	/dashboard/campaigns	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@index
+Modules/Admin/routes/web.php	GET	/dashboard/campaigns/create	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@create
+Modules/Admin/routes/web.php	POST	/dashboard/campaigns	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@store
+Modules/Admin/routes/web.php	GET	/dashboard/campaigns/{campaign}	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@show
+Modules/Admin/routes/web.php	GET	/dashboard/campaigns/{campaign}/edit	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/campaigns/{campaign}	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/campaigns/{campaign}	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/campaigns/{campaign}/send	Modules\Admin\Http\Middleware\AdminAuth	CampaignController@send
+Modules/Admin/routes/web.php	GET	/dashboard/contact-lists	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contact-lists/create	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@create
+Modules/Admin/routes/web.php	POST	/dashboard/contact-lists	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@store
+Modules/Admin/routes/web.php	GET	/dashboard/contact-lists/{contact_list}	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@show
+Modules/Admin/routes/web.php	GET	/dashboard/contact-lists/{contact_list}/edit	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/contact-lists/{contact_list}	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/contact-lists/{contact_list}	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/contact-lists/{contactList}/add-contacts	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@addContacts
+Modules/Admin/routes/web.php	DELETE	/dashboard/contact-lists/{contactList}/contacts/{contact}	Modules\Admin\Http\Middleware\AdminAuth	ContactListController@removeContact
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/bulk-delete	Modules\Admin\Http\Middleware\AdminAuth	ContactController@bulkDelete
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/bulk-send-email	Modules\Admin\Http\Middleware\AdminAuth	ContactController@bulkSendEmail
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/bulk-send-email	Modules\Admin\Http\Middleware\AdminAuth	ContactController@processBulkEmail
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/bulk-send-sms	Modules\Admin\Http\Middleware\AdminAuth	ContactController@bulkSendSms
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/bulk-send-sms	Modules\Admin\Http\Middleware\AdminAuth	ContactController@processBulkSms
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/import	Modules\Admin\Http\Middleware\AdminAuth	ContactController@import
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/export	Modules\Admin\Http\Middleware\AdminAuth	ContactController@export
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/export-pdf	Modules\Admin\Http\Middleware\AdminAuth	ContactController@exportPdf
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/{contact}/send-email	Modules\Admin\Http\Middleware\AdminAuth	ContactController@sendEmail
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/{contact}/send-email	Modules\Admin\Http\Middleware\AdminAuth	ContactController@processEmail
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/{contact}/send-sms	Modules\Admin\Http\Middleware\AdminAuth	ContactController@sendSms
+Modules/Admin/routes/web.php	POST	/dashboard/contacts/{contact}/send-sms	Modules\Admin\Http\Middleware\AdminAuth	ContactController@processSms
+Modules/Admin/routes/web.php	GET	/dashboard/contacts	Modules\Admin\Http\Middleware\AdminAuth	ContactController@index
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/create	Modules\Admin\Http\Middleware\AdminAuth	ContactController@create
+Modules/Admin/routes/web.php	POST	/dashboard/contacts	Modules\Admin\Http\Middleware\AdminAuth	ContactController@store
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/{contact}	Modules\Admin\Http\Middleware\AdminAuth	ContactController@show
+Modules/Admin/routes/web.php	GET	/dashboard/contacts/{contact}/edit	Modules\Admin\Http\Middleware\AdminAuth	ContactController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/contacts/{contact}	Modules\Admin\Http\Middleware\AdminAuth	ContactController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/contacts/{contact}	Modules\Admin\Http\Middleware\AdminAuth	ContactController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/lead-settings	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@index
+Modules/Admin/routes/web.php	POST	/dashboard/lead-settings/types	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@storeType
+Modules/Admin/routes/web.php	PUT	/dashboard/lead-settings/types/{type}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@updateType
+Modules/Admin/routes/web.php	DELETE	/dashboard/lead-settings/types/{type}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@destroyType
+Modules/Admin/routes/web.php	POST	/dashboard/lead-settings/budgets	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@storeBudget
+Modules/Admin/routes/web.php	PUT	/dashboard/lead-settings/budgets/{budget}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@updateBudget
+Modules/Admin/routes/web.php	DELETE	/dashboard/lead-settings/budgets/{budget}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@destroyBudget
+Modules/Admin/routes/web.php	POST	/dashboard/lead-settings/timelines	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@storeTimeline
+Modules/Admin/routes/web.php	PUT	/dashboard/lead-settings/timelines/{timeline}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@updateTimeline
+Modules/Admin/routes/web.php	DELETE	/dashboard/lead-settings/timelines/{timeline}	Modules\Admin\Http\Middleware\AdminAuth	LeadSettingsController@destroyTimeline
+Modules/Admin/routes/web.php	GET	/dashboard/communication-channels	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@index
+Modules/Admin/routes/web.php	GET	/dashboard/communication-channels/create	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@create
+Modules/Admin/routes/web.php	POST	/dashboard/communication-channels	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@store
+Modules/Admin/routes/web.php	GET	/dashboard/communication-channels/{communication_channel}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@show
+Modules/Admin/routes/web.php	GET	/dashboard/communication-channels/{communication_channel}/edit	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/communication-channels/{communication_channel}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/communication-channels/{communication_channel}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationChannelController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/communication-scripts	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@index
+Modules/Admin/routes/web.php	GET	/dashboard/communication-scripts/create	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@create
+Modules/Admin/routes/web.php	POST	/dashboard/communication-scripts	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@store
+Modules/Admin/routes/web.php	GET	/dashboard/communication-scripts/{communication_script}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@show
+Modules/Admin/routes/web.php	GET	/dashboard/communication-scripts/{communication_script}/edit	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/communication-scripts/{communication_script}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/communication-scripts/{communication_script}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/communication-script-steps	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@store
+Modules/Admin/routes/web.php	PUT	/dashboard/communication-script-steps/{step}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/communication-script-steps/{step}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@destroy
+Modules/Admin/routes/web.php	POST	/dashboard/communication-script-steps/reorder	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@reorder
+Modules/Admin/routes/web.php	POST	/dashboard/communication-script-steps/{step}/exceptions	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@storeException
+Modules/Admin/routes/web.php	DELETE	/dashboard/communication-script-exceptions/{exception}	Modules\Admin\Http\Middleware\AdminAuth	CommunicationScriptStepController@destroyException
+Modules/Admin/routes/web.php	GET	/dashboard/email-templates	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@index
+Modules/Admin/routes/web.php	GET	/dashboard/email-templates/create	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@create
+Modules/Admin/routes/web.php	POST	/dashboard/email-templates	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@store
+Modules/Admin/routes/web.php	GET	/dashboard/email-templates/{email_template}	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@show
+Modules/Admin/routes/web.php	GET	/dashboard/email-templates/{email_template}/edit	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/email-templates/{email_template}	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/email-templates/{email_template}	Modules\Admin\Http\Middleware\AdminAuth	EmailTemplateController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/sms-templates	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@index
+Modules/Admin/routes/web.php	GET	/dashboard/sms-templates/create	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@create
+Modules/Admin/routes/web.php	POST	/dashboard/sms-templates	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@store
+Modules/Admin/routes/web.php	GET	/dashboard/sms-templates/{sms_template}	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@show
+Modules/Admin/routes/web.php	GET	/dashboard/sms-templates/{sms_template}/edit	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/sms-templates/{sms_template}	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/sms-templates/{sms_template}	Modules\Admin\Http\Middleware\AdminAuth	SmsTemplateController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/pm-projects	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@index
+Modules/Admin/routes/web.php	GET	/dashboard/pm-projects/create	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@create
+Modules/Admin/routes/web.php	POST	/dashboard/pm-projects	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@store
+Modules/Admin/routes/web.php	GET	/dashboard/pm-projects/{pm_project}	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@show
+Modules/Admin/routes/web.php	GET	/dashboard/pm-projects/{pm_project}/edit	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/pm-projects/{pm_project}	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/pm-projects/{pm_project}	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/pm-projects/{pm_project}/milestones	Modules\Admin\Http\Middleware\AdminAuth	PMProjectController@milestones
+Modules/Admin/routes/web.php	GET	/dashboard/pm-milestones	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@index
+Modules/Admin/routes/web.php	GET	/dashboard/pm-milestones/create	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@create
+Modules/Admin/routes/web.php	POST	/dashboard/pm-milestones	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@store
+Modules/Admin/routes/web.php	GET	/dashboard/pm-milestones/{pm_milestone}	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@show
+Modules/Admin/routes/web.php	GET	/dashboard/pm-milestones/{pm_milestone}/edit	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/pm-milestones/{pm_milestone}	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/pm-milestones/{pm_milestone}	Modules\Admin\Http\Middleware\AdminAuth	PMMilestoneController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/tasks/export-pdf	Modules\Admin\Http\Middleware\AdminAuth	TaskController@exportPdf
+Modules/Admin/routes/web.php	GET	/dashboard/tasks/export-csv	Modules\Admin\Http\Middleware\AdminAuth	TaskController@exportCsv
+Modules/Admin/routes/web.php	GET	/dashboard/tasks	Modules\Admin\Http\Middleware\AdminAuth	TaskController@index
+Modules/Admin/routes/web.php	GET	/dashboard/tasks/create	Modules\Admin\Http\Middleware\AdminAuth	TaskController@create
+Modules/Admin/routes/web.php	POST	/dashboard/tasks	Modules\Admin\Http\Middleware\AdminAuth	TaskController@store
+Modules/Admin/routes/web.php	GET	/dashboard/tasks/{task}	Modules\Admin\Http\Middleware\AdminAuth	TaskController@show
+Modules/Admin/routes/web.php	GET	/dashboard/tasks/{task}/edit	Modules\Admin\Http\Middleware\AdminAuth	TaskController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/tasks/{task}	Modules\Admin\Http\Middleware\AdminAuth	TaskController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/tasks/{task}	Modules\Admin\Http\Middleware\AdminAuth	TaskController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/kanban	Modules\Admin\Http\Middleware\AdminAuth	KanbanController@index
+Modules/Admin/routes/web.php	POST	/dashboard/kanban	Modules\Admin\Http\Middleware\AdminAuth	KanbanController@index
+Modules/Admin/routes/web.php	POST	/dashboard/kanban/update-order	Modules\Admin\Http\Middleware\AdminAuth	KanbanController@updateOrder
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs/export	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@exportPage
+Modules/Admin/routes/web.php	POST	/dashboard/project-management/work-logs/bulk-checkout	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@bulkCheckout
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs/export-pdf	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@exportPdf
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs/export-csv	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@exportCsv
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs/{workLog}/pdf	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@exportSinglePdf
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@index
+Modules/Admin/routes/web.php	GET	/dashboard/project-management/work-logs/{workLog}	Modules\Admin\Http\Middleware\AdminAuth	WorkLogController@show
+Modules/Admin/routes/web.php	GET	/dashboard/kpis	Modules\Admin\Http\Middleware\AdminAuth	KPIController@index
+Modules/Admin/routes/web.php	GET	/dashboard/kpis/create	Modules\Admin\Http\Middleware\AdminAuth	KPIController@create
+Modules/Admin/routes/web.php	POST	/dashboard/kpis	Modules\Admin\Http\Middleware\AdminAuth	KPIController@store
+Modules/Admin/routes/web.php	GET	/dashboard/kpis/{kpi}	Modules\Admin\Http\Middleware\AdminAuth	KPIController@show
+Modules/Admin/routes/web.php	GET	/dashboard/kpis/{kpi}/edit	Modules\Admin\Http\Middleware\AdminAuth	KPIController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/kpis/{kpi}	Modules\Admin\Http\Middleware\AdminAuth	KPIController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/kpis/{kpi}	Modules\Admin\Http\Middleware\AdminAuth	KPIController@destroy
+Modules/Admin/routes/web.php	PATCH	/dashboard/tasks/{task}/status	Modules\Admin\Http\Middleware\AdminAuth	TaskController@updateStatus
+Modules/Admin/routes/web.php	PATCH	/dashboard/tasks/{task}/approval	Modules\Admin\Http\Middleware\AdminAuth	TaskController@updateApproval
+Modules/Admin/routes/web.php	GET	/dashboard/team-monitoring	Modules\Admin\Http\Middleware\AdminAuth	TeamMonitoringController@index
+Modules/Admin/routes/web.php	GET	/dashboard/bugs	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@index
+Modules/Admin/routes/web.php	GET	/dashboard/bugs/create	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@create
+Modules/Admin/routes/web.php	POST	/dashboard/bugs	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@store
+Modules/Admin/routes/web.php	GET	/dashboard/bugs/{bug}	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@show
+Modules/Admin/routes/web.php	GET	/dashboard/bugs/{bug}/edit	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/bugs/{bug}	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/bugs/{bug}	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@destroy
+Modules/Admin/routes/web.php	PATCH	/dashboard/bugs/{bug}/status	Modules\Admin\Http\Middleware\AdminAuth	BugReportController@updateStatus
+Modules/Admin/routes/web.php	GET	/dashboard/chat/{conversation?}	Modules\Admin\Http\Middleware\AdminAuth	ChatController@index
+Modules/Admin/routes/web.php	GET	/dashboard/chat-api/conversations	Modules\Admin\Http\Middleware\AdminAuth	ChatController@getConversations
+Modules/Admin/routes/web.php	GET	/dashboard/chat-api/conversations/{conversation}/messages	Modules\Admin\Http\Middleware\AdminAuth	ChatController@getMessages
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/conversations/{conversation}/messages	Modules\Admin\Http\Middleware\AdminAuth	ChatController@sendMessage
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/conversations/{conversation}/read	Modules\Admin\Http\Middleware\AdminAuth	ChatController@markAsRead
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/conversations/start	Modules\Admin\Http\Middleware\AdminAuth	ChatController@startConversation
+Modules/Admin/routes/web.php	GET	/dashboard/chat-api/unread-count	Modules\Admin\Http\Middleware\AdminAuth	ChatController@getUnreadCount
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/groups	Modules\Admin\Http\Middleware\AdminAuth	ChatController@createGroup
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/conversations/{conversation}/members/add	Modules\Admin\Http\Middleware\AdminAuth	ChatController@addGroupMember
+Modules/Admin/routes/web.php	POST	/dashboard/chat-api/conversations/{conversation}/members/remove	Modules\Admin\Http\Middleware\AdminAuth	ChatController@removeGroupMember
+Modules/Admin/routes/web.php	GET	/dashboard/comments-feed	Modules\Admin\Http\Middleware\AdminAuth	CommentFeedController@index
+Modules/Admin/routes/web.php	GET	/dashboard/comments-feed/unread-count	Modules\Admin\Http\Middleware\AdminAuth	CommentFeedController@getUnreadCount
+Modules/Admin/routes/web.php	GET	/dashboard/subsidiaries	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@index
+Modules/Admin/routes/web.php	GET	/dashboard/subsidiaries/create	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@create
+Modules/Admin/routes/web.php	POST	/dashboard/subsidiaries	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@store
+Modules/Admin/routes/web.php	GET	/dashboard/subsidiaries/{subsidiarie}	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@show
+Modules/Admin/routes/web.php	GET	/dashboard/subsidiaries/{subsidiarie}/edit	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/subsidiaries/{subsidiarie}	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/subsidiaries/{subsidiarie}	Modules\Admin\Http\Middleware\AdminAuth	SubsidiaryController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/legal-pages	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@index
+Modules/Admin/routes/web.php	GET	/dashboard/legal-pages/create	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@create
+Modules/Admin/routes/web.php	POST	/dashboard/legal-pages	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@store
+Modules/Admin/routes/web.php	GET	/dashboard/legal-pages/{legal_page}	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@show
+Modules/Admin/routes/web.php	GET	/dashboard/legal-pages/{legal_page}/edit	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@edit
+Modules/Admin/routes/web.php	PUT|PATCH	/dashboard/legal-pages/{legal_page}	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@update
+Modules/Admin/routes/web.php	DELETE	/dashboard/legal-pages/{legal_page}	Modules\Admin\Http\Middleware\AdminAuth	LegalPageController@destroy
+Modules/Admin/routes/web.php	GET	/dashboard/settings	Modules\Admin\Http\Middleware\AdminAuth	SettingController@index
+Modules/Admin/routes/web.php	POST	/dashboard/settings	Modules\Admin\Http\Middleware\AdminAuth	SettingController@update
+Modules/Admin/routes/web.php	GET	/dashboard/settings/mail	Modules\Admin\Http\Middleware\AdminAuth	MailSettingsController@index
+Modules/Admin/routes/web.php	PUT	/dashboard/settings/mail	Modules\Admin\Http\Middleware\AdminAuth	MailSettingsController@update
+Modules/Admin/routes/web.php	POST	/dashboard/settings/mail/test	Modules\Admin\Http\Middleware\AdminAuth	MailSettingsController@sendTest
+Modules/AiEmployees/routes/api.php	GET	/api/v1/aiemployees	auth:sanctum	AiEmployeesController@index
+Modules/AiEmployees/routes/api.php	POST	/api/v1/aiemployees	auth:sanctum	AiEmployeesController@store
+Modules/AiEmployees/routes/api.php	GET	/api/v1/aiemployees/{aiemployee}	auth:sanctum	AiEmployeesController@show
+Modules/AiEmployees/routes/api.php	PUT|PATCH	/api/v1/aiemployees/{aiemployee}	auth:sanctum	AiEmployeesController@update
+Modules/AiEmployees/routes/api.php	DELETE	/api/v1/aiemployees/{aiemployee}	auth:sanctum	AiEmployeesController@destroy
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/dashboard	AdminAuth	AiDashboardController@index
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/dashboard/task	AdminAuth	AiDashboardController@processTask
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/dashboard/task/{id}/poll	AdminAuth	AiDashboardController@pollTask
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/dashboard/actions/{id}/approve	AdminAuth	AiDashboardController@approveAction
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/dashboard/actions/{id}/reject	AdminAuth	AiDashboardController@rejectAction
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/pending-actions	AdminAuth	AiDashboardController@pendingActions
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/pending-actions/bulk-approve	AdminAuth	AiDashboardController@bulkApprove
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/pending-actions/bulk-reject	AdminAuth	AiDashboardController@bulkReject
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/employees/{employee}/toggle-status	AdminAuth	AiEmployeeController@toggleStatus
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/employees	AdminAuth	AiEmployeeController@index
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/employees/create	AdminAuth	AiEmployeeController@create
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/employees	AdminAuth	AiEmployeeController@store
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/employees/{employee}	AdminAuth	AiEmployeeController@show
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/employees/{employee}/edit	AdminAuth	AiEmployeeController@edit
+Modules/AiEmployees/routes/web.php	PUT|PATCH	/dashboard/aiemployees/employees/{employee}	AdminAuth	AiEmployeeController@update
+Modules/AiEmployees/routes/web.php	DELETE	/dashboard/aiemployees/employees/{employee}	AdminAuth	AiEmployeeController@destroy
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/run-routines	AdminAuth	AiDashboardController@runRoutines
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/tasks/{task}/retry	AdminAuth	AiTaskController@retry
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/tasks/{task}/stop	AdminAuth	AiTaskController@stop
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/tasks	AdminAuth	AiTaskController@index
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/tasks/create	AdminAuth	AiTaskController@create
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/tasks	AdminAuth	AiTaskController@store
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/tasks/{task}	AdminAuth	AiTaskController@show
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/tasks/{task}/edit	AdminAuth	AiTaskController@edit
+Modules/AiEmployees/routes/web.php	PUT|PATCH	/dashboard/aiemployees/tasks/{task}	AdminAuth	AiTaskController@update
+Modules/AiEmployees/routes/web.php	DELETE	/dashboard/aiemployees/tasks/{task}	AdminAuth	AiTaskController@destroy
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/knowledge	AdminAuth	AiKnowledgeController@index
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/knowledge/create	AdminAuth	AiKnowledgeController@create
+Modules/AiEmployees/routes/web.php	POST	/dashboard/aiemployees/knowledge	AdminAuth	AiKnowledgeController@store
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/knowledge/{knowledge}	AdminAuth	AiKnowledgeController@show
+Modules/AiEmployees/routes/web.php	GET	/dashboard/aiemployees/knowledge/{knowledge}/edit	AdminAuth	AiKnowledgeController@edit
+Modules/AiEmployees/routes/web.php	PUT|PATCH	/dashboard/aiemployees/knowledge/{knowledge}	AdminAuth	AiKnowledgeController@update
+Modules/AiEmployees/routes/web.php	DELETE	/dashboard/aiemployees/knowledge/{knowledge}	AdminAuth	AiKnowledgeController@destroy
+Modules/Analytics/routes/api.php	GET	/api/v1/analytics	auth:sanctum	AnalyticsController@index
+Modules/Analytics/routes/api.php	POST	/api/v1/analytics	auth:sanctum	AnalyticsController@store
+Modules/Analytics/routes/api.php	GET	/api/v1/analytics/{analytic}	auth:sanctum	AnalyticsController@show
+Modules/Analytics/routes/api.php	PUT|PATCH	/api/v1/analytics/{analytic}	auth:sanctum	AnalyticsController@update
+Modules/Analytics/routes/api.php	DELETE	/api/v1/analytics/{analytic}	auth:sanctum	AnalyticsController@destroy
+Modules/Analytics/routes/web.php	GET	/analytics	auth, verified	AnalyticsController@index
+Modules/Analytics/routes/web.php	GET	/analytics/create	auth, verified	AnalyticsController@create
+Modules/Analytics/routes/web.php	POST	/analytics	auth, verified	AnalyticsController@store
+Modules/Analytics/routes/web.php	GET	/analytics/{analytic}	auth, verified	AnalyticsController@show
+Modules/Analytics/routes/web.php	GET	/analytics/{analytic}/edit	auth, verified	AnalyticsController@edit
+Modules/Analytics/routes/web.php	PUT|PATCH	/analytics/{analytic}	auth, verified	AnalyticsController@update
+Modules/Analytics/routes/web.php	DELETE	/analytics/{analytic}	auth, verified	AnalyticsController@destroy
+Modules/Blog/routes/api.php	GET	/api/v1/blogs	auth:sanctum	BlogController@index
+Modules/Blog/routes/api.php	POST	/api/v1/blogs	auth:sanctum	BlogController@store
+Modules/Blog/routes/api.php	GET	/api/v1/blogs/{blog}	auth:sanctum	BlogController@show
+Modules/Blog/routes/api.php	PUT|PATCH	/api/v1/blogs/{blog}	auth:sanctum	BlogController@update
+Modules/Blog/routes/api.php	DELETE	/api/v1/blogs/{blog}	auth:sanctum	BlogController@destroy
+Modules/Blog/routes/web.php	GET	/blog	public	BlogController@index
+Modules/Blog/routes/web.php	GET	/blogs/{blog}	public	BlogController@show
+Modules/Blog/routes/web.php	GET	/blogs/create	auth, verified	BlogController@create
+Modules/Blog/routes/web.php	POST	/blogs	auth, verified	BlogController@store
+Modules/Blog/routes/web.php	GET	/blogs/{blog}/edit	auth, verified	BlogController@edit
+Modules/Blog/routes/web.php	PUT	/blogs/{blog}	auth, verified	BlogController@update
+Modules/Blog/routes/web.php	DELETE	/blogs/{blog}	auth, verified	BlogController@destroy
+Modules/CMS/routes/api.php	GET	/api/v1/cms	auth:sanctum	CMSController@index
+Modules/CMS/routes/api.php	POST	/api/v1/cms	auth:sanctum	CMSController@store
+Modules/CMS/routes/api.php	GET	/api/v1/cms/{cm}	auth:sanctum	CMSController@show
+Modules/CMS/routes/api.php	PUT|PATCH	/api/v1/cms/{cm}	auth:sanctum	CMSController@update
+Modules/CMS/routes/api.php	DELETE	/api/v1/cms/{cm}	auth:sanctum	CMSController@destroy
+Modules/CMS/routes/web.php	GET	/cms	auth, verified	CMSController@index
+Modules/CMS/routes/web.php	GET	/cms/create	auth, verified	CMSController@create
+Modules/CMS/routes/web.php	POST	/cms	auth, verified	CMSController@store
+Modules/CMS/routes/web.php	GET	/cms/{cm}	auth, verified	CMSController@show
+Modules/CMS/routes/web.php	GET	/cms/{cm}/edit	auth, verified	CMSController@edit
+Modules/CMS/routes/web.php	PUT|PATCH	/cms/{cm}	auth, verified	CMSController@update
+Modules/CMS/routes/web.php	DELETE	/cms/{cm}	auth, verified	CMSController@destroy
+Modules/Careers/routes/api.php	GET	/api/v1/careers	auth:sanctum	CareersController@index
+Modules/Careers/routes/api.php	POST	/api/v1/careers	auth:sanctum	CareersController@store
+Modules/Careers/routes/api.php	GET	/api/v1/careers/{career}	auth:sanctum	CareersController@show
+Modules/Careers/routes/api.php	PUT|PATCH	/api/v1/careers/{career}	auth:sanctum	CareersController@update
+Modules/Careers/routes/api.php	DELETE	/api/v1/careers/{career}	auth:sanctum	CareersController@destroy
+Modules/Careers/routes/web.php	GET	/careers	public	CareersController@index
+Modules/Careers/routes/web.php	GET	/careers/create	public	CareersController@create
+Modules/Careers/routes/web.php	POST	/careers	public	CareersController@store
+Modules/Careers/routes/web.php	GET	/careers/{career}	public	CareersController@show
+Modules/Careers/routes/web.php	GET	/careers/{career}/edit	public	CareersController@edit
+Modules/Careers/routes/web.php	PUT|PATCH	/careers/{career}	public	CareersController@update
+Modules/Careers/routes/web.php	DELETE	/careers/{career}	public	CareersController@destroy
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/login	public	AuthController@login
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/register	public	AuthController@register
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/forgot-password	public	AuthController@forgotPassword
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/reset-password	public	AuthController@resetPassword
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/legal-pages	public	PublicController@getLegalPages
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/legal-pages/{slug}	public	PublicController@getLegalPage
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/support-settings	public	PublicController@getSupportSettings
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/service-categories	public	ServiceCategoryController@index
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/service-categories/{id}	public	ServiceCategoryController@show
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/profile	auth:sanctum, user_type:client	AuthController@profile
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/logout	auth:sanctum, user_type:client	AuthController@logout
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/update-device-token	auth:sanctum, user_type:client	AuthController@updateFcmToken
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/update-profile	auth:sanctum, user_type:client	AuthController@updateProfile
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/change-password	auth:sanctum, user_type:client	AuthController@changePassword
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/profile/picture	auth:sanctum, user_type:client	AuthController@updateProfilePicture
+Modules/ClientPortal/routes/api.php	DELETE	/api/v1/client/profile	auth:sanctum, user_type:client	AuthController@deleteAccount
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/projects	auth:sanctum, user_type:client	ProjectController@index
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/projects/{id}	auth:sanctum, user_type:client	ProjectController@show
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/projects/{id}/chat	auth:sanctum, user_type:client	ProjectChatController@index
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/projects/{id}/chat	auth:sanctum, user_type:client	ProjectChatController@store
+Modules/ClientPortal/routes/api.php	PUT	/api/v1/client/projects/chat/messages/{messageId}	auth:sanctum, user_type:client	ProjectChatController@updateMessage
+Modules/ClientPortal/routes/api.php	DELETE	/api/v1/client/projects/chat/messages/{messageId}	auth:sanctum, user_type:client	ProjectChatController@deleteMessage
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/projects/chat/messages/{messageId}/read	auth:sanctum, user_type:client	ProjectChatController@markAsRead
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/invoices	auth:sanctum, user_type:client	InvoiceController@index
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/invoices/{id}	auth:sanctum, user_type:client	InvoiceController@show
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/tickets	auth:sanctum, user_type:client	TicketController@index
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/tickets	auth:sanctum, user_type:client	TicketController@store
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/tickets/{id}	auth:sanctum, user_type:client	TicketController@show
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/quotes	auth:sanctum, user_type:client	QuoteController@index
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/quotes/{id}	auth:sanctum, user_type:client	QuoteController@show
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/chats	auth:sanctum, user_type:client	ChatController@index
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/chats	auth:sanctum, user_type:client	ChatController@store
+Modules/ClientPortal/routes/api.php	GET	/api/v1/client/chats/{id}	auth:sanctum, user_type:client	ChatController@show
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/chats/{id}/messages	auth:sanctum, user_type:client	ChatController@sendMessage
+Modules/ClientPortal/routes/api.php	POST	/api/v1/client/chats/{id}/close	auth:sanctum, user_type:client	ChatController@close
+Modules/ClientPortal/routes/api.php	DELETE	/api/v1/client/chats/{id}	auth:sanctum, user_type:client	ChatController@destroy
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/login	guest:client	AuthController@showLoginForm
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/login	guest:client	AuthController@login
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/register	guest:client	AuthController@showRegisterForm
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/register	guest:client	AuthController@register
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/forgot-password	guest:client	AuthController@showLinkRequestForm
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/forgot-password	guest:client	AuthController@sendResetLinkEmail
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/reset-password/{token}	guest:client	AuthController@showResetForm
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/reset-password	guest:client	AuthController@reset
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/logout	Modules\ClientPortal\Http\Middleware\ClientAuth	AuthController@logout
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/dashboard	Modules\ClientPortal\Http\Middleware\ClientAuth	DashboardController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client	Modules\ClientPortal\Http\Middleware\ClientAuth	closure
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/projects	Modules\ClientPortal\Http\Middleware\ClientAuth	ProjectController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/projects/{project}	Modules\ClientPortal\Http\Middleware\ClientAuth	ProjectController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/projects/{project}/chat	Modules\ClientPortal\Http\Middleware\ClientAuth	ClientProjectChatController@index
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/projects/{project}/chat	Modules\ClientPortal\Http\Middleware\ClientAuth	ClientProjectChatController@store
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/tasks/{id}/approve	Modules\ClientPortal\Http\Middleware\ClientAuth	TaskController@approve
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/tasks/{id}/reject	Modules\ClientPortal\Http\Middleware\ClientAuth	TaskController@reject
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/invoices	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/invoices/{invoice}	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/invoices/{invoice}/pdf	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@downloadPDF
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/invoices/{invoice}/pay	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@pay
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/invoices/{invoice}/confirm-payment	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@confirmPayment
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/invoices/{invoice}/check-status	Modules\ClientPortal\Http\Middleware\ClientAuth	InvoiceController@checkPaymentStatus
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/transactions	Modules\ClientPortal\Http\Middleware\ClientAuth	TransactionController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/transactions/{transaction}	Modules\ClientPortal\Http\Middleware\ClientAuth	TransactionController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/tickets	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/tickets/create	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@create
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/tickets	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@store
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/tickets/{ticket}	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/tickets/{ticket}/edit	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@edit
+Modules/ClientPortal/routes/web.php	PUT|PATCH	/dashboard/client/tickets/{ticket}	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@update
+Modules/ClientPortal/routes/web.php	DELETE	/dashboard/client/tickets/{ticket}	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@destroy
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/tickets/{ticket}/reply	Modules\ClientPortal\Http\Middleware\ClientAuth	TicketController@reply
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/profile	Modules\ClientPortal\Http\Middleware\ClientAuth	ProfileController@edit
+Modules/ClientPortal/routes/web.php	PUT	/dashboard/client/profile	Modules\ClientPortal\Http\Middleware\ClientAuth	ProfileController@update
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/services	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceCatalogController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/services/{service}	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceCatalogController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/services/{service}/order	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceCatalogController@configure
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/contracts	Modules\ClientPortal\Http\Middleware\ClientAuth	ContractController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/contracts/{id}	Modules\ClientPortal\Http\Middleware\ClientAuth	ContractController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/quotes	Modules\ClientPortal\Http\Middleware\ClientAuth	QuoteController@index
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/quotes/{id}	Modules\ClientPortal\Http\Middleware\ClientAuth	QuoteController@show
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/quotes/{id}/pdf	Modules\ClientPortal\Http\Middleware\ClientAuth	QuoteController@downloadPDF
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/quotes/{id}/pay	Modules\ClientPortal\Http\Middleware\ClientAuth	QuoteController@pay
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/orders	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceOrderController@index
+Modules/ClientPortal/routes/web.php	POST	/dashboard/client/orders	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceOrderController@store
+Modules/ClientPortal/routes/web.php	GET	/dashboard/client/orders/{order}	Modules\ClientPortal\Http\Middleware\ClientAuth	ServiceOrderController@show
+Modules/Clients/routes/api.php	GET	/api/v1/clients	auth:sanctum	ClientsController@index
+Modules/Clients/routes/api.php	POST	/api/v1/clients	auth:sanctum	ClientsController@store
+Modules/Clients/routes/api.php	GET	/api/v1/clients/{client}	auth:sanctum	ClientsController@show
+Modules/Clients/routes/api.php	PUT|PATCH	/api/v1/clients/{client}	auth:sanctum	ClientsController@update
+Modules/Clients/routes/api.php	DELETE	/api/v1/clients/{client}	auth:sanctum	ClientsController@destroy
+Modules/Clients/routes/web.php	GET	/clients	auth, verified	ClientsController@index
+Modules/Clients/routes/web.php	GET	/clients/create	auth, verified	ClientsController@create
+Modules/Clients/routes/web.php	POST	/clients	auth, verified	ClientsController@store
+Modules/Clients/routes/web.php	GET	/clients/{client}	auth, verified	ClientsController@show
+Modules/Clients/routes/web.php	GET	/clients/{client}/edit	auth, verified	ClientsController@edit
+Modules/Clients/routes/web.php	PUT|PATCH	/clients/{client}	auth, verified	ClientsController@update
+Modules/Clients/routes/web.php	DELETE	/clients/{client}	auth, verified	ClientsController@destroy
+Modules/Communications/routes/api.php	GET	/api/v1/communications	auth:sanctum	CommunicationsController@index
+Modules/Communications/routes/api.php	POST	/api/v1/communications	auth:sanctum	CommunicationsController@store
+Modules/Communications/routes/api.php	GET	/api/v1/communications/{communication}	auth:sanctum	CommunicationsController@show
+Modules/Communications/routes/api.php	PUT|PATCH	/api/v1/communications/{communication}	auth:sanctum	CommunicationsController@update
+Modules/Communications/routes/api.php	DELETE	/api/v1/communications/{communication}	auth:sanctum	CommunicationsController@destroy
+Modules/Communications/routes/web.php	GET	/communications	auth, verified	CommunicationsController@index
+Modules/Communications/routes/web.php	GET	/communications/create	auth, verified	CommunicationsController@create
+Modules/Communications/routes/web.php	POST	/communications	auth, verified	CommunicationsController@store
+Modules/Communications/routes/web.php	GET	/communications/{communication}	auth, verified	CommunicationsController@show
+Modules/Communications/routes/web.php	GET	/communications/{communication}/edit	auth, verified	CommunicationsController@edit
+Modules/Communications/routes/web.php	PUT|PATCH	/communications/{communication}	auth, verified	CommunicationsController@update
+Modules/Communications/routes/web.php	DELETE	/communications/{communication}	auth, verified	CommunicationsController@destroy
+Modules/Contact/routes/api.php	GET	/api/v1/contacts	auth:sanctum	ContactController@index
+Modules/Contact/routes/api.php	POST	/api/v1/contacts	auth:sanctum	ContactController@store
+Modules/Contact/routes/api.php	GET	/api/v1/contacts/{contact}	auth:sanctum	ContactController@show
+Modules/Contact/routes/api.php	PUT|PATCH	/api/v1/contacts/{contact}	auth:sanctum	ContactController@update
+Modules/Contact/routes/api.php	DELETE	/api/v1/contacts/{contact}	auth:sanctum	ContactController@destroy
+Modules/Contact/routes/web.php	GET	/contact	public	ContactController@index
+Modules/Contact/routes/web.php	GET	/start-project	public	LeadController@create
+Modules/Contact/routes/web.php	POST	/contact	public	ContactController@store
+Modules/Contact/routes/web.php	POST	/start-project	public	LeadController@store
+Modules/Contact/routes/web.php	GET	/fintech	public	FintechLandingPageController@index
+Modules/Contact/routes/web.php	POST	/fintech	public	FintechLandingPageController@store
+Modules/Contact/routes/web.php	GET	/contacts	auth, verified	ContactController@index
+Modules/Contact/routes/web.php	GET	/contacts/create	auth, verified	ContactController@create
+Modules/Contact/routes/web.php	POST	/contacts	auth, verified	ContactController@store
+Modules/Contact/routes/web.php	GET	/contacts/{contact}	auth, verified	ContactController@show
+Modules/Contact/routes/web.php	GET	/contacts/{contact}/edit	auth, verified	ContactController@edit
+Modules/Contact/routes/web.php	PUT|PATCH	/contacts/{contact}	auth, verified	ContactController@update
+Modules/Contact/routes/web.php	DELETE	/contacts/{contact}	auth, verified	ContactController@destroy
+Modules/Home/routes/api.php	GET	/api/v1/homes	auth:sanctum	HomeController@index
+Modules/Home/routes/api.php	POST	/api/v1/homes	auth:sanctum	HomeController@store
+Modules/Home/routes/api.php	GET	/api/v1/homes/{home}	auth:sanctum	HomeController@show
+Modules/Home/routes/api.php	PUT|PATCH	/api/v1/homes/{home}	auth:sanctum	HomeController@update
+Modules/Home/routes/api.php	DELETE	/api/v1/homes/{home}	auth:sanctum	HomeController@destroy
+Modules/Home/routes/web.php	GET	/	public	HomeController@index
+Modules/Home/routes/web.php	GET	/features	public	HomeController@features
+Modules/Home/routes/web.php	GET	/pricing	public	HomeController@pricing
+Modules/Home/routes/web.php	GET	/faq	public	HomeController@faq
+Modules/Home/routes/web.php	GET	/homes	auth, verified	HomeController@index
+Modules/Home/routes/web.php	GET	/homes/create	auth, verified	HomeController@create
+Modules/Home/routes/web.php	POST	/homes	auth, verified	HomeController@store
+Modules/Home/routes/web.php	GET	/homes/{home}	auth, verified	HomeController@show
+Modules/Home/routes/web.php	GET	/homes/{home}/edit	auth, verified	HomeController@edit
+Modules/Home/routes/web.php	PUT|PATCH	/homes/{home}	auth, verified	HomeController@update
+Modules/Home/routes/web.php	DELETE	/homes/{home}	auth, verified	HomeController@destroy
+Modules/Investor/routes/api.php	GET	/api/v1/investors	auth:sanctum	InvestorController@index
+Modules/Investor/routes/api.php	POST	/api/v1/investors	auth:sanctum	InvestorController@store
+Modules/Investor/routes/api.php	GET	/api/v1/investors/{investor}	auth:sanctum	InvestorController@show
+Modules/Investor/routes/api.php	PUT|PATCH	/api/v1/investors/{investor}	auth:sanctum	InvestorController@update
+Modules/Investor/routes/api.php	DELETE	/api/v1/investors/{investor}	auth:sanctum	InvestorController@destroy
+Modules/Investor/routes/web.php	GET	/investor-relations	public	InvestorController@index
+Modules/Investor/routes/web.php	GET	/investor-relations/financial-reports	public	InvestorController@financialReports
+Modules/Investor/routes/web.php	GET	/investor-relations/press-releases	public	InvestorController@pressReleases
+Modules/Investor/routes/web.php	GET	/investor-relations/press-releases/{slug}	public	InvestorController@showPressRelease
+Modules/Investor/routes/web.php	GET	/investor-relations/stock-data	public	InvestorController@stockData
+Modules/Investor/routes/web.php	GET	/investor-relations/shareholder-meetings	public	InvestorController@shareholderMeetings
+Modules/KYC/routes/web.php	GET	/dashboard/kyc	AdminAuth	KycController@index
+Modules/KYC/routes/web.php	POST	/dashboard/kyc/upload	AdminAuth	KycController@upload
+Modules/KYC/routes/web.php	GET	/super-admin/kyc	auth:admin	SuperAdminKycController@index
+Modules/KYC/routes/web.php	POST	/super-admin/kyc/{document}/verify	auth:admin	SuperAdminKycController@verify
+Modules/Legal/routes/api.php	GET	/api/v1/legals	auth:sanctum	LegalController@index
+Modules/Legal/routes/api.php	POST	/api/v1/legals	auth:sanctum	LegalController@store
+Modules/Legal/routes/api.php	GET	/api/v1/legals/{legal}	auth:sanctum	LegalController@show
+Modules/Legal/routes/api.php	PUT|PATCH	/api/v1/legals/{legal}	auth:sanctum	LegalController@update
+Modules/Legal/routes/api.php	DELETE	/api/v1/legals/{legal}	auth:sanctum	LegalController@destroy
+Modules/Legal/routes/web.php	GET	/privacy-policy	public	LegalController@page
+Modules/Legal/routes/web.php	GET	/terms-conditions	public	LegalController@page
+Modules/Legal/routes/web.php	GET	/legal/{slug}	public	LegalController@page
+Modules/Legal/routes/web.php	GET	/legals	auth, verified	LegalController@index
+Modules/Legal/routes/web.php	GET	/legals/create	auth, verified	LegalController@create
+Modules/Legal/routes/web.php	POST	/legals	auth, verified	LegalController@store
+Modules/Legal/routes/web.php	GET	/legals/{legal}	auth, verified	LegalController@show
+Modules/Legal/routes/web.php	GET	/legals/{legal}/edit	auth, verified	LegalController@edit
+Modules/Legal/routes/web.php	PUT|PATCH	/legals/{legal}	auth, verified	LegalController@update
+Modules/Legal/routes/web.php	DELETE	/legals/{legal}	auth, verified	LegalController@destroy
+Modules/Mcp/routes/web.php	POST	/mcp	public	McpController@handle
+Modules/Mcp/routes/web.php	GET	/dashboard/mcp	AdminAuth	McpController@index
+Modules/Mcp/routes/web.php	GET	/dashboard/mcp/ai-generator	AdminAuth	McpController@aiGenerator
+Modules/Mcp/routes/web.php	POST	/dashboard/mcp/generate	AdminAuth	McpController@generateFromPrompt
+Modules/Mcp/routes/web.php	POST	/dashboard/mcp/execute	AdminAuth	McpController@executeAction
+Modules/Portfolio/routes/api.php	GET	/api/v1/portfolios	auth:sanctum	PortfolioController@index
+Modules/Portfolio/routes/api.php	POST	/api/v1/portfolios	auth:sanctum	PortfolioController@store
+Modules/Portfolio/routes/api.php	GET	/api/v1/portfolios/{portfolio}	auth:sanctum	PortfolioController@show
+Modules/Portfolio/routes/api.php	PUT|PATCH	/api/v1/portfolios/{portfolio}	auth:sanctum	PortfolioController@update
+Modules/Portfolio/routes/api.php	DELETE	/api/v1/portfolios/{portfolio}	auth:sanctum	PortfolioController@destroy
+Modules/Portfolio/routes/web.php	GET	/portfolio	public	PortfolioController@index
+Modules/Portfolio/routes/web.php	GET	/portfolios/{portfolio}	public	PortfolioController@show
+Modules/Portfolio/routes/web.php	GET	/portfolios/create	auth, verified	PortfolioController@create
+Modules/Portfolio/routes/web.php	POST	/portfolios	auth, verified	PortfolioController@store
+Modules/Portfolio/routes/web.php	GET	/portfolios/{portfolio}/edit	auth, verified	PortfolioController@edit
+Modules/Portfolio/routes/web.php	PUT	/portfolios/{portfolio}	auth, verified	PortfolioController@update
+Modules/Portfolio/routes/web.php	DELETE	/portfolios/{portfolio}	auth, verified	PortfolioController@destroy
+Modules/ProjectManagement/routes/api.php	GET	/api/v1/projectmanagements	auth:sanctum	ProjectManagementController@index
+Modules/ProjectManagement/routes/api.php	POST	/api/v1/projectmanagements	auth:sanctum	ProjectManagementController@store
+Modules/ProjectManagement/routes/api.php	GET	/api/v1/projectmanagements/{projectmanagement}	auth:sanctum	ProjectManagementController@show
+Modules/ProjectManagement/routes/api.php	PUT|PATCH	/api/v1/projectmanagements/{projectmanagement}	auth:sanctum	ProjectManagementController@update
+Modules/ProjectManagement/routes/api.php	DELETE	/api/v1/projectmanagements/{projectmanagement}	auth:sanctum	ProjectManagementController@destroy
+Modules/ProjectManagement/routes/web.php	GET	/project-management	public	closure
+Modules/ProjectManagement/routes/web.php	GET	/projectmanagements	public	ProjectManagementController@index
+Modules/ProjectManagement/routes/web.php	GET	/projectmanagements/create	public	ProjectManagementController@create
+Modules/ProjectManagement/routes/web.php	POST	/projectmanagements	public	ProjectManagementController@store
+Modules/ProjectManagement/routes/web.php	GET	/projectmanagements/{projectmanagement}	public	ProjectManagementController@show
+Modules/ProjectManagement/routes/web.php	GET	/projectmanagements/{projectmanagement}/edit	public	ProjectManagementController@edit
+Modules/ProjectManagement/routes/web.php	PUT|PATCH	/projectmanagements/{projectmanagement}	public	ProjectManagementController@update
+Modules/ProjectManagement/routes/web.php	DELETE	/projectmanagements/{projectmanagement}	public	ProjectManagementController@destroy
+Modules/ProjectManagement/routes/web.php	POST	/comments	public	CommentController@store
+Modules/ProjectManagement/routes/web.php	DELETE	/comments/{comment}	public	CommentController@destroy
+Modules/ProjectManagement/routes/web.php	POST	/attachments	public	AttachmentController@store
+Modules/ProjectManagement/routes/web.php	GET	/attachments/{attachment}/download	public	AttachmentController@download
+Modules/ProjectManagement/routes/web.php	DELETE	/attachments/{attachment}	public	AttachmentController@destroy
+Modules/ProjectManagement/routes/web.php	POST	/time-logs/start	public	TimeLogController@start
+Modules/ProjectManagement/routes/web.php	POST	/time-logs/{timeLog}/stop	public	TimeLogController@stop
+Modules/ProjectManagement/routes/web.php	POST	/time-logs	public	TimeLogController@store
+Modules/ProjectManagement/routes/web.php	DELETE	/time-logs/{time_log}	public	TimeLogController@destroy
+Modules/Services/routes/api.php	GET	/api/v1/services	public	ServicesController@index
+Modules/Services/routes/api.php	GET	/api/v1/services/{service}	public	ServicesController@show
+Modules/Services/routes/api.php	POST	/api/v1/services	auth:sanctum	ServicesController@store
+Modules/Services/routes/api.php	PUT|PATCH	/api/v1/services/{service}	auth:sanctum	ServicesController@update
+Modules/Services/routes/api.php	DELETE	/api/v1/services/{service}	auth:sanctum	ServicesController@destroy
+Modules/Services/routes/web.php	GET	/services	public	ServicesController@index
+Modules/Services/routes/web.php	GET	/services/create	public	ServicesController@create
+Modules/Services/routes/web.php	POST	/services	public	ServicesController@store
+Modules/Services/routes/web.php	GET	/services/{service}	public	ServicesController@show
+Modules/Services/routes/web.php	GET	/services/{service}/edit	public	ServicesController@edit
+Modules/Services/routes/web.php	PUT|PATCH	/services/{service}	public	ServicesController@update
+Modules/Services/routes/web.php	DELETE	/services/{service}	public	ServicesController@destroy
+Modules/Settings/routes/api.php	GET	/api/v1/settings	auth:sanctum	SettingsController@index
+Modules/Settings/routes/api.php	POST	/api/v1/settings	auth:sanctum	SettingsController@store
+Modules/Settings/routes/api.php	GET	/api/v1/settings/{setting}	auth:sanctum	SettingsController@show
+Modules/Settings/routes/api.php	PUT|PATCH	/api/v1/settings/{setting}	auth:sanctum	SettingsController@update
+Modules/Settings/routes/api.php	DELETE	/api/v1/settings/{setting}	auth:sanctum	SettingsController@destroy
+Modules/Settings/routes/web.php	GET	/settings	auth, verified	SettingsController@index
+Modules/Settings/routes/web.php	GET	/settings/create	auth, verified	SettingsController@create
+Modules/Settings/routes/web.php	POST	/settings	auth, verified	SettingsController@store
+Modules/Settings/routes/web.php	GET	/settings/{setting}	auth, verified	SettingsController@show
+Modules/Settings/routes/web.php	GET	/settings/{setting}/edit	auth, verified	SettingsController@edit
+Modules/Settings/routes/web.php	PUT|PATCH	/settings/{setting}	auth, verified	SettingsController@update
+Modules/Settings/routes/web.php	DELETE	/settings/{setting}	auth, verified	SettingsController@destroy
+Modules/SocialMedia/routes/api.php	GET	/api/v1/socialmedia	auth:sanctum	SocialMediaController@index
+Modules/SocialMedia/routes/api.php	POST	/api/v1/socialmedia	auth:sanctum	SocialMediaController@store
+Modules/SocialMedia/routes/api.php	GET	/api/v1/socialmedia/{socialmedia}	auth:sanctum	SocialMediaController@show
+Modules/SocialMedia/routes/api.php	PUT|PATCH	/api/v1/socialmedia/{socialmedia}	auth:sanctum	SocialMediaController@update
+Modules/SocialMedia/routes/api.php	DELETE	/api/v1/socialmedia/{socialmedia}	auth:sanctum	SocialMediaController@destroy
+Modules/SocialMedia/routes/web.php	GET	/dashboard/social-media	AdminAuth	SocialMediaController@index
+Modules/SocialMedia/routes/web.php	GET	/dashboard/social-media/inbox	AdminAuth	SocialMediaController@inbox
+Modules/SocialMedia/routes/web.php	GET	/dashboard/social-media/calendar	AdminAuth	SocialMediaController@calendar
+Modules/SocialMedia/routes/web.php	GET	/dashboard/social-media/analytics	AdminAuth	SocialMediaController@analytics
+Modules/SocialMedia/routes/web.php	GET	/admin/social-media/{path?}	public	closure
+Modules/Store/routes/api.php	GET	/api/v1/stores	auth:sanctum	StoreController@index
+Modules/Store/routes/api.php	POST	/api/v1/stores	auth:sanctum	StoreController@store
+Modules/Store/routes/api.php	GET	/api/v1/stores/{store}	auth:sanctum	StoreController@show
+Modules/Store/routes/api.php	PUT|PATCH	/api/v1/stores/{store}	auth:sanctum	StoreController@update
+Modules/Store/routes/api.php	DELETE	/api/v1/stores/{store}	auth:sanctum	StoreController@destroy
+Modules/Store/routes/web.php	GET	/store/{slug}	public	StoreController@tenantStore
+Modules/Store/routes/web.php	GET	/store/{slug}/cart	public	CartController@index
+Modules/Store/routes/web.php	POST	/store/{slug}/cart/add	public	CartController@add
+Modules/Store/routes/web.php	POST	/store/{slug}/cart/update	public	CartController@update
+Modules/Store/routes/web.php	POST	/store/{slug}/cart/remove	public	CartController@remove
+Modules/Store/routes/web.php	GET	/store/{slug}/checkout	public	CheckoutController@show
+Modules/Store/routes/web.php	POST	/store/{slug}/checkout	public	CheckoutController@process
+Modules/Store/routes/web.php	GET	/store/{slug}/order-confirmation/{orderNumber}	public	CheckoutController@confirmation
+Modules/Subsidiaries/routes/api.php	GET	/api/v1/subsidiaries	auth:sanctum	SubsidiariesController@index
+Modules/Subsidiaries/routes/api.php	POST	/api/v1/subsidiaries	auth:sanctum	SubsidiariesController@store
+Modules/Subsidiaries/routes/api.php	GET	/api/v1/subsidiaries/{subsidiarie}	auth:sanctum	SubsidiariesController@show
+Modules/Subsidiaries/routes/api.php	PUT|PATCH	/api/v1/subsidiaries/{subsidiarie}	auth:sanctum	SubsidiariesController@update
+Modules/Subsidiaries/routes/api.php	DELETE	/api/v1/subsidiaries/{subsidiarie}	auth:sanctum	SubsidiariesController@destroy
+Modules/Subsidiaries/routes/web.php	GET	/subsidiaries	auth, verified	SubsidiariesController@index
+Modules/Subsidiaries/routes/web.php	GET	/subsidiaries/create	auth, verified	SubsidiariesController@create
+Modules/Subsidiaries/routes/web.php	POST	/subsidiaries	auth, verified	SubsidiariesController@store
+Modules/Subsidiaries/routes/web.php	GET	/subsidiaries/{subsidiarie}	auth, verified	SubsidiariesController@show
+Modules/Subsidiaries/routes/web.php	GET	/subsidiaries/{subsidiarie}/edit	auth, verified	SubsidiariesController@edit
+Modules/Subsidiaries/routes/web.php	PUT|PATCH	/subsidiaries/{subsidiarie}	auth, verified	SubsidiariesController@update
+Modules/Subsidiaries/routes/web.php	DELETE	/subsidiaries/{subsidiarie}	auth, verified	SubsidiariesController@destroy
+Modules/SuperAdmin/routes/api.php	GET	/api/v1/superadmins	auth:sanctum	SuperAdminController@index
+Modules/SuperAdmin/routes/api.php	POST	/api/v1/superadmins	auth:sanctum	SuperAdminController@store
+Modules/SuperAdmin/routes/api.php	GET	/api/v1/superadmins/{superadmin}	auth:sanctum	SuperAdminController@show
+Modules/SuperAdmin/routes/api.php	PUT|PATCH	/api/v1/superadmins/{superadmin}	auth:sanctum	SuperAdminController@update
+Modules/SuperAdmin/routes/api.php	DELETE	/api/v1/superadmins/{superadmin}	auth:sanctum	SuperAdminController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/login	guest:admin	SuperAdminAuthController@showLoginForm
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/login	guest:admin	SuperAdminAuthController@login
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/logout	public	SuperAdminAuthController@logout
+Modules/SuperAdmin/routes/web.php	GET	/super-admin	auth:admin	SuperAdminDashboardController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/dashboard	auth:admin	SuperAdminDashboardController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/tenants	auth:admin	TenantController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/tenants/create	auth:admin	TenantController@create
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/tenants	auth:admin	TenantController@store
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/tenants/{tenant}	auth:admin	TenantController@show
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/tenants/{tenant}/edit	auth:admin	TenantController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/super-admin/tenants/{tenant}	auth:admin	TenantController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/super-admin/tenants/{tenant}	auth:admin	TenantController@destroy
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/tenants/{tenant}/status	auth:admin	TenantController@toggleStatus
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/tenants/{tenant}/extend-trial	auth:admin	TenantController@extendTrial
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/tenants/{tenant}/impersonate	auth:admin	TenantController@impersonate
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/stop-impersonating	auth:admin	TenantController@stopImpersonating
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/plans	auth:admin	PlanController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/plans/create	auth:admin	PlanController@create
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/plans	auth:admin	PlanController@store
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/plans/{plan}	auth:admin	PlanController@show
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/plans/{plan}/edit	auth:admin	PlanController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/super-admin/plans/{plan}	auth:admin	PlanController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/super-admin/plans/{plan}	auth:admin	PlanController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/feature-rates	auth:admin	PlatformFeatureRateController@index
+Modules/SuperAdmin/routes/web.php	PUT	/super-admin/feature-rates	auth:admin	PlatformFeatureRateController@updateAll
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/feature-rates	auth:admin	PlatformFeatureRateController@store
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/transactions	auth:admin	TransactionController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/transactions/{payment}	auth:admin	TransactionController@show
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/settings	auth:admin	SettingsController@index
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/settings	auth:admin	SettingsController@update
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/website-content	auth:admin	WebsiteContentController@index
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/website-content	auth:admin	WebsiteContentController@update
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/administrators	auth:admin	AdminManagementController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/administrators/create	auth:admin	AdminManagementController@create
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/administrators	auth:admin	AdminManagementController@store
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/administrators/{administrator}	auth:admin	AdminManagementController@show
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/administrators/{administrator}/edit	auth:admin	AdminManagementController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/super-admin/administrators/{administrator}	auth:admin	AdminManagementController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/super-admin/administrators/{administrator}	auth:admin	AdminManagementController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/seo	auth:admin	SeoController@index
+Modules/SuperAdmin/routes/web.php	PUT	/super-admin/seo	auth:admin	SeoController@update
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/rate-limits/sync	auth:admin	RateLimitController@sync
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/rate-limits	auth:admin	RateLimitController@index
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/rate-limits/{rate_limit}/edit	auth:admin	RateLimitController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/super-admin/rate-limits/{rate_limit}	auth:admin	RateLimitController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/super-admin/rate-limits/{rate_limit}	auth:admin	RateLimitController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/super-admin/system	auth:admin	SystemController@index
+Modules/SuperAdmin/routes/web.php	POST	/super-admin/system/run	auth:admin	SystemController@runCommand
+Modules/SuperAdmin/routes/web.php	GET	/admin/login	guest:admin	PlatformAdminAuthController@showLoginForm
+Modules/SuperAdmin/routes/web.php	POST	/admin/login	guest:admin	PlatformAdminAuthController@login
+Modules/SuperAdmin/routes/web.php	POST	/admin/logout	public	PlatformAdminAuthController@logout
+Modules/SuperAdmin/routes/web.php	GET	/admin	auth:admin	closure
+Modules/SuperAdmin/routes/web.php	GET	/admin/dashboard	auth:admin	closure
+Modules/SuperAdmin/routes/web.php	GET	/admin/tenants	auth:admin	TenantController@index
+Modules/SuperAdmin/routes/web.php	GET	/admin/tenants/create	auth:admin	TenantController@create
+Modules/SuperAdmin/routes/web.php	POST	/admin/tenants	auth:admin	TenantController@store
+Modules/SuperAdmin/routes/web.php	GET	/admin/tenants/{tenant}	auth:admin	TenantController@show
+Modules/SuperAdmin/routes/web.php	GET	/admin/tenants/{tenant}/edit	auth:admin	TenantController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/admin/tenants/{tenant}	auth:admin	TenantController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/admin/tenants/{tenant}	auth:admin	TenantController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/admin/plans	auth:admin	PlanController@index
+Modules/SuperAdmin/routes/web.php	GET	/admin/plans/create	auth:admin	PlanController@create
+Modules/SuperAdmin/routes/web.php	POST	/admin/plans	auth:admin	PlanController@store
+Modules/SuperAdmin/routes/web.php	GET	/admin/plans/{plan}	auth:admin	PlanController@show
+Modules/SuperAdmin/routes/web.php	GET	/admin/plans/{plan}/edit	auth:admin	PlanController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/admin/plans/{plan}	auth:admin	PlanController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/admin/plans/{plan}	auth:admin	PlanController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/admin/transactions	auth:admin	TransactionController@index
+Modules/SuperAdmin/routes/web.php	GET	/admin/transactions/create	auth:admin	TransactionController@create
+Modules/SuperAdmin/routes/web.php	POST	/admin/transactions	auth:admin	TransactionController@store
+Modules/SuperAdmin/routes/web.php	GET	/admin/transactions/{transaction}	auth:admin	TransactionController@show
+Modules/SuperAdmin/routes/web.php	GET	/admin/transactions/{transaction}/edit	auth:admin	TransactionController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/admin/transactions/{transaction}	auth:admin	TransactionController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/admin/transactions/{transaction}	auth:admin	TransactionController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/admin/administrators	auth:admin	AdminManagementController@index
+Modules/SuperAdmin/routes/web.php	GET	/admin/administrators/create	auth:admin	AdminManagementController@create
+Modules/SuperAdmin/routes/web.php	POST	/admin/administrators	auth:admin	AdminManagementController@store
+Modules/SuperAdmin/routes/web.php	GET	/admin/administrators/{administrator}	auth:admin	AdminManagementController@show
+Modules/SuperAdmin/routes/web.php	GET	/admin/administrators/{administrator}/edit	auth:admin	AdminManagementController@edit
+Modules/SuperAdmin/routes/web.php	PUT|PATCH	/admin/administrators/{administrator}	auth:admin	AdminManagementController@update
+Modules/SuperAdmin/routes/web.php	DELETE	/admin/administrators/{administrator}	auth:admin	AdminManagementController@destroy
+Modules/SuperAdmin/routes/web.php	GET	/admin/website-content	auth:admin	WebsiteContentController@index
+Modules/SuperAdmin/routes/web.php	POST	/admin/website-content	auth:admin	WebsiteContentController@update
+Modules/SuperAdmin/routes/web.php	GET	/admin/{path}	public	closure
+Modules/SuperAdmin/routes/web.php	POST	/api/v1/webhooks/billway	public	TransactionController@handleWebhook
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/profile	auth:sanctum, user_type:team	AuthController@profile
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/profile	auth:sanctum, user_type:team	AuthController@updateProfile
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/profile/picture	auth:sanctum, user_type:team	AuthController@updateProfilePicture
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/profile	auth:sanctum, user_type:team	AuthController@deleteAccount
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/change-password	auth:sanctum, user_type:team	AuthController@changePassword
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/logout	auth:sanctum, user_type:team	AuthController@logout
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/dashboard	auth:sanctum, user_type:team	DashboardController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/tasks	auth:sanctum, user_type:team	TaskController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/tasks/{task}	auth:sanctum, user_type:team	TaskController@show
+Modules/TeamPortal/routes/api.php	PATCH	/api/v1/team/tasks/{id}/status	auth:sanctum, user_type:team	TaskController@updateStatus
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/kanban	auth:sanctum, user_type:team	KanbanController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/kanban/update-order	auth:sanctum, user_type:team	KanbanController@updateOrder
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/work-logs	auth:sanctum, user_type:team	WorkLogController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/work-logs/check-partial-status	auth:sanctum, user_type:team	WorkLogController@checkPartialStatus
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/work-logs/check-in	auth:sanctum, user_type:team	WorkLogController@checkIn
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/work-logs/start	auth:sanctum, user_type:team	WorkLogController@checkIn
+Modules/TeamPortal/routes/api.php	PUT	/api/v1/team/work-logs/{id}/check-out	auth:sanctum, user_type:team	WorkLogController@checkOut
+Modules/TeamPortal/routes/api.php	PUT	/api/v1/team/work-logs/{id}/stop	auth:sanctum, user_type:team	WorkLogController@checkOut
+Modules/TeamPortal/routes/api.php	PATCH	/api/v1/team/work-logs/{id}/stop	auth:sanctum, user_type:team	WorkLogController@checkOut
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/attendance	auth:sanctum, user_type:team	AttendanceController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/attendance/clock-in	auth:sanctum, user_type:team	AttendanceController@clockIn
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/attendance/clock-out	auth:sanctum, user_type:team	AttendanceController@clockOut
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/reports	auth:sanctum, user_type:team	ReportController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/reports	auth:sanctum, user_type:team	ReportController@store
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/reports/{report}	auth:sanctum, user_type:team	ReportController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/projects	auth:sanctum, user_type:team	ProjectController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/projects/{project}	auth:sanctum, user_type:team	ProjectController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/projects/{id}/chat	auth:sanctum, user_type:team	ProjectChatController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/projects/{id}/chat	auth:sanctum, user_type:team	ProjectChatController@store
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/projects/{id}/chat/status	auth:sanctum, user_type:team	ProjectChatController@updateConversationStatus
+Modules/TeamPortal/routes/api.php	PUT	/api/v1/team/projects/chat/messages/{messageId}	auth:sanctum, user_type:team	ProjectChatController@updateMessage
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/projects/chat/messages/{messageId}	auth:sanctum, user_type:team	ProjectChatController@deleteMessage
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/projects/chat/messages/{messageId}/read	auth:sanctum, user_type:team	ProjectChatController@markAsRead
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/chats	auth:sanctum, user_type:team	ChatController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/chats	auth:sanctum, user_type:team	ChatController@store
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/chats/{id}	auth:sanctum, user_type:team	ChatController@show
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/chats/{id}/messages	auth:sanctum, user_type:team	ChatController@sendMessage
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/chats/{id}/close	auth:sanctum, user_type:team	ChatController@close
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/chats/{id}	auth:sanctum, user_type:team	ChatController@destroy
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/bank-accounts/banks	auth:sanctum, user_type:team	BankAccountController@banks
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/bank-accounts	auth:sanctum, user_type:team	BankAccountController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/bank-accounts	auth:sanctum, user_type:team	BankAccountController@store
+Modules/TeamPortal/routes/api.php	PUT|PATCH	/api/v1/team/bank-accounts/{bank_account}	auth:sanctum, user_type:team	BankAccountController@update
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/bank-accounts/{bank_account}	auth:sanctum, user_type:team	BankAccountController@destroy
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/bank-accounts/{id}/make-primary	auth:sanctum, user_type:team	BankAccountController@makePrimary
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/performance	auth:sanctum, user_type:team	PerformanceController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/earnings	auth:sanctum, user_type:team	EarningsController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/earnings/{earning}	auth:sanctum, user_type:team	EarningsController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/clients	auth:sanctum, user_type:team	ClientController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/clients/{client}	auth:sanctum, user_type:team	ClientController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/quotes	auth:sanctum, user_type:team	QuoteController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/quotes/{quote}	auth:sanctum, user_type:team	QuoteController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/invoices	auth:sanctum, user_type:team	InvoiceController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/invoices/{invoice}	auth:sanctum, user_type:team	InvoiceController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/services	auth:sanctum, user_type:team	ServiceController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/services/categories	auth:sanctum, user_type:team	ServiceController@categories
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/wallet	auth:sanctum, user_type:team	WalletController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/wallet/transactions	auth:sanctum, user_type:team	WalletController@transactions
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/dashboard	auth:sanctum, user_type:team	PMDashboardController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/projects	auth:sanctum, user_type:team	PMProjectController@index
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/projects/{project}	auth:sanctum, user_type:team	PMProjectController@show
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/tasks/team-members	auth:sanctum, user_type:team	PMTaskController@teamMembers
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/tasks/options	auth:sanctum, user_type:team	PMTaskController@options
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/tasks	auth:sanctum, user_type:team	PMTaskController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/pm/tasks	auth:sanctum, user_type:team	PMTaskController@store
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/tasks/{task}	auth:sanctum, user_type:team	PMTaskController@show
+Modules/TeamPortal/routes/api.php	PUT|PATCH	/api/v1/team/pm/tasks/{task}	auth:sanctum, user_type:team	PMTaskController@update
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/pm/tasks/{task}	auth:sanctum, user_type:team	PMTaskController@destroy
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/milestones	auth:sanctum, user_type:team	MilestoneController@index
+Modules/TeamPortal/routes/api.php	POST	/api/v1/team/pm/milestones	auth:sanctum, user_type:team	MilestoneController@store
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/milestones/{milestone}	auth:sanctum, user_type:team	MilestoneController@show
+Modules/TeamPortal/routes/api.php	PUT|PATCH	/api/v1/team/pm/milestones/{milestone}	auth:sanctum, user_type:team	MilestoneController@update
+Modules/TeamPortal/routes/api.php	DELETE	/api/v1/team/pm/milestones/{milestone}	auth:sanctum, user_type:team	MilestoneController@destroy
+Modules/TeamPortal/routes/api.php	GET	/api/v1/team/pm/work-logs	auth:sanctum, user_type:team	WorkLogController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/login	guest:web	AuthController@showLoginForm
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/login	guest:web	AuthController@login
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/account-status	auth:web, CheckUserStatus	DashboardController@accountStatus
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/logout	auth:web, CheckUserStatus	AuthController@logout
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/exit-to-admin	auth:web, CheckUserStatus	TeamMemberController@stopImpersonate
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/dashboard	auth:web, CheckUserStatus	DashboardController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/api/overdue-tasks-count	auth:web, CheckUserStatus	DashboardController@getOverdueTasksCount
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team	auth:web, CheckUserStatus	closure
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/profile	auth:web, CheckUserStatus	ProfileController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/profile/edit	auth:web, CheckUserStatus	ProfileController@edit
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/profile	auth:web, CheckUserStatus	ProfileController@update
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/profile/password	auth:web, CheckUserStatus	ProfileController@edit
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/my-tasks	auth:web, CheckUserStatus	TaskController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/kanban	auth:web, CheckUserStatus	KanbanController@index
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/kanban/filter	auth:web, CheckUserStatus	KanbanController@index
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/kanban/update-order	auth:web, CheckUserStatus	KanbanController@updateOrder
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/tasks/{task}	auth:web, CheckUserStatus	TaskController@show
+Modules/TeamPortal/routes/web.php	PATCH	/dashboard/team/tasks/{task}/status	auth:web, CheckUserStatus	TaskController@updateStatus
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/tasks/{task}	auth:web, CheckUserStatus	TaskController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/reports	auth:web, CheckUserStatus	ReportController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/reports/create	auth:web, CheckUserStatus	ReportController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/reports	auth:web, CheckUserStatus	ReportController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/reports/{report}	auth:web, CheckUserStatus	ReportController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/reports/{report}/edit	auth:web, CheckUserStatus	ReportController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/reports/{report}	auth:web, CheckUserStatus	ReportController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/reports/{report}	auth:web, CheckUserStatus	ReportController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/work-logs	auth:web, CheckUserStatus	WorkLogController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/work-logs/check-partial-status	auth:web, CheckUserStatus	WorkLogController@checkPartialStatus
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/work-logs/check-in	auth:web, CheckUserStatus	WorkLogController@checkIn
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/work-logs/{workLog}	auth:web, CheckUserStatus	WorkLogController@show
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/work-logs/{workLog}/check-out	auth:web, CheckUserStatus	WorkLogController@checkOut
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bank-accounts	auth:web, CheckUserStatus	BankAccountController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bank-accounts/create	auth:web, CheckUserStatus	BankAccountController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bank-accounts	auth:web, CheckUserStatus	BankAccountController@store
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bank-accounts/{bank_account}	auth:web, CheckUserStatus	BankAccountController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bank-accounts/{bankAccount}/make-primary	auth:web, CheckUserStatus	BankAccountController@makePrimary
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/clients	auth:web, CheckUserStatus	ClientController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/clients/{client}	auth:web, CheckUserStatus	ClientController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/quotes	auth:web, CheckUserStatus	QuoteController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/quotes/{quote}	auth:web, CheckUserStatus	QuoteController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/invoices	auth:web, CheckUserStatus	InvoiceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/invoices/{invoice}	auth:web, CheckUserStatus	InvoiceController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/services	auth:web, CheckUserStatus	ServiceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/services/{service}	auth:web, CheckUserStatus	ServiceController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/performance	auth:web, CheckUserStatus	PerformanceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/earnings	auth:web, CheckUserStatus	PaymentController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/earnings/{id}	auth:web, CheckUserStatus	PaymentController@show
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/attendance/clock-in	auth:web, CheckUserStatus	AttendanceController@clockIn
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/attendance/clock-out	auth:web, CheckUserStatus	AttendanceController@clockOut
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/my-projects	auth:web, CheckUserStatus	ProjectController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/projects/{project}	auth:web, CheckUserStatus	ProjectController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/projects/{project}/chat	auth:web, CheckUserStatus	ProjectChatController@index
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/projects/{project}/chat	auth:web, CheckUserStatus	ProjectChatController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/chat/{conversation?}	auth:web, CheckUserStatus	ChatController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/chat-api/conversations	auth:web, CheckUserStatus	ChatController@getConversations
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/chat-api/conversations/{conversation}/messages	auth:web, CheckUserStatus	ChatController@getMessages
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/conversations/{conversation}/messages	auth:web, CheckUserStatus	ChatController@sendMessage
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/conversations/{conversation}/read	auth:web, CheckUserStatus	ChatController@markAsRead
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/conversations/start	auth:web, CheckUserStatus	ChatController@startConversation
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/chat-api/unread-count	auth:web, CheckUserStatus	ChatController@getUnreadCount
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/groups	auth:web, CheckUserStatus	ChatController@createGroup
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/conversations/{conversation}/members/add	auth:web, CheckUserStatus	ChatController@addGroupMember
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/chat-api/conversations/{conversation}/members/remove	auth:web, CheckUserStatus	ChatController@removeGroupMember
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/comments-feed	auth:web, CheckUserStatus	CommentFeedController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/comments-feed/unread-count	auth:web, CheckUserStatus	CommentFeedController@getUnreadCount
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/dashboard	auth:web, CheckUserStatus	DashboardController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/clients	auth:web, CheckUserStatus	ClientController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/clients/create	auth:web, CheckUserStatus	ClientController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/clients	auth:web, CheckUserStatus	ClientController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/clients/{client}	auth:web, CheckUserStatus	ClientController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/clients/{client}/edit	auth:web, CheckUserStatus	ClientController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/clients/{client}	auth:web, CheckUserStatus	ClientController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/clients/{client}	auth:web, CheckUserStatus	ClientController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/quotes/{quote}/send	auth:web, CheckUserStatus	QuoteController@send
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/quotes/{quote}/approve	auth:web, CheckUserStatus	QuoteController@approve
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/quotes/{quote}/convert-invoice	auth:web, CheckUserStatus	QuoteController@convertToInvoice
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/quotes/{quote}/pdf	auth:web, CheckUserStatus	QuoteController@downloadPDF
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/quotes	auth:web, CheckUserStatus	QuoteController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/quotes/create	auth:web, CheckUserStatus	QuoteController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/quotes	auth:web, CheckUserStatus	QuoteController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/quotes/{quote}	auth:web, CheckUserStatus	QuoteController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/quotes/{quote}/edit	auth:web, CheckUserStatus	QuoteController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/quotes/{quote}	auth:web, CheckUserStatus	QuoteController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/quotes/{quote}	auth:web, CheckUserStatus	QuoteController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/invoices/{invoice}/send	auth:web, CheckUserStatus	InvoiceController@send
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/invoices/{invoice}/mark-paid	auth:web, CheckUserStatus	InvoiceController@markPaid
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/invoices/{invoice}/pdf	auth:web, CheckUserStatus	InvoiceController@downloadPDF
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/invoices	auth:web, CheckUserStatus	InvoiceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/invoices/create	auth:web, CheckUserStatus	InvoiceController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/invoices	auth:web, CheckUserStatus	InvoiceController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/invoices/{invoice}	auth:web, CheckUserStatus	InvoiceController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/invoices/{invoice}/edit	auth:web, CheckUserStatus	InvoiceController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/invoices/{invoice}	auth:web, CheckUserStatus	InvoiceController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/invoices/{invoice}	auth:web, CheckUserStatus	InvoiceController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/service-orders/{service_order}/convert-quote	auth:web, CheckUserStatus	ServiceOrderController@convertToQuote
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/service-orders/{service_order}/convert-invoice	auth:web, CheckUserStatus	ServiceOrderController@convertToInvoice
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/service-orders/{service_order}/convert-contract	auth:web, CheckUserStatus	ServiceOrderController@convertToContract
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/service-orders	auth:web, CheckUserStatus	ServiceOrderController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/service-orders/create	auth:web, CheckUserStatus	ServiceOrderController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/service-orders	auth:web, CheckUserStatus	ServiceOrderController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/service-orders/{service_order}	auth:web, CheckUserStatus	ServiceOrderController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/service-orders/{service_order}/edit	auth:web, CheckUserStatus	ServiceOrderController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/service-orders/{service_order}	auth:web, CheckUserStatus	ServiceOrderController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/service-orders/{service_order}	auth:web, CheckUserStatus	ServiceOrderController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/expiring-soon	auth:web, CheckUserStatus	ContractController@expiringSoon
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/load-template	auth:web, CheckUserStatus	ContractController@loadTemplate
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/{contract}/pdf	auth:web, CheckUserStatus	ContractController@downloadPDF
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/{contract}/docx	auth:web, CheckUserStatus	ContractController@downloadDocx
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/contracts/{contract}/signature	auth:web, CheckUserStatus	ContractController@uploadSignature
+Modules/TeamPortal/routes/web.php	PATCH	/dashboard/team/bdm/contracts/{contract}/status	auth:web, CheckUserStatus	ContractController@updateStatus
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts	auth:web, CheckUserStatus	ContractController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/create	auth:web, CheckUserStatus	ContractController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/contracts	auth:web, CheckUserStatus	ContractController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/{contract}	auth:web, CheckUserStatus	ContractController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/contracts/{contract}/edit	auth:web, CheckUserStatus	ContractController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/contracts/{contract}	auth:web, CheckUserStatus	ContractController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/contracts/{contract}	auth:web, CheckUserStatus	ContractController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/projects	auth:web, CheckUserStatus	ProjectController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/projects/create	auth:web, CheckUserStatus	ProjectController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/projects	auth:web, CheckUserStatus	ProjectController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/projects/{project}	auth:web, CheckUserStatus	ProjectController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/projects/{project}/edit	auth:web, CheckUserStatus	ProjectController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/projects/{project}	auth:web, CheckUserStatus	ProjectController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/projects/{project}	auth:web, CheckUserStatus	ProjectController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/services	auth:web, CheckUserStatus	ServiceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/services/create	auth:web, CheckUserStatus	ServiceController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/services	auth:web, CheckUserStatus	ServiceController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/services/{service}	auth:web, CheckUserStatus	ServiceController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/services/{service}/edit	auth:web, CheckUserStatus	ServiceController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/services/{service}	auth:web, CheckUserStatus	ServiceController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/services/{service}	auth:web, CheckUserStatus	ServiceController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/tickets/{ticket}/reply	auth:web, CheckUserStatus	TicketController@reply
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/tickets	auth:web, CheckUserStatus	TicketController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/tickets/{ticket}	auth:web, CheckUserStatus	TicketController@show
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/tickets/{ticket}	auth:web, CheckUserStatus	TicketController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/tickets/{ticket}	auth:web, CheckUserStatus	TicketController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/leads	auth:web, CheckUserStatus	LeadController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/leads/create	auth:web, CheckUserStatus	LeadController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/leads	auth:web, CheckUserStatus	LeadController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/leads/{lead}	auth:web, CheckUserStatus	LeadController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/leads/{lead}/edit	auth:web, CheckUserStatus	LeadController@edit
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/bdm/leads/{lead}	auth:web, CheckUserStatus	LeadController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/leads/{lead}	auth:web, CheckUserStatus	LeadController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/deals	auth:web, CheckUserStatus	LeadController@kanban
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/leads/{lead}/status	auth:web, CheckUserStatus	LeadController@updateStatus
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/leads/{lead}/log-activity	auth:web, CheckUserStatus	LeadController@logActivity
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/lead-sources	auth:web, CheckUserStatus	LeadSourceController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/lead-sources/create	auth:web, CheckUserStatus	LeadSourceController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/lead-sources	auth:web, CheckUserStatus	LeadSourceController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/lead-sources/{lead_source}/edit	auth:web, CheckUserStatus	LeadSourceController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/lead-sources/{lead_source}	auth:web, CheckUserStatus	LeadSourceController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/lead-sources/{lead_source}	auth:web, CheckUserStatus	LeadSourceController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/export	auth:web, CheckUserStatus	ContactController@export
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/export-pdf	auth:web, CheckUserStatus	ContactController@exportPdf
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contacts/import	auth:web, CheckUserStatus	ContactController@import
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/{contact}/send-email	auth:web, CheckUserStatus	ContactController@sendEmail
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/{contact}/send-sms	auth:web, CheckUserStatus	ContactController@sendSms
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contacts/{contact}/process-email	auth:web, CheckUserStatus	ContactController@processEmail
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contacts/{contact}/process-sms	auth:web, CheckUserStatus	ContactController@processSms
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/bulk-send-email	auth:web, CheckUserStatus	ContactController@bulkSendEmail
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/bulk-send-sms	auth:web, CheckUserStatus	ContactController@bulkSendSms
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contacts/bulk-delete	auth:web, CheckUserStatus	ContactController@bulkDelete
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/campaigns	auth:web, CheckUserStatus	CampaignController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/campaigns/create	auth:web, CheckUserStatus	CampaignController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/campaigns	auth:web, CheckUserStatus	CampaignController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/campaigns/{campaign}	auth:web, CheckUserStatus	CampaignController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/campaigns/{campaign}/edit	auth:web, CheckUserStatus	CampaignController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/campaigns/{campaign}	auth:web, CheckUserStatus	CampaignController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/campaigns/{campaign}	auth:web, CheckUserStatus	CampaignController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contact-lists	auth:web, CheckUserStatus	ContactListController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contact-lists/create	auth:web, CheckUserStatus	ContactListController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contact-lists	auth:web, CheckUserStatus	ContactListController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contact-lists/{contact_list}	auth:web, CheckUserStatus	ContactListController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contact-lists/{contact_list}/edit	auth:web, CheckUserStatus	ContactListController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/contact-lists/{contact_list}	auth:web, CheckUserStatus	ContactListController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/contact-lists/{contact_list}	auth:web, CheckUserStatus	ContactListController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts	auth:web, CheckUserStatus	ContactController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/create	auth:web, CheckUserStatus	ContactController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/contacts	auth:web, CheckUserStatus	ContactController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/{contact}	auth:web, CheckUserStatus	ContactController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/contacts/{contact}/edit	auth:web, CheckUserStatus	ContactController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/contacts/{contact}	auth:web, CheckUserStatus	ContactController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/contacts/{contact}	auth:web, CheckUserStatus	ContactController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/communication-scripts	auth:web, CheckUserStatus	CommunicationScriptController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/communication-scripts/create	auth:web, CheckUserStatus	CommunicationScriptController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/communication-scripts	auth:web, CheckUserStatus	CommunicationScriptController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/communication-scripts/{communication_script}	auth:web, CheckUserStatus	CommunicationScriptController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/communication-scripts/{communication_script}/edit	auth:web, CheckUserStatus	CommunicationScriptController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/communication-scripts/{communication_script}	auth:web, CheckUserStatus	CommunicationScriptController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/communication-scripts/{communication_script}	auth:web, CheckUserStatus	CommunicationScriptController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/email-templates	auth:web, CheckUserStatus	EmailTemplateController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/email-templates/create	auth:web, CheckUserStatus	EmailTemplateController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/email-templates	auth:web, CheckUserStatus	EmailTemplateController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/email-templates/{email_template}	auth:web, CheckUserStatus	EmailTemplateController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/email-templates/{email_template}/edit	auth:web, CheckUserStatus	EmailTemplateController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/email-templates/{email_template}	auth:web, CheckUserStatus	EmailTemplateController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/email-templates/{email_template}	auth:web, CheckUserStatus	EmailTemplateController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/sms-templates	auth:web, CheckUserStatus	SmsTemplateController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/sms-templates/create	auth:web, CheckUserStatus	SmsTemplateController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/bdm/communications/sms-templates	auth:web, CheckUserStatus	SmsTemplateController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/sms-templates/{sms_template}	auth:web, CheckUserStatus	SmsTemplateController@show
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/bdm/communications/sms-templates/{sms_template}/edit	auth:web, CheckUserStatus	SmsTemplateController@edit
+Modules/TeamPortal/routes/web.php	PUT|PATCH	/dashboard/team/bdm/communications/sms-templates/{sms_template}	auth:web, CheckUserStatus	SmsTemplateController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/bdm/communications/sms-templates/{sms_template}	auth:web, CheckUserStatus	SmsTemplateController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/dashboard	auth:web, CheckUserStatus, CheckProjectManager	DashboardController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/projects	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/projects/{project}	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@show
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/pm/projects/{project}	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@update
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/projects/{project}/team	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@team
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/pm/projects/{project}/team	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@addTeamMember
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/pm/projects/{project}/team/{user}	auth:web, CheckUserStatus, CheckProjectManager	ProjectController@removeTeamMember
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/projects/{project}/tasks/create	auth:web, CheckUserStatus, CheckProjectManager	TaskController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/pm/projects/{project}/tasks	auth:web, CheckUserStatus, CheckProjectManager	TaskController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/pm/projects/{project}/tasks/{task}/edit	auth:web, CheckUserStatus, CheckProjectManager	TaskController@edit
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/pm/projects/{project}/tasks/{task}	auth:web, CheckUserStatus, CheckProjectManager	TaskController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/pm/projects/{project}/tasks/{task}	auth:web, CheckUserStatus, CheckProjectManager	TaskController@destroy
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/pm/projects/{project}/tasks/bulk-assign	auth:web, CheckUserStatus, CheckProjectManager	TaskController@bulkAssign
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/dashboard	auth:web, CheckUserStatus	QaDashboardController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa	auth:web, CheckUserStatus	
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/bugs	auth:web, CheckUserStatus	BugReportController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/bugs/create	auth:web, CheckUserStatus	BugReportController@create
+Modules/TeamPortal/routes/web.php	POST	/dashboard/team/qa/bugs	auth:web, CheckUserStatus	BugReportController@store
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/bugs/{bug}	auth:web, CheckUserStatus	BugReportController@show
+Modules/TeamPortal/routes/web.php	PATCH	/dashboard/team/qa/bugs/{bug}/status	auth:web, CheckUserStatus	BugReportController@updateStatus
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/bugs/{bug}/edit	auth:web, CheckUserStatus	BugReportController@edit
+Modules/TeamPortal/routes/web.php	PUT	/dashboard/team/qa/bugs/{bug}	auth:web, CheckUserStatus	BugReportController@update
+Modules/TeamPortal/routes/web.php	DELETE	/dashboard/team/qa/bugs/{bug}	auth:web, CheckUserStatus	BugReportController@destroy
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/test-cases	auth:web, CheckUserStatus	QaTestCaseController@index
+Modules/TeamPortal/routes/web.php	GET	/dashboard/team/qa/test-cases/{task}	auth:web, CheckUserStatus	QaTestCaseController@show
+Modules/TeamPortal/routes/web.php	PATCH	/dashboard/team/qa/test-cases/{task}/status	auth:web, CheckUserStatus	QaTestCaseController@updateStatus
+routes/api.php	POST	/api/v1/auth/login	public	UnifiedAuthController@login
+routes/api.php	POST	/api/v1/auth/forgot-password	public	UnifiedAuthController@forgotPassword
+routes/api.php	POST	/api/v1/auth/reset-password	public	UnifiedAuthController@resetPassword
+routes/api.php	GET	/api/v1/domains/verify	public	DomainVerificationController@verify
+routes/web.php	GET	/lang/{locale}	public	LanguageController@switch
+routes/web.php	GET	/register	public	closure
+routes/web.php	POST	/register	guest:admin	RegisterController@register
+routes/web.php	GET	/login	public	closure
+routes/web.php	GET	/auth/2fa-challenge	public	TwoFactorAuthController@showChallenge
+routes/web.php	POST	/auth/2fa-challenge	public	TwoFactorAuthController@verifyChallenge
+routes/web.php	GET	/test-500	public	closure
+routes/web.php	GET	/test-403	public	closure
+routes/web.php	POST	/broadcasting/auth	public	closure
+routes/web.php	GET	/notifications	public	NotificationController@index
+routes/web.php	POST	/notifications/mark-all-read	public	NotificationController@markAllAsRead
+routes/web.php	POST	/notifications/{id}/read	public	NotificationController@markAsRead
+routes/web.php	POST	/fcm-token	public	FcmTokenController@store
+routes/web.php	GET	/storage/{path}	public	closure
+routes/web.php	GET	/clear-cache	public	closure
+routes/web.php	GET	/deploy-git-pull	public	closure

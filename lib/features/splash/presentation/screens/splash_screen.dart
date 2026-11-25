@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
+import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
+import '../../../auth/presentation/screens/welcome_back_screen.dart';
 import '../../../onboarding/presentation/screens/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,11 +34,14 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     // Stage 2: White/Themed splash for 1.4 seconds, then proceed to onboarding
+    // Live mode: a saved login goes to "Welcome back" instead of onboarding.
+    final returning = LiveSession.enabled && await LiveSession.instance.hasSavedSession();
+    if (returning) BizStore.instance.hasRememberedUser = true;
     await Future.delayed(const Duration(milliseconds: 1400));
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const OnboardingScreen(),
+          pageBuilder: (_, __, ___) => returning ? const WelcomeBackScreen() : const OnboardingScreen(),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },

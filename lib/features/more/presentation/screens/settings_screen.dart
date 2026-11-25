@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/widgets/ui_kit.dart';
-import '../../../auth/presentation/screens/forgot_password_screen.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/api/live_session.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../workspace/workspace_screens.dart';
 import '../../../store/presentation/widgets/store_widgets.dart';
 import 'appearance_screen.dart';
 
@@ -67,20 +70,51 @@ class SecurityScreen extends StatelessWidget {
           ActionTile(
             icon: Icons.password,
             title: 'Change password',
-            subtitle: 'We send a code to confirm it’s you',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+            subtitle: 'Enter your current password to set a new one',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
           ),
+          // No backend endpoint for revoking other sessions yet.
+          if (!LiveSession.enabled)
+            ActionTile(
+              icon: Icons.devices_other,
+              title: 'Log out of other devices',
+              subtitle: 'Keeps you signed in on this phone',
+              onTap: () async {
+                final ok = await showConfirmSheet(context, title: 'Log out other devices?', message: 'Anyone signed in elsewhere will need your password again.', confirmLabel: 'Log Them Out', cancelLabel: 'Cancel');
+                if (ok && context.mounted) showToast(context, 'Other devices logged out');
+              },
+            ),
+          const SizedBox(height: 12),
+          const SectionLabel('Danger zone'),
           ActionTile(
-            icon: Icons.devices_other,
-            title: 'Log out of other devices',
-            subtitle: 'Keeps you signed in on this phone',
-            onTap: () async {
-              final ok = await showConfirmSheet(context, title: 'Log out other devices?', message: 'Anyone signed in elsewhere will need your password again.', confirmLabel: 'Log Them Out', cancelLabel: 'Cancel');
-              if (ok && context.mounted) showToast(context, 'Other devices logged out');
-            },
+            icon: Icons.delete_forever_outlined,
+            title: 'Delete my account',
+            subtitle: 'Removes your login and signs you out',
+            danger: true,
+            onTap: () => _deleteAccount(context),
           ),
         ]),
       ),
     );
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final ok = await showConfirmSheet(
+      context,
+      title: 'Delete your account?',
+      message: 'You will be signed out and won’t be able to log in again with this email. This can’t be undone from the app.',
+      confirmLabel: 'Delete Account',
+      cancelLabel: 'Keep Account',
+    );
+    if (!ok || !context.mounted) return;
+    try {
+      if (LiveSession.enabled) await LiveSession.instance.deleteAccount();
+    } on ApiException catch (e) {
+      if (context.mounted) showToast(context, e.message);
+      return;
+    }
+    if (!context.mounted) return;
+    BizStore.instance.logOut();
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
   }
 }

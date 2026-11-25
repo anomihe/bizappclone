@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
@@ -67,6 +68,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _agreed;
 
   Future<void> _submit() async {
+    if (LiveSession.enabled) {
+      // The backend only supports business sign-up on the web (/dashboard/register).
+      await showBpSheet(
+        context,
+        showHandle: true,
+        builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.storefront_outlined, size: 40, color: ctx.p.brand),
+          const SizedBox(height: 12),
+          Text('Create your business on the web', textAlign: TextAlign.center, style: tx(ctx, 16, weight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text(
+            'Business sign-up isn’t available in the app yet. Create your account at app.bizpaddi.com, then log in here with the same email and password.',
+            textAlign: TextAlign.center,
+            style: tx(ctx, 12.5, color: ctx.p.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+          CustomButton(text: 'Go to Log in', onPressed: () {
+            Navigator.pop(ctx);
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+          }),
+        ]),
+      );
+      return;
+    }
     setState(() => _loading = true);
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;

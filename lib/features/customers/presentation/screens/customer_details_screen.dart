@@ -33,6 +33,14 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     showToast(context, '${what[0].toUpperCase()}${what.substring(1)} copied');
   }
 
+  Future<void> _delete(Customer c) async {
+    final ok = await showConfirmSheet(context, title: 'Delete ${c.name}?', message: 'Their invoices and payments stay in your records. This can’t be undone.', confirmLabel: 'Delete Customer', cancelLabel: 'Keep');
+    if (!ok || !mounted) return;
+    BizStore.instance.deleteCustomer(c);
+    showToast(context, 'Customer deleted');
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = BizStore.instance;
@@ -133,6 +141,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
           tooltip: 'Edit customer',
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerFormScreen(customer: c))),
         ),
+        const SizedBox(width: 8),
+        CircleIconButton(icon: Icons.delete_outline, tooltip: 'Delete customer', color: context.p.error, onTap: () => _delete(c)),
       ],
       bottom: CustomButton(
         text: 'New Invoice for $first',

@@ -6,6 +6,10 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Bizpaddi uses your photos so you can set a profile picture or share images in project chats.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Bizpaddi uses the camera so you can take a profile picture or share photos in project chats.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Bizpaddi</string>
 	<key>CFBundleExecutable</key>

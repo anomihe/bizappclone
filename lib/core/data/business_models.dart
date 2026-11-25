@@ -149,6 +149,12 @@ class StaffMember {
   int invoicesCreated;
   int paymentsHandled;
 
+  /// Backend id when synced with the Bizpaddi API.
+  int? serverId;
+
+  /// Role name as the backend stores it (e.g. "bdm"), when it has no app equivalent.
+  String? backendRole;
+
   StaffMember({
     required this.id,
     required this.name,

@@ -47,6 +47,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: BpCard(
+                      onTap: n.read ? null : () => setState(() => store.markRead(n)),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         LeadingIcon(
                           switch (n.type) {

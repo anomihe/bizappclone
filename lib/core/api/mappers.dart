@@ -1,0 +1,297 @@
+import '../data/biz_store.dart';
+
+/// JSON ↔ app model conversion for the Bizpaddi Laravel API.
+///
+/// Laravel serialises `decimal` casts as strings ("37000.00") and dates as
+/// ISO-8601, so everything goes through the tolerant readers below.
+class ApiMappers {
+  // ------------------------------------------------------------ readers
+
+  static double num0(dynamic v) => switch (v) {
+        num n => n.toDouble(),
+        String s => double.tryParse(s.replaceAll(',', '')) ?? 0,
+        _ => 0,
+      };
+
+  static int? intOrNull(dynamic v) => switch (v) {
+        int n => n,
+        num n => n.toInt(),
+        String s => int.tryParse(s),
+        _ => null,
+      };
+
+  static DateTime? date(dynamic v) => v is String && v.isNotEmpty ? DateTime.tryParse(v)?.toLocal() : null;
+
+  static String str(dynamic v) => v == null ? '' : '$v';
+
+  /// "YYYY-MM-DD" for Laravel `date` validation.
+  static String ymd(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  // ------------------------------------------------------------ customers (clients)
+
+  static Customer customer(Map<String, dynamic> j) {
+    final (dial, phone) = splitPhone(str(j['phone']));
+    final name = str(j['name']).isNotEmpty ? str(j['name']) : str(j['company_name']);
+    return Customer(
+      id: 'srv-c-${j['id']}',
+      name: name.isEmpty ? 'Unnamed customer' : name,
+      dialCode: dial,
+      phone: phone,
+      email: str(j['email']),
+      notes: str(j['description']),
+    )..serverId = intOrNull(j['id']);
+  }
+
+  static Map<String, dynamic> customerBody(Customer c, {String? password}) => {
+        'name': c.name,
+        'email': c.email,
+        if (c.phone.isNotEmpty) 'phone': '${c.dialCode}${c.phone.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^0'), '')}',
+        if (c.notes.isNotEmpty) 'description': c.notes,
+        'password': ?password,
+      };
+
+  /// "+2348035550142" / "08035550142" → ("+234", "803 555 0142").
+  static (String, String) splitPhone(String raw) {
+    final s = raw.replaceAll(RegExp(r'[^\d+]'), '');
+    for (final code in const ['+234', '+233', '+254', '+27', '+44', '+1']) {
+      if (s.startsWith(code)) return (code, s.substring(code.length));
+    }
+    return ('+234', s);
+  }
+
+  // ------------------------------------------------------------ invoices
+
+  static InvoiceStatus invoiceStatus(String s) => switch (s) {
+        'draft' => InvoiceStatus.draft,
+        'paid' => InvoiceStatus.paid,
+        'cancelled' => InvoiceStatus.voided,
+        // 'sent' / 'overdue' → unpaid; the app derives overdue from the due date.
+        _ => InvoiceStatus.unpaid,
+      };
+
+  static String invoiceStatusOut(InvoiceStatus s) => switch (s) {
+        InvoiceStatus.draft => 'draft',
+        InvoiceStatus.paid => 'paid',
+        InvoiceStatus.voided || InvoiceStatus.cancelled => 'cancelled',
+        InvoiceStatus.overdue => 'overdue',
+        _ => 'sent',
+      };
+
+  static LineItem lineItem(Map<String, dynamic> j) {
+    final qty = num0(j['quantity']);
+    return LineItem(
+      name: str(j['title']).isNotEmpty ? str(j['title']) : str(j['description']),
+      unitPrice: num0(j['unit_price']),
+      qty: qty <= 0 ? 1 : qty.round(),
+    );
+  }
+
+  static Invoice invoice(Map<String, dynamic> j, {required Customer? Function(int?) findCustomer}) {
+    final clientJson = j['client'] is Map<String, dynamic> ? j['client'] as Map<String, dynamic> : null;
+    final customer = findCustomer(intOrNull(j['client_id']));
+    final rawStatus = str(j['status']);
+    final inv = Invoice(
+      id: 'srv-i-${j['id']}',
+      number: str(j['invoice_number']).isEmpty ? '#${j['id']}' : str(j['invoice_number']),
+      customer: customer,
+      customerNameOverride: customer == null
+          ? (str(j['client_name']).isNotEmpty ? str(j['client_name']) : (clientJson == null ? null : str(clientJson['name'])))
+          : null,
+      customerPhone: str(j['client_phone']),
+      items: (j['items'] as List? ?? const []).whereType<Map<String, dynamic>>().map(lineItem).toList(),
+      discount: num0(j['discount_amount']),
+      taxAmount: num0(j['tax_amount']),
+      totalOverride: num0(j['total_amount']),
+      dueDate: date(j['due_date']),
+      notes: str(j['notes']),
+      status: invoiceStatus(rawStatus),
+      createdAt: date(j['issue_date']) ?? date(j['created_at']) ?? DateTime.now(),
+      serverId: intOrNull(j['id']),
+    );
+    // Marked paid on the server without a matching transaction: record the
+    // payment so "Paid by customer" and the dashboard add up.
+    if (rawStatus == 'paid') {
+      inv.payments.add(Payment(
+        id: 'srv-i-${j['id']}-paid',
+        invoiceId: inv.id,
+        invoiceNumber: inv.number,
+        customerName: inv.customerName,
+        amount: inv.total,
+        providerCharge: 0,
+        serviceCharge: 0,
+        status: PaymentStatus.paid,
+        date: date(j['paid_at']) ?? inv.createdAt,
+        settled: true,
+        receiptNo: inv.number,
+      ));
+    }
+    return inv;
+  }
+
+  static Map<String, dynamic> invoiceBody(Invoice i) {
+    final subtotal = i.subtotal;
+    return {
+      if (i.customer?.serverId != null) 'client_id': i.customer!.serverId,
+      'client_name': i.customerName,
+      if (i.customer?.email.isNotEmpty == true) 'client_email': i.customer!.email,
+      if (i.customerPhone.isNotEmpty) 'client_phone': i.customerPhone,
+      'issue_date': ymd(i.createdAt),
+      'due_date': ymd(i.dueDate ?? i.createdAt.add(const Duration(days: 14))),
+      'subtotal': subtotal,
+      'discount_amount': i.discount,
+      'tax_amount': i.taxAmount,
+      'total_amount': i.total,
+      'status': invoiceStatusOut(i.status),
+      'notes': i.notes,
+      // Sent for when the API stores line items; today InvoiceController@store ignores them.
+      'items': [
+        for (final it in i.items) {'title': it.name, 'quantity': it.qty, 'unit_price': it.unitPrice, 'total': it.total},
+      ],
+    };
+  }
+
+  // ------------------------------------------------------------ quotations
+
+  static QuotationStatus quoteStatus(String s) => switch (s) {
+        'sent' => QuotationStatus.sent,
+        'approved' || 'converted' => QuotationStatus.accepted,
+        'expired' || 'rejected' => QuotationStatus.expired,
+        _ => QuotationStatus.draft,
+      };
+
+  static String quoteStatusOut(QuotationStatus s) => switch (s) {
+        QuotationStatus.sent => 'sent',
+        QuotationStatus.accepted => 'approved',
+        QuotationStatus.expired => 'expired',
+        QuotationStatus.draft => 'draft',
+      };
+
+  static Quotation quotation(Map<String, dynamic> j, {required Customer? Function(int?) findCustomer}) {
+    final created = date(j['issue_date']) ?? date(j['created_at']) ?? DateTime.now();
+    final validTill = date(j['valid_until']);
+    return Quotation(
+      id: 'srv-q-${j['id']}',
+      number: str(j['quote_number']).isEmpty ? 'Q-${j['id']}' : str(j['quote_number']),
+      customer: findCustomer(intOrNull(j['client_id'])),
+      items: (j['items'] as List? ?? const []).whereType<Map<String, dynamic>>().map(lineItem).toList(),
+      discount: num0(j['discount_amount']),
+      notes: str(j['notes']),
+      status: quoteStatus(str(j['status'])),
+      validTill: validTill,
+      createdAt: created,
+      addVat: num0(j['tax_amount']) > 0,
+      validityDays: validTill == null ? 7 : validTill.difference(created).inDays.clamp(1, 365),
+      totalOverride: num0(j['total_amount']),
+      serverId: intOrNull(j['id']),
+    );
+  }
+
+  static Map<String, dynamic> quotationBody(Quotation q) => {
+        if (q.customer?.serverId != null) 'client_id': q.customer!.serverId,
+        'client_name': q.customer?.name ?? '',
+        if (q.customer?.email.isNotEmpty == true) 'client_email': q.customer!.email,
+        'issue_date': ymd(q.createdAt),
+        'valid_until': ymd(q.validTill ?? q.createdAt.add(Duration(days: q.validityDays))),
+        'subtotal': q.subtotal,
+        'discount_amount': q.discount,
+        'tax_rate': q.addVat ? Quotation.vatRate * 100 : 0,
+        'tax_amount': q.vat,
+        'total_amount': q.total,
+        'status': quoteStatusOut(q.status),
+        'notes': q.notes,
+        'items': [
+          for (final it in q.items) {'title': it.name, 'quantity': it.qty, 'unit_price': it.unitPrice, 'total': it.total},
+        ],
+      };
+
+  // ------------------------------------------------------------ payments (transactions)
+
+  /// Only money coming in (invoice / order payments, credits) counts as a payment.
+  static bool isIncoming(Map<String, dynamic> j) {
+    final payable = str(j['payable_type']).toLowerCase();
+    final type = str(j['type']).toLowerCase();
+    return payable.contains('invoice') || payable.contains('order') || const ['credit', 'income', 'inflow', 'payment'].contains(type);
+  }
+
+  static PaymentStatus paymentStatus(String s) => switch (s.toLowerCase()) {
+        'successful' || 'success' || 'completed' || 'paid' => PaymentStatus.paid,
+        'failed' || 'declined' || 'cancelled' => PaymentStatus.failed,
+        'refunded' || 'reversed' => PaymentStatus.refunded,
+        _ => PaymentStatus.pending,
+      };
+
+  static Payment payment(Map<String, dynamic> j, {required Invoice? Function(int?) findInvoice}) {
+    final invoice = str(j['payable_type']).toLowerCase().contains('invoice') ? findInvoice(intOrNull(j['payable_id'])) : null;
+    final status = paymentStatus(str(j['status']));
+    return Payment(
+      id: 'srv-t-${j['id']}',
+      invoiceId: invoice?.id ?? '',
+      invoiceNumber: invoice?.number ?? str(j['reference']),
+      customerName: invoice?.customerName ?? (str(j['description']).isNotEmpty ? str(j['description']) : 'Customer'),
+      amount: num0(j['amount']),
+      method: 'Bank Transfer',
+      provider: str(j['provider']).isEmpty ? 'Bank transfer' : str(j['provider']),
+      providerCharge: 0,
+      serviceCharge: 0,
+      status: status,
+      date: date(j['paid_at']) ?? date(j['transaction_date']) ?? date(j['created_at']) ?? DateTime.now(),
+      // The API has no settlement field; a confirmed payment is treated as settled.
+      settled: status == PaymentStatus.paid,
+      receiptNo: str(j['provider_reference']).isNotEmpty
+          ? str(j['provider_reference'])
+          : (str(j['reference']).isNotEmpty ? str(j['reference']) : str(j['transaction_number'])),
+    );
+  }
+
+  // ------------------------------------------------------------ team
+
+  static StaffRole staffRole(String r) => switch (r.toLowerCase()) {
+        'admin' || 'administrator' => StaffRole.administrator,
+        'cashier' => StaffRole.cashier,
+        'accountant' || 'finance' => StaffRole.accountant,
+        _ => StaffRole.manager,
+      };
+
+  static StaffMember staff(Map<String, dynamic> j) {
+    final role = str(j['role']);
+    final mapped = staffRole(role);
+    return StaffMember(
+      id: 'srv-u-${j['id']}',
+      name: str(j['name']),
+      phone: str(j['phone']),
+      email: str(j['email']),
+      role: mapped,
+      status: str(j['status']) == 'inactive' ? StaffStatus.deactivated : StaffStatus.active,
+      lastActive: date(j['updated_at']) ?? date(j['created_at']) ?? DateTime.now(),
+    )
+      ..serverId = intOrNull(j['id'])
+      ..backendRole = (mapped == StaffRole.manager && role.toLowerCase() != 'manager') ? role : null;
+  }
+
+  static Map<String, dynamic> staffBody(StaffMember m, {String? password}) => {
+        'name': m.name,
+        'email': m.email,
+        if (m.phone.isNotEmpty) 'phone': m.phone,
+        'role': m.backendRole ?? m.role.name,
+        'status': m.status == StaffStatus.deactivated ? 'inactive' : 'active',
+        'password': ?password,
+      };
+
+  // ------------------------------------------------------------ notifications
+
+  static AppNotification notification(Map<String, dynamic> j) {
+    final data = j['data'] is Map<String, dynamic> ? j['data'] as Map<String, dynamic> : const <String, dynamic>{};
+    final type = str(j['type']).toLowerCase();
+    return AppNotification(
+      title: str(data['title']).isNotEmpty ? str(data['title']) : 'Notification',
+      body: str(data['body']).isNotEmpty ? str(data['body']) : str(data['message']),
+      time: date(j['created_at']) ?? DateTime.now(),
+      type: type.contains('payment') || type.contains('transaction')
+          ? NotificationType.payment
+          : (type.contains('invoice') ? NotificationType.invoice : NotificationType.system),
+      read: j['read_at'] != null,
+      serverId: str(j['id']),
+    );
+  }
+}

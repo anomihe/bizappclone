@@ -29,6 +29,13 @@ class BizStore extends ChangeNotifier {
   bool hasRememberedUser = false;
   bool bannerDismissed = false;
 
+  /// Set while signed in to the real backend (see core/api/live_session.dart);
+  /// null in demo mode. Mutations are pushed to it in the background.
+  BizRemote? remote;
+
+  /// Payments that aren't linked to an invoice or order (from the backend).
+  final List<Payment> otherPayments = [];
+
   /// More → Settings → Notifications.
   final Map<String, bool> notificationPrefs = {
     'Payment received': true,
@@ -104,6 +111,48 @@ class BizStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replaces the workspace with data loaded from the backend.
+  void applyLiveData({
+    required Account account,
+    required List<Customer> customers,
+    required List<Invoice> invoices,
+    required List<Quotation> quotations,
+    required List<Payment> otherPayments,
+    required List<StaffMember> staff,
+    required List<AppNotification> notifications,
+  }) {
+    this.account = account;
+    this.customers
+      ..clear()
+      ..addAll(customers);
+    this.invoices
+      ..clear()
+      ..addAll(invoices);
+    this.quotations
+      ..clear()
+      ..addAll(quotations);
+    this.otherPayments
+      ..clear()
+      ..addAll(otherPayments);
+    this.staff
+      ..clear()
+      ..addAll(staff);
+    this.notifications
+      ..clear()
+      ..addAll(notifications);
+    // Not in the backend API yet: start empty rather than mixing in demo data.
+    products.clear();
+    orders.clear();
+    storefront = Storefront(name: account.businessName, description: '', phone: account.phone, email: account.email, slug: 'store');
+    profile = BusinessProfile(name: account.businessName, phone: account.phone, email: account.email);
+    bannerDismissed = false;
+    hasRememberedUser = true;
+    notifyListeners();
+  }
+
+  /// Notify listeners after an in-place change made outside the store.
+  void refresh() => notifyListeners();
+
   void logOut() {
     bannerDismissed = false;
     notifyListeners();
@@ -123,7 +172,7 @@ class BizStore extends ChangeNotifier {
 
   /// Every payment — from invoices, payment links and storefront orders.
   List<Payment> get payments {
-    final all = [...invoices.expand((i) => i.payments), ...orders.expand((o) => o.payments)];
+    final all = [...invoices.expand((i) => i.payments), ...orders.expand((o) => o.payments), ...otherPayments];
     all.sort((a, b) => b.date.compareTo(a.date));
     return all;
   }
@@ -222,10 +271,21 @@ class BizStore extends ChangeNotifier {
     final c = Customer(id: _id(), name: name, dialCode: dialCode, phone: phone, email: email, notes: notes);
     customers.insert(0, c);
     notifyListeners();
+    remote?.saveCustomer(c);
     return c;
   }
 
-  void updateCustomer(Customer c) => notifyListeners();
+  void updateCustomer(Customer c) {
+    notifyListeners();
+    remote?.saveCustomer(c);
+  }
+
+  /// Removes a customer (their invoices stay, with the name on them).
+  void deleteCustomer(Customer c) {
+    customers.remove(c);
+    notifyListeners();
+    remote?.deleteCustomer(c);
+  }
 
   // ---------------------------------------------------------------- invoices
 
@@ -251,6 +311,8 @@ class BizStore extends ChangeNotifier {
       );
     }
     notifyListeners();
+    // Payment links are app-only until the backend has a payment-link API.
+    if (draft.kind == DocKind.invoice) remote?.saveInvoice(draft);
     return draft;
   }
 
@@ -272,6 +334,20 @@ class BizStore extends ChangeNotifier {
   void voidInvoice(Invoice i) {
     i.status = i.kind == DocKind.paymentLink ? InvoiceStatus.cancelled : InvoiceStatus.voided;
     notifyListeners();
+    if (i.kind == DocKind.invoice) remote?.saveInvoice(i);
+  }
+
+  /// Deletes a draft invoice (issued invoices are voided instead).
+  void deleteDraft(Invoice i) {
+    invoices.remove(i);
+    notifyListeners();
+    if (i.kind == DocKind.invoice) remote?.deleteInvoice(i);
+  }
+
+  void deleteQuotation(Quotation q) {
+    quotations.remove(q);
+    notifyListeners();
+    remote?.deleteQuotation(q);
   }
 
   CreditNote issueCreditNote(Invoice i, double amount, String reason) {
@@ -306,12 +382,14 @@ class BizStore extends ChangeNotifier {
     q.validTill = DateTime.now().add(Duration(days: q.validityDays));
     if (!quotations.contains(q)) quotations.insert(0, q);
     notifyListeners();
+    remote?.saveQuotation(q);
     return q;
   }
 
   void acceptQuotation(Quotation q) {
     q.status = QuotationStatus.accepted;
     notifyListeners();
+    remote?.saveQuotation(q);
   }
 
   /// "Use to Create New Quotation" on an expired quote.
@@ -413,11 +491,15 @@ class BizStore extends ChangeNotifier {
     return m;
   }
 
-  void updateStaff(StaffMember m) => notifyListeners();
+  void updateStaff(StaffMember m) {
+    notifyListeners();
+    remote?.updateStaff(m);
+  }
 
   void removeStaff(StaffMember m) {
     staff.remove(m);
     notifyListeners();
+    remote?.removeStaff(m);
   }
 
   // ---------------------------------------------------------------- business profile
@@ -489,10 +571,19 @@ class BizStore extends ChangeNotifier {
   int get unreadCount => notifications.where((n) => !n.read).length;
 
   void markAllRead() {
+    final hadUnread = unreadCount > 0;
     for (final n in notifications) {
       n.read = true;
     }
     notifyListeners();
+    if (hadUnread) remote?.markAllRead();
+  }
+
+  void markRead(AppNotification n) {
+    if (n.read) return;
+    n.read = true;
+    notifyListeners();
+    remote?.markRead(n);
   }
 
   // ---------------------------------------------------------------- demo data
@@ -728,4 +819,19 @@ class BizStore extends ChangeNotifier {
     );
     cs.length; // customers reserved for future order linkage
   }
+}
+
+/// Backend sync hooks. Implementations report their own errors (the store
+/// stays responsive and never awaits these).
+abstract class BizRemote {
+  Future<void> saveCustomer(Customer c);
+  Future<void> saveInvoice(Invoice i);
+  Future<void> saveQuotation(Quotation q);
+  Future<void> updateStaff(StaffMember m);
+  Future<void> removeStaff(StaffMember m);
+  Future<void> markAllRead();
+  Future<void> markRead(AppNotification n);
+  Future<void> deleteCustomer(Customer c);
+  Future<void> deleteInvoice(Invoice i);
+  Future<void> deleteQuotation(Quotation q);
 }

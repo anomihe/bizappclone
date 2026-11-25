@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
@@ -9,6 +11,7 @@ import '../../../../core/widgets/ui_kit.dart';
 import '../../../home/presentation/screens/main_navigation_screen.dart';
 import '../../../onboarding/presentation/screens/welcome_screen.dart';
 import 'forgot_password_screen.dart';
+import 'login_screen.dart';
 
 /// Returning user on this device: password or fingerprint.
 class WelcomeBackScreen extends StatefulWidget {
@@ -28,16 +31,54 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     super.dispose();
   }
 
+  String? _savedEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    if (LiveSession.enabled) {
+      LiveSession.instance.savedEmail().then((e) {
+        if (mounted) setState(() => _savedEmail = e);
+      });
+    }
+  }
+
+  /// Live mode with no remembered email: fall back to the full login form.
+  void _toLogin() => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+
   void _enter() {
-    BizStore.instance.loadDemoWorkspace();
+    if (!LiveSession.enabled) BizStore.instance.loadDemoWorkspace();
     MainNavigationScreen.go(context);
   }
 
   Future<void> _continue() async {
     setState(() => _loading = true);
+    if (LiveSession.enabled) {
+      if (_savedEmail == null) return _toLogin();
+      try {
+        await LiveSession.instance.login(_savedEmail!, _password.text);
+        if (mounted) _enter();
+      } on ApiException catch (e) {
+        if (mounted) showToast(context, e.message);
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+      return;
+    }
     await Future.delayed(const Duration(milliseconds: 1000));
     if (!mounted) return;
     _enter();
+  }
+
+  /// Live mode: biometrics re-open the saved session token.
+  Future<void> _resumeLive() async {
+    try {
+      await LiveSession.instance.resume();
+      if (mounted) _enter();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      showToast(context, e.isUnauthorized ? 'Your session ended. Enter your password to continue.' : e.message);
+    }
   }
 
   /// Visual stand-in for the OS biometric prompt (needs `local_auth` for real).
@@ -71,13 +112,15 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         );
       },
     );
-    if (ok == true && mounted) _enter();
+    if (ok == true && mounted) LiveSession.enabled ? await _resumeLive() : _enter();
   }
 
   @override
   Widget build(BuildContext context) {
     final p = context.p;
     final account = BizStore.instance.account;
+    // Live mode: the workspace isn't loaded yet, so greet by the saved email.
+    final displayName = LiveSession.enabled ? (_savedEmail ?? '') : account.ownerFullName;
 
     return Scaffold(
       backgroundColor: p.bg,
@@ -88,10 +131,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: Column(children: [
-                InitialsAvatar(account.ownerFullName, size: 64),
+                InitialsAvatar(displayName.isEmpty ? '?' : displayName, size: 64),
                 const SizedBox(height: 12),
                 Text('Welcome Back,', style: tx(context, 13, color: p.textSecondary)),
-                Text(account.ownerFullName, style: tx(context, 18, weight: FontWeight.w800)),
+                Text(displayName, style: tx(context, 18, weight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text('Enter your login password to continue.', style: tx(context, 12.5, color: p.textSecondary)),
                 const SizedBox(height: 22),
@@ -132,6 +175,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
                     BizStore.instance.hasRememberedUser = false;
+                    if (LiveSession.enabled) {
+                      LiveSession.instance.logout();
+                      LiveSession.instance.tokens.clearAll();
+                    }
                     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const WelcomeScreen()), (_) => false);
                   },
               ),
