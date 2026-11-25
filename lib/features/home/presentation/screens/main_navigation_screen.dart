@@ -267,7 +267,8 @@ class _CreateMenu extends StatelessWidget {
           child: Material(
             type: MaterialType.transparency,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              for (final o in _options)
+              // Payment links have no backend yet, so they're demo-only.
+              for (final o in _options.where((o) => o.$1 != 'link' || !LiveSession.enabled))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Material(

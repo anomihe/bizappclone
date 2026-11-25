@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
+import '../../../../core/utils/live_actions.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/ui_kit.dart';
@@ -32,10 +34,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Future<void> _cancel() async {
     final reason = await showBpSheet<String>(context, showHandle: true, builder: (_) => const _CancelOrderForm());
-    if (reason != null && mounted) {
-      store.cancelOrder(widget.order, reason);
-      showToast(context, 'Order cancelled — the customer has been notified');
+    if (reason == null || !mounted) return;
+    if (LiveSession.enabled) {
+      await runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'cancelled', reason: reason),
+          done: 'Order cancelled — the customer has been notified');
+      return;
     }
+    store.cancelOrder(widget.order, reason);
+    showToast(context, 'Order cancelled — the customer has been notified');
+  }
+
+  Future<void> _delivered() async {
+    if (LiveSession.enabled) {
+      await runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'completed'), done: 'Order marked as delivered');
+      return;
+    }
+    store.completeOrder(widget.order);
   }
 
   /// Calling / WhatsApp need `url_launcher`; copy the number meanwhile.
@@ -61,7 +75,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       bottom: open
           ? Column(mainAxisSize: MainAxisSize.min, children: [
               if (o.status == OrderStatus.processing) ...[
-                CustomButton(text: 'Mark as Delivered', onPressed: () => store.completeOrder(o)),
+                CustomButton(text: 'Mark as Delivered', onPressed: _delivered),
                 const SizedBox(height: 10),
               ],
               _DangerSoftButton(label: 'Cancel Order', onTap: _cancel),
@@ -73,7 +87,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           name: o.customerName,
           amount: o.total,
           status: BizStatus.orderStage(o.status),
-          subline: 'Placed ${Fmt.relativeDay(o.placedAt)} · Card',
+          subline: 'Placed ${Fmt.relativeDay(o.placedAt)}${o.payments.isEmpty ? '' : ' · ${o.payments.first.method}'}',
           sublineColor: p.textMuted,
         ),
         if (o.status == OrderStatus.pending) ...[

@@ -18,7 +18,7 @@ import '../../../team/presentation/screens/team_screen.dart';
 import '../../../workspace/resource_screens.dart';
 import '../../../workspace/resource_specs.dart';
 import '../../../workspace/workspace_screens.dart';
-import 'coming_soon_screen.dart';
+import '../../../billing/billing_screen.dart';
 import 'settings_screen.dart';
 
 class MoreTab extends StatelessWidget {
@@ -133,7 +133,7 @@ class MoreTab extends StatelessWidget {
                   ActionTile(icon: Icons.design_services_outlined, title: 'Services', subtitle: 'What you offer and starting prices', onTap: () => open(ResourceListScreen(spec: Specs.services))),
                   ActionTile(icon: Icons.balance_outlined, title: 'Balance sheet', subtitle: 'What you own and owe', onTap: () => open(const BalanceSheetScreen())),
                   ActionTile(icon: Icons.currency_exchange, title: 'Currencies', subtitle: 'Supported currencies and rates', onTap: () => open(ResourceListScreen(spec: Specs.currencies))),
-                  ActionTile(icon: Icons.account_balance_wallet_outlined, title: 'Wallet & Billings', subtitle: 'Balance and subscription', onTap: () => open(const ComingSoonScreen(title: 'Wallet & Billings'))),
+                  ActionTile(icon: Icons.account_balance_wallet_outlined, title: 'Wallet & Billing', subtitle: 'Balance, plan and charges', onTap: () => open(const BillingScreen())),
                 ]),
                 section('Account', [
                   ActionTile(

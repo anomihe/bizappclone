@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../core/utils/biometrics.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
@@ -8,6 +9,7 @@ import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../workspace/workspace_screens.dart';
 import '../../../store/presentation/widgets/store_widgets.dart';
 import 'appearance_screen.dart';
+import 'two_factor_settings_screen.dart';
 
 /// More → Settings: appearance and notifications.
 class SettingsScreen extends StatelessWidget {
@@ -63,7 +65,13 @@ class SecurityScreen extends StatelessWidget {
               title: 'Log in with fingerprint / Face ID',
               subtitle: 'You can always use your password.',
               value: store.account.biometricsEnabled,
-              onChanged: store.setBiometrics,
+              onChanged: (on) async {
+                if (!LiveSession.enabled) return store.setBiometrics(on);
+                // Live: needs a real fingerprint / Face ID check, and is saved on this device.
+                final now = await Biometrics.setEnabled(on);
+                store.setBiometrics(now);
+                if (on && !now && context.mounted) showToast(context, 'Fingerprint / Face ID isn’t set up on this device, or it wasn’t confirmed.');
+              },
             ),
           ),
           const SizedBox(height: 12),
@@ -73,6 +81,13 @@ class SecurityScreen extends StatelessWidget {
             subtitle: 'Enter your current password to set a new one',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
           ),
+          if (LiveSession.enabled)
+            ActionTile(
+              icon: Icons.phonelink_lock_outlined,
+              title: 'Two-step verification',
+              subtitle: 'Ask for an authenticator code when you log in',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFactorSettingsScreen())),
+            ),
           // No backend endpoint for revoking other sessions yet.
           if (!LiveSession.enabled)
             ActionTile(

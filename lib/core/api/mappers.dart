@@ -129,25 +129,34 @@ class ApiMappers {
     return inv;
   }
 
+  /// Status the API lets the app set directly; null leaves it alone
+  /// (paid only comes from mark-paid / real payments).
+  static String? invoiceStatusBody(InvoiceStatus s) => switch (s) {
+        InvoiceStatus.draft => 'draft',
+        InvoiceStatus.voided || InvoiceStatus.cancelled => 'cancelled',
+        InvoiceStatus.paid || InvoiceStatus.partlyPaid => null,
+        _ => 'sent',
+      };
+
+  static List<Map<String, dynamic>> itemsBody(List<LineItem> items) => [
+        for (final it in items) {'title': it.name, 'description': it.name, 'quantity': it.qty, 'unit_price': it.unitPrice},
+      ];
+
+  /// Same fields as the web invoice form; totals are worked out by the server.
   static Map<String, dynamic> invoiceBody(Invoice i) {
-    final subtotal = i.subtotal;
+    final due = i.dueDate ?? i.createdAt.add(const Duration(days: 14));
     return {
       if (i.customer?.serverId != null) 'client_id': i.customer!.serverId,
       'client_name': i.customerName,
       if (i.customer?.email.isNotEmpty == true) 'client_email': i.customer!.email,
       if (i.customerPhone.isNotEmpty) 'client_phone': i.customerPhone,
       'issue_date': ymd(i.createdAt),
-      'due_date': ymd(i.dueDate ?? i.createdAt.add(const Duration(days: 14))),
-      'subtotal': subtotal,
+      'due_date': ymd(due.isBefore(i.createdAt) ? i.createdAt : due),
       'discount_amount': i.discount,
-      'tax_amount': i.taxAmount,
-      'total_amount': i.total,
-      'status': invoiceStatusOut(i.status),
+      'tax_rate': 0,
+      'status': ?invoiceStatusBody(i.status),
       'notes': i.notes,
-      // Sent for when the API stores line items; today InvoiceController@store ignores them.
-      'items': [
-        for (final it in i.items) {'title': it.name, 'quantity': it.qty, 'unit_price': it.unitPrice, 'total': it.total},
-      ],
+      'items': itemsBody(i.items),
     };
   }
 
@@ -187,23 +196,22 @@ class ApiMappers {
     );
   }
 
-  static Map<String, dynamic> quotationBody(Quotation q) => {
-        if (q.customer?.serverId != null) 'client_id': q.customer!.serverId,
-        'client_name': q.customer?.name ?? '',
-        if (q.customer?.email.isNotEmpty == true) 'client_email': q.customer!.email,
-        'issue_date': ymd(q.createdAt),
-        'valid_until': ymd(q.validTill ?? q.createdAt.add(Duration(days: q.validityDays))),
-        'subtotal': q.subtotal,
-        'discount_amount': q.discount,
-        'tax_rate': q.addVat ? Quotation.vatRate * 100 : 0,
-        'tax_amount': q.vat,
-        'total_amount': q.total,
-        'status': quoteStatusOut(q.status),
-        'notes': q.notes,
-        'items': [
-          for (final it in q.items) {'title': it.name, 'quantity': it.qty, 'unit_price': it.unitPrice, 'total': it.total},
-        ],
-      };
+  /// Same fields as the web quote form. Accepting uses POST …/approve, so it isn't sent as a status.
+  static Map<String, dynamic> quotationBody(Quotation q) {
+    final until = q.validTill ?? q.createdAt.add(Duration(days: q.validityDays));
+    return {
+      if (q.customer?.serverId != null) 'client_id': q.customer!.serverId,
+      'client_name': q.customer?.name ?? '',
+      if (q.customer?.email.isNotEmpty == true) 'client_email': q.customer!.email,
+      'issue_date': ymd(q.createdAt),
+      'valid_until': ymd(until.isBefore(q.createdAt) ? q.createdAt : until),
+      'discount_amount': q.discount,
+      'tax_rate': q.addVat ? Quotation.vatRate * 100 : 0,
+      if (q.status != QuotationStatus.accepted) 'status': quoteStatusOut(q.status),
+      'notes': q.notes,
+      'items': itemsBody(q.items),
+    };
+  }
 
   // ------------------------------------------------------------ payments (transactions)
 
@@ -293,5 +301,161 @@ class ApiMappers {
       read: j['read_at'] != null,
       serverId: str(j['id']),
     );
+  }
+
+  // ------------------------------------------------------------ store
+
+  /// The API stores the category as text; the app keys categories by name.
+  static String categoryId(String name) => 'cat:${name.trim().toLowerCase()}';
+
+  /// `price` is the list price; the app's discount is `price − sale_price`.
+  static Product product(Map<String, dynamic> j) {
+    final price = num0(j['price']);
+    final sale = j['sale_price'] == null ? null : num0(j['sale_price']);
+    final category = str(j['category']);
+    final image = str(j['image_full_url']).isNotEmpty ? str(j['image_full_url']) : str(j['image_url']);
+    return Product(
+      id: 'srv-p-${j['id']}',
+      name: str(j['name']),
+      sku: str(j['slug']).isEmpty ? 'ID${j['id']}' : str(j['slug']).toUpperCase(),
+      price: price,
+      discount: sale == null || sale >= price ? 0 : price - sale,
+      categoryId: category.isEmpty || category == 'General' ? null : categoryId(category),
+      quantity: intOrNull(j['stock_quantity']) ?? 0,
+      description: str(j['description']),
+      showOnStorefront: j['is_active'] != false && j['is_active'] != 0,
+    )
+      ..serverId = intOrNull(j['id'])
+      ..imageUrl = image.isEmpty ? null : image;
+  }
+
+  static Map<String, String> productFields(Product p, {String? category}) => {
+        'name': p.name.trim(),
+        'category': category ?? '',
+        'price': p.price.toStringAsFixed(2),
+        if (p.discount > 0) 'sale_price': p.salePrice.toStringAsFixed(2),
+        'stock_quantity': '${p.quantity}',
+        'description': p.description,
+        'is_active': p.showOnStorefront ? '1' : '0',
+      };
+
+  static OrderStatus orderStatus(String s) => switch (s) {
+        'paid' || 'processing' => OrderStatus.processing,
+        'completed' => OrderStatus.completed,
+        'cancelled' => OrderStatus.cancelled,
+        _ => OrderStatus.pending,
+      };
+
+  static Order order(Map<String, dynamic> j) {
+    final items = (j['items'] as List? ?? const []).whereType<Map<String, dynamic>>().map((i) {
+      final qty = num0(i['quantity']).round();
+      return LineItem(name: str(i['product_name']), unitPrice: num0(i['unit_price']), qty: qty <= 0 ? 1 : qty);
+    }).toList();
+    final status = str(j['status']);
+    final placed = date(j['created_at']) ?? DateTime.now();
+    final order = Order(
+      id: 'srv-o-${j['id']}',
+      number: str(j['order_number']).isEmpty ? '#${j['id']}' : str(j['order_number']),
+      customerName: str(j['customer_name']).isEmpty ? 'Customer' : str(j['customer_name']),
+      phone: str(j['customer_phone']),
+      address: str(j['shipping_address']),
+      items: items,
+      status: orderStatus(status),
+      placedAt: placed,
+      cancelReason: status == 'cancelled' && str(j['customer_notes']).isNotEmpty ? str(j['customer_notes']) : null,
+      // Unpaid orders from the last two days still need a look.
+      isNew: status == 'pending' && DateTime.now().difference(placed).inHours < 48,
+    )
+      ..serverId = intOrNull(j['id'])
+      ..email = str(j['customer_email'])
+      ..backendStatus = status;
+    if (j['paid_at'] != null || status == 'paid' || status == 'processing' || status == 'completed') {
+      order.payments.add(Payment(
+        id: 'srv-o-${j['id']}-paid',
+        invoiceId: '',
+        invoiceNumber: '',
+        customerName: order.customerName,
+        amount: num0(j['total_amount']) > 0 ? num0(j['total_amount']) : order.total,
+        method: str(j['payment_method']).isEmpty ? 'Bank Transfer' : str(j['payment_method']),
+        providerCharge: 0,
+        serviceCharge: 0,
+        status: PaymentStatus.paid,
+        date: date(j['paid_at']) ?? placed,
+        settled: true,
+        receiptNo: str(j['payment_reference']).isEmpty ? order.number : str(j['payment_reference']),
+        orderId: order.id,
+        orderNumber: order.number,
+      ));
+    }
+    return order;
+  }
+
+  static void applyStorefront(Storefront s, Map<String, dynamic> j) {
+    final (dial, phone) = splitPhone(str(j['store_phone']));
+    s
+      ..name = str(j['store_name'])
+      ..description = str(j['store_description'])
+      ..tagline = str(j['store_tagline'])
+      ..dialCode = dial
+      ..phone = phone
+      ..email = str(j['store_email'])
+      ..currency = str(j['currency']).isEmpty ? 'NGN' : str(j['currency'])
+      ..slug = str(j['slug']).isEmpty ? s.slug : str(j['slug'])
+      ..liveUrl = str(j['url']).isEmpty ? null : str(j['url'])
+      ..bannerUrl = str(j['store_banner']).isEmpty ? null : str(j['store_banner'])
+      ..hasBanner = str(j['store_banner']).isNotEmpty
+      ..customDomain = str(j['custom_domain']).isEmpty ? null : str(j['custom_domain'])
+      ..hasCustomDomainPlan = j['has_custom_domain_plan'] == true
+      ..expectedCname = str(j['expected_cname']).isEmpty ? null : str(j['expected_cname']);
+    final ds = j['domain_status'];
+    if (ds is Map) s.domainStatus = str(ds['overall_status']);
+  }
+
+  static Map<String, String> storefrontFields(Storefront s) => {
+        'store_name': s.name.trim(),
+        'store_tagline': s.tagline,
+        'store_description': s.description,
+        'store_phone': s.phone.isEmpty ? '' : '${s.dialCode} ${s.phone}'.trim(),
+        'store_email': s.email.trim(),
+        'currency': s.currency.length == 3 ? s.currency : 'NGN',
+      };
+
+  // ------------------------------------------------------------ billing
+
+  /// Home banner state from `GET /admin/billing`. Pay-as-you-go businesses
+  /// have no expiry (they pay per action from the wallet).
+  static PlanStatus planStatus(Map<String, dynamic> j) {
+    if (str(j['billing_model']) != 'subscription') return PlanStatus.active;
+    if (j['has_access'] == false) return PlanStatus.expired;
+    final sub = j['subscription'];
+    if (sub is Map) {
+      if (sub['grace_period_ends_at'] != null && str(sub['status']) != 'active') return PlanStatus.grace;
+      final end = date(sub['current_period_end']);
+      if (end != null && end.difference(DateTime.now()).inDays <= 3) return PlanStatus.endingSoon;
+    }
+    if (j['on_trial'] == true) return PlanStatus.trial;
+    return PlanStatus.active;
+  }
+
+  // ------------------------------------------------------------ KYC
+
+  static VerificationStatus verification(String s) => switch (s) {
+        'verified' => VerificationStatus.verified,
+        'in_review' => VerificationStatus.inReview,
+        _ => VerificationStatus.incomplete,
+      };
+
+  static void applyKyc(BusinessProfile p, Map<String, dynamic> j) {
+    p.documentStatus.clear();
+    p.documentNotes.clear();
+    for (final d in (j['documents'] as List? ?? const []).whereType<Map<String, dynamic>>()) {
+      final label = kycDocumentTypes[str(d['document_type'])];
+      if (label == null) continue;
+      final status = str(d['status']);
+      p.documents[label] = status == 'missing' || status.isEmpty ? null : (str(d['file_name']).isEmpty ? label : str(d['file_name']));
+      if (status != 'missing') p.documentStatus[label] = status;
+      if (str(d['rejection_reason']).isNotEmpty) p.documentNotes[label] = str(d['rejection_reason']);
+    }
+    p.verification = verification(str(j['status']));
   }
 }

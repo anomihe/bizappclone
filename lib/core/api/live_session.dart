@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../data/biz_store.dart';
+import '../utils/biometrics.dart';
 import 'api_client.dart';
 import 'api_config.dart';
 import 'mappers.dart';
@@ -53,8 +55,48 @@ class LiveSession implements BizRemote {
   Future<String?> savedEmail() => tokens.readEmail();
 
   /// Logs in a business owner and loads their workspace.
+  ///
+  /// Throws [TwoFactorRequired] when the account has two-factor login on;
+  /// finish with [completeTwoFactor].
   Future<void> login(String email, String password) async {
-    final result = await auth.login(email, password);
+    await _signIn(await auth.login(email, password));
+  }
+
+  /// Second login step with the authenticator (or recovery) code.
+  Future<void> completeTwoFactor(String challengeToken, String code) async {
+    await _signIn(await auth.twoFactorChallenge(challengeToken, code));
+  }
+
+  /// Creates a business (3-step sign-up) and signs straight in.
+  Future<void> register({
+    required String companyName,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String dialCode,
+    required String phone,
+    required String password,
+    required String otp,
+  }) async {
+    final result = await auth.register(
+      companyName: companyName,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      dialCode: dialCode,
+      phone: phone,
+      password: password,
+      otp: otp,
+    );
+    await _signIn(result);
+    store.account.businessName = companyName.trim();
+    store.refresh();
+  }
+
+  Future<void> sendSignupCode(String email, {String? companyName}) => auth.registerSendOtp(email, companyName: companyName);
+  Future<void> verifySignupCode(String email, String code) => auth.registerVerifyOtp(email, code);
+
+  Future<void> _signIn(LoginResult result) async {
     if (result.type != ApiConfig.accountType) {
       // Staff and customers have their own portals; don't keep their token.
       throw ApiException(result.type == 'team'
@@ -77,6 +119,8 @@ class LiveSession implements BizRemote {
 
   Future<void> logout() async {
     try {
+      final push = pushToken;
+      if (api.token != null && push != null) await business.removeDeviceToken(push);
       if (api.token != null) await business.logout();
     } on ApiException {
       // Token already invalid or offline — still sign out locally.
@@ -186,6 +230,242 @@ class LiveSession implements BizRemote {
       notifications: (results[6] as List<Map<String, dynamic>>).map(ApiMappers.notification).toList(),
     );
     store.remote = this;
+    LiveLinks.host = api.baseUrl.replaceFirst(RegExp(r'^https?://'), '');
+    store.account.biometricsEnabled = await Biometrics.isEnabled();
+    await loadStoreAndCompliance();
+    final push = pushToken;
+    if (push != null) unawaited(_optional(business.addDeviceToken(push)));
+  }
+
+  /// Store, orders, storefront, KYC and billing. Each part is optional so an
+  /// older backend (without these routes) still opens the workspace.
+  Future<void> loadStoreAndCompliance() async {
+    final parts = await Future.wait([
+      _optional(business.products()),
+      _optional(business.orders()),
+      _optional(business.storefront()),
+      _optional(business.kyc()),
+      _optional(business.billing()),
+    ]);
+
+    final productsJson = parts[0] as List<Map<String, dynamic>>?;
+    if (productsJson != null) {
+      final products = productsJson.map(ApiMappers.product).toList();
+      final names = <String>{
+        for (final j in productsJson)
+          if (ApiMappers.str(j['category']).isNotEmpty && ApiMappers.str(j['category']) != 'General') ApiMappers.str(j['category']).trim(),
+      };
+      // Keep empty categories the owner added in this session.
+      final kept = store.categories.where((c) => !names.any((n) => ApiMappers.categoryId(n) == c.id)).toList();
+      store.categories
+        ..clear()
+        ..addAll([for (final n in names) ProductCategory(id: ApiMappers.categoryId(n), name: n), ...kept]);
+      store.products
+        ..clear()
+        ..addAll(products);
+    }
+    final ordersJson = parts[1] as List<Map<String, dynamic>>?;
+    if (ordersJson != null) {
+      store.orders
+        ..clear()
+        ..addAll(ordersJson.map(ApiMappers.order));
+    }
+    final storefront = parts[2] as Map<String, dynamic>?;
+    if (storefront != null) ApiMappers.applyStorefront(store.storefront, storefront);
+    final kyc = parts[3] as Map<String, dynamic>?;
+    if (kyc != null) {
+      ApiMappers.applyKyc(store.profile, kyc);
+      // Drives the Home "Verify your business" banner.
+      store.account.verified = store.profile.verification == VerificationStatus.verified;
+    }
+    final billing = parts[4] as Map<String, dynamic>?;
+    if (billing != null) {
+      this.billing.value = billing;
+      store.account.plan = ApiMappers.planStatus(billing);
+    }
+    store.refresh();
+  }
+
+  /// Runs [f]; a missing route (404/405) or other API error returns null.
+  Future<T?> _optional<T>(Future<T> f) async {
+    try {
+      return await f;
+    } on ApiException {
+      return null;
+    }
+  }
+
+  // ---------------------------------------------------------------- push
+
+  /// Firebase Messaging token, set by the push setup once it is configured.
+  String? pushToken;
+
+  Future<void> registerPushToken(String token) async {
+    pushToken = token;
+    if (api.token != null) await _optional(business.addDeviceToken(token));
+  }
+
+  // ---------------------------------------------------------------- billing
+
+  /// Last `GET /admin/billing` response (plan, wallet, plans, history).
+  final ValueNotifier<Map<String, dynamic>?> billing = ValueNotifier(null);
+
+  Future<Map<String, dynamic>> refreshBilling() async {
+    final j = await business.billing();
+    billing.value = j;
+    store.account.plan = ApiMappers.planStatus(j);
+    store.refresh();
+    return j;
+  }
+
+  // ---------------------------------------------------------------- invoices & quotes
+
+  Invoice _applyInvoice(Invoice i, Map<String, dynamic> j) {
+    final fresh = ApiMappers.invoice(j, findCustomer: (id) => store.customers.where((c) => c.serverId == id).firstOrNull);
+    i
+      ..status = fresh.status
+      ..totalOverride = fresh.totalOverride;
+    if (fresh.items.isNotEmpty) i.items = fresh.items;
+    // Marked paid: record what was still owed (earlier part payments stay).
+    final owed = i.balance;
+    if (fresh.status == InvoiceStatus.paid && owed > 0) {
+      final when = fresh.payments.firstOrNull?.date ?? DateTime.now();
+      i.payments.add(Payment(
+        id: '${i.id}-paid',
+        invoiceId: i.id,
+        invoiceNumber: i.number,
+        customerName: i.customerName,
+        amount: owed,
+        method: 'Marked paid',
+        providerCharge: 0,
+        serviceCharge: 0,
+        status: PaymentStatus.paid,
+        date: when,
+        settled: true,
+        receiptNo: i.number,
+      ));
+    }
+    store.refresh();
+    return i;
+  }
+
+  /// Emails the invoice to the customer.
+  Future<void> emailInvoice(Invoice i) async {
+    final id = await _invoiceId(i);
+    _applyInvoice(i, await business.sendInvoice(id));
+  }
+
+  Future<void> markInvoicePaid(Invoice i) async {
+    final id = await _invoiceId(i);
+    _applyInvoice(i, await business.markInvoicePaid(id));
+  }
+
+  Future<List<int>> invoicePdf(Invoice i) async => business.invoicePdf(await _invoiceId(i));
+
+  /// Saves first if the invoice hasn't reached the server yet.
+  Future<int> _invoiceId(Invoice i) async {
+    if (i.serverId == null) await saveInvoice(i);
+    final id = i.serverId;
+    if (id == null) throw ApiException(syncError.value ?? 'This invoice isn’t saved to Bizpaddi yet. Please try again.');
+    return id;
+  }
+
+  Future<int> _quoteId(Quotation q) async {
+    if (q.serverId == null) await saveQuotation(q);
+    final id = q.serverId;
+    if (id == null) throw ApiException(syncError.value ?? 'This quotation isn’t saved to Bizpaddi yet. Please try again.');
+    return id;
+  }
+
+  Future<void> emailQuotation(Quotation q) async {
+    final j = await business.sendQuote(await _quoteId(q));
+    q.status = ApiMappers.quoteStatus(ApiMappers.str(j['status']));
+    store.refresh();
+  }
+
+  Future<List<int>> quotationPdf(Quotation q) async => business.quotePdf(await _quoteId(q));
+
+  /// Converts on the server and adds the new invoice to the list.
+  Future<Invoice> convertQuotation(Quotation q) async {
+    final j = await business.convertQuote(await _quoteId(q));
+    final inv = ApiMappers.invoice(j, findCustomer: (id) => store.customers.where((c) => c.serverId == id).firstOrNull);
+    inv.customer ??= q.customer;
+    q.status = QuotationStatus.accepted;
+    store.invoices.insert(0, inv);
+    store.refresh();
+    return inv;
+  }
+
+  // ---------------------------------------------------------------- store
+
+  /// Creates or updates a product; [image] replaces its photo.
+  Future<Product> saveProduct(Product p, {List<int>? image, String? filename, bool removeImage = false}) async {
+    final fields = ApiMappers.productFields(p, category: store.categoryById(p.categoryId)?.name);
+    if (removeImage) fields['remove_image'] = '1';
+    final j = await business.saveProduct(p.serverId, fields, image: image, filename: filename);
+    final fresh = ApiMappers.product(j);
+    p
+      ..serverId = fresh.serverId
+      ..imageUrl = fresh.imageUrl;
+    if (!store.products.contains(p)) store.products.insert(0, p);
+    store.refresh();
+    return p;
+  }
+
+  Future<void> deleteProduct(Product p) async {
+    if (p.serverId != null) await business.deleteProduct(p.serverId!);
+    store.products.remove(p);
+    store.refresh();
+  }
+
+  /// Renames a category by updating every product that uses it.
+  Future<void> renameCategory(ProductCategory c, String name) async {
+    final newId = ApiMappers.categoryId(name);
+    final affected = store.products.where((p) => p.categoryId == c.id).toList();
+    final idx = store.categories.indexOf(c);
+    final renamed = ProductCategory(id: newId, name: name.trim());
+    if (idx >= 0) store.categories[idx] = renamed;
+    for (final p in affected) {
+      p.categoryId = newId;
+      await saveProduct(p);
+    }
+    store.refresh();
+  }
+
+  /// `processing` | `completed` | `cancelled` (with [reason]).
+  Future<void> setOrderStatus(Order o, String status, {String? reason}) async {
+    if (o.serverId == null) return;
+    final j = await business.setOrderStatus(o.serverId!, status, notes: reason);
+    final fresh = ApiMappers.order(j);
+    o
+      ..status = fresh.status
+      ..backendStatus = fresh.backendStatus
+      ..isNew = false;
+    if (status == 'cancelled') o.cancelReason = reason;
+    store.refresh();
+  }
+
+  Future<void> saveStorefront({List<int>? banner, String? filename, String? customDomain}) async {
+    final fields = ApiMappers.storefrontFields(store.storefront);
+    if (customDomain != null) fields['custom_domain'] = customDomain;
+    final j = await business.saveStorefront(fields, banner: banner, filename: filename);
+    ApiMappers.applyStorefront(store.storefront, j);
+    store.refresh();
+  }
+
+  /// Re-reads the storefront including the custom-domain DNS/SSL check.
+  Future<void> checkDomain() async {
+    ApiMappers.applyStorefront(store.storefront, await business.storefront(checkDomain: true));
+    store.refresh();
+  }
+
+  // ---------------------------------------------------------------- KYC
+
+  Future<void> uploadKyc(String label, List<int> bytes, String filename) async {
+    final type = kycDocumentTypes.entries.firstWhere((e) => e.value == label).key;
+    await business.uploadKyc(type, bytes, filename);
+    ApiMappers.applyKyc(store.profile, await business.kyc());
+    store.refresh();
   }
 
   /// List endpoints omit line items; fetch them when an invoice is opened.
@@ -272,6 +552,8 @@ class LiveSession implements BizRemote {
         } else {
           await business.updateQuote(q.serverId!, body);
         }
+        // Accepting is its own endpoint on the backend.
+        if (q.status == QuotationStatus.accepted) await business.approveQuote(q.serverId!);
       });
 
   @override

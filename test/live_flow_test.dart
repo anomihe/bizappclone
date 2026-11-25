@@ -23,7 +23,7 @@ void main() {
       store: BizStore.instance,
     );
   });
-  tearDown(() => LiveSession.debugEnabledOverride = null);
+  tearDown(() => LiveSession.debugEnabledOverride = false);
 
   Future<void> pumpApp(WidgetTester tester, Widget home) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);

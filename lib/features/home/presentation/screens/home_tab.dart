@@ -7,7 +7,8 @@ import '../../../../core/widgets/calendar_sheet.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/theme_toggle.dart';
 import '../../../../core/widgets/ui_kit.dart';
-import '../../../more/presentation/screens/coming_soon_screen.dart';
+import '../../../billing/billing_screen.dart';
+import '../../../business/presentation/screens/business_profile_screen.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../../../orders/presentation/screens/orders_screen.dart';
 import '../../../payments/presentation/screens/payment_details_screen.dart';
@@ -175,6 +176,8 @@ class _HomeTabState extends State<HomeTab> {
       _ => ('', '', '', false),
     };
     if (title.isEmpty) return const SizedBox.shrink();
+    // iOS can't point to paying outside the App Store; the billing screen is read-only there.
+    final actionLabel = action == 'Renew Now' && !BillingScreen.canPay ? 'View Plan' : action;
     final p = context.p;
     final c = danger ? AppColors.error : AppColors.accent;
 
@@ -197,7 +200,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ComingSoonScreen(title: action == 'Verify Now' ? 'Verify Business' : 'Plans & Billing'))),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => action == 'Verify Now' ? const BusinessProfileScreen() : const BillingScreen())),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: const Color(0xFF111916),
@@ -205,7 +208,7 @@ class _HomeTabState extends State<HomeTab> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text(action, style: tx(context, 11.5, weight: FontWeight.w700, color: const Color(0xFF111916))),
+            child: Text(actionLabel, style: tx(context, 11.5, weight: FontWeight.w700, color: const Color(0xFF111916))),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,

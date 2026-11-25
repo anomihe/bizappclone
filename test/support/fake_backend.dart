@@ -58,12 +58,15 @@ class FakeBackend {
     if (expireToken && path != '/api/v1/auth/login') {
       return http.Response(jsonEncode({'message': 'Unauthenticated.'}), 401);
     }
+    final mobile = _mobileRoutes(req, path);
+    if (mobile != null) return mobile;
     switch ((req.method, path)) {
       case ('POST', '/api/v1/auth/login'):
         final b = jsonDecode(req.body) as Map;
         if (b['password'] != 'secret123') {
           return http.Response(jsonEncode({'success': false, 'message': 'Invalid credentials.'}), 401);
         }
+        if (twoFactor) return ok({'requires_2fa': true, 'challenge_token': 'ch-1', 'type': 'admin'});
         return ok({'token': '1|abc', 'user': {'id': 7, 'name': 'Ada Obi', 'email': b['email'], 'type': loginType}});
       case ('POST', '/api/v1/auth/forgot-password'):
         return http.Response(jsonEncode({'success': true, 'message': 'Password reset link sent to your email.'}), 200);
@@ -184,5 +187,172 @@ class FakeBackend {
     if (req.method == 'DELETE' || (req.method == 'PATCH' && path.endsWith('/read'))) return ok([]);
     return http.Response(jsonEncode({'success': false, 'message': 'No route ${req.method} $path'}), 404);
   });
+
+  // ---------------------------------------------------------------- feature/mobile-api routes
+
+  /// When true, login stops at the 2FA step (code 123456 passes).
+  bool twoFactor = false;
+  bool twoFactorEnabled = false;
+
+  /// Wallet balance; invoice creation needs ₦50 when [chargeInvoices] is on.
+  double wallet = 3250;
+  bool chargeInvoices = false;
+
+  final products = <Map<String, dynamic>>[
+    {'id': 61, 'name': 'Ankara fabric', 'slug': 'ankara-fabric-123', 'category': 'Fabrics', 'price': '6500.00', 'sale_price': '6000.00', 'stock_quantity': 4, 'is_active': true, 'image_url': '/storage/store/products/a.jpg', 'image_full_url': 'https://x.test/storage/store/products/a.jpg'},
+    {'id': 62, 'name': 'Gele', 'slug': 'gele-456', 'category': 'General', 'price': '3000.00', 'sale_price': null, 'stock_quantity': 0, 'is_active': false},
+  ];
+  final orders = <Map<String, dynamic>>[
+    {'id': 71, 'order_number': 'ORD-1011', 'customer_name': 'Funke A.', 'customer_email': 'funke@mail.com', 'customer_phone': '08030000000', 'shipping_address': '12 Allen Ave', 'total_amount': '12000.00', 'status': 'paid', 'paid_at': '2026-11-23T10:00:00.000000Z', 'payment_method': 'bank_transfer', 'created_at': '2026-11-23T09:00:00.000000Z', 'items': [{'product_name': 'Ankara fabric', 'unit_price': '6000.00', 'quantity': 2}]},
+  ];
+  Map<String, dynamic> storefront = {'store_name': 'Ada Fabrics', 'store_tagline': '', 'store_description': 'Fabrics', 'store_phone': '+234 8035550142', 'store_email': 'ada@shop.ng', 'store_banner': null, 'currency': 'NGN', 'slug': 'ada-fabrics', 'url': 'https://app.bizpaddi.com/store/ada-fabrics', 'custom_domain': null, 'has_custom_domain_plan': false, 'expected_cname': 'stores.bizpaddi.com', 'domain_status': null};
+  final kycDocs = <String, Map<String, dynamic>>{
+    'cac_certificate': {'document_type': 'cac_certificate', 'status': 'verified', 'file_name': 'cac.pdf'},
+  };
+
+  static String _field(http.Request req, String name) =>
+      RegExp('name="$name"\r\n\r\n([^\r]*)').firstMatch(utf8.decode(req.bodyBytes, allowMalformed: true))?.group(1) ?? '';
+  static bool _hasFile(http.Request req, String name) => utf8.decode(req.bodyBytes, allowMalformed: true).contains('name="$name"; filename=');
+
+  Map<String, dynamic> _kyc() {
+    const types = ['cac_certificate', 'director_id', 'utility_bill', 'tax_clearance'];
+    final docs = [for (final t in types) kycDocs[t] ?? {'document_type': t, 'status': 'missing'}];
+    final all = docs.every((d) => d['status'] == 'verified');
+    return {'status': all ? 'verified' : (docs.any((d) => d['status'] == 'missing') ? 'incomplete' : 'in_review'), 'documents': docs};
+  }
+
+  http.Response? _mobileRoutes(http.Request req, String path) {
+    Map<String, dynamic> body() => req.body.isEmpty ? {} : jsonDecode(req.body) as Map<String, dynamic>;
+    final m = req.method;
+
+    // Auth: 2FA + sign-up
+    if (m == 'POST' && path == '/api/v1/auth/2fa-challenge') {
+      final b = body();
+      if (b['challenge_token'] != 'ch-1' || (b['code'] != '123456' && b['code'] != 'ABCD-1234')) {
+        return validation({'code': ['Invalid authentication code or recovery key.']});
+      }
+      return ok({'token': '2|tfa', 'user': {'id': 7, 'name': 'Ada Obi', 'email': 'ada@shop.ng', 'type': 'admin'}});
+    }
+    if (m == 'POST' && path == '/api/v1/auth/register/send-otp') {
+      if (body()['email'] == 'taken@shop.ng') return validation({'email': ['An account with this email address already exists. Please sign in instead.']});
+      return ok({'expires_in': 900, 'resend_in': 60});
+    }
+    if (m == 'POST' && path == '/api/v1/auth/register/verify-otp') {
+      return body()['otp_code'] == '654321' ? ok(null) : validation({'otp_code': ['Invalid or expired verification code.']});
+    }
+    if (m == 'POST' && path == '/api/v1/auth/register') {
+      final b = body();
+      if (b['otp_code'] != '654321') return validation({'otp_code': ['Invalid or expired verification code.']});
+      return ok({'token': '3|new', 'user': {'id': 8, 'name': '${b['first_name']} ${b['last_name']}', 'email': b['email'], 'type': 'admin'}, 'tenant': {'id': 2, 'name': b['company_name']}, 'needs_plan_activation': false}, 201);
+    }
+
+    // Invoices & quotes
+    final put = RegExp(r'^/api/v1/admin/accounting/(invoices|quotes)/(\d+)$').firstMatch(path);
+    if (put != null && m == 'PUT') return ok({...body(), 'id': int.parse(put.group(2)!)});
+    final doc =RegExp(r'^/api/v1/admin/accounting/(invoices|quotes)/(\d+)/(send|mark-paid|pdf|approve|convert)$').firstMatch(path);
+    if (doc != null) {
+      final id = int.parse(doc.group(2)!);
+      return switch (doc.group(3)) {
+        'pdf' => http.Response.bytes([37, 80, 68, 70, 45, 49], 200, headers: {'content-type': 'application/pdf'}),
+        'send' => ok({'id': id, 'status': 'sent', 'invoice_number': 'INV-00$id', 'quote_number': 'QT-00$id', 'total_amount': '37000.00'}),
+        'mark-paid' => ok({'id': id, 'status': 'paid', 'invoice_number': 'INV-00$id', 'total_amount': '37000.00', 'paid_at': '2026-11-24T10:00:00.000000Z'}),
+        'approve' => ok({'id': id, 'status': 'approved'}),
+        _ => ok({'id': 88, 'invoice_number': 'INV-0088', 'client_id': 11, 'status': 'draft', 'total_amount': '5375.00', 'issue_date': '2026-11-24', 'items': [{'title': 'Ankara', 'quantity': '1.00', 'unit_price': '5000.00'}]}, 201),
+      };
+    }
+    if (m == 'POST' && path == '/api/v1/admin/accounting/invoices' && chargeInvoices && wallet < 50) {
+      return http.Response.bytes(utf8.encode(jsonEncode({'success': false, 'message': 'Insufficient Operating Wallet balance (₦0.00).', 'code': 'billing_required'})), 402, headers: {'content-type': 'application/json'});
+    }
+
+    // Store
+    if (path == '/api/v1/admin/store/products' && m == 'GET') return ok(page(products));
+    final prod = RegExp(r'^/api/v1/admin/store/products(?:/(\d+))?$').firstMatch(path);
+    if (prod != null && m == 'POST') {
+      final id = prod.group(1);
+      final fields = {
+        for (final f in ['name', 'category', 'price', 'sale_price', 'stock_quantity', 'description', 'is_active']) f: _field(req, f),
+      };
+      if (fields['name']!.isEmpty) return validation({'name': ['The name field is required.']});
+      final existing = id == null ? null : products.where((p) => '${p['id']}' == id).firstOrNull;
+      final p = existing ?? {'id': 600 + products.length, 'slug': 'new-1'};
+      p.addAll({
+        ...fields,
+        'sale_price': fields['sale_price']!.isEmpty ? null : fields['sale_price'],
+        'is_active': fields['is_active'] == '1',
+        if (_hasFile(req, 'image')) 'image_full_url': 'https://x.test/storage/store/products/new.jpg',
+        if (_field(req, 'remove_image') == '1') 'image_full_url': null,
+      });
+      if (existing == null) products.insert(0, p);
+      return ok(p, existing == null ? 201 : 200);
+    }
+    if (prod != null && m == 'DELETE') {
+      products.removeWhere((p) => '${p['id']}' == prod.group(1));
+      return ok([]);
+    }
+    if (path == '/api/v1/admin/store/orders' && m == 'GET') return ok(page(orders));
+    final ord = RegExp(r'^/api/v1/admin/store/orders/(\d+)/status$').firstMatch(path);
+    if (ord != null && m == 'PATCH') {
+      final o = orders.firstWhere((o) => '${o['id']}' == ord.group(1));
+      o['status'] = body()['status'];
+      return ok(o);
+    }
+    if (path == '/api/v1/admin/storefront') {
+      if (m == 'GET') return ok(storefront);
+      storefront = {
+        ...storefront,
+        'store_name': _field(req, 'store_name'),
+        'store_tagline': _field(req, 'store_tagline'),
+        'store_description': _field(req, 'store_description'),
+        'store_phone': _field(req, 'store_phone'),
+        'store_email': _field(req, 'store_email'),
+        if (_hasFile(req, 'store_banner')) 'store_banner': 'https://x.test/storage/store/banners/b.jpg',
+      };
+      return ok(storefront);
+    }
+
+    // KYC
+    if (path == '/api/v1/admin/kyc') {
+      if (m == 'GET') return ok(_kyc());
+      final type = _field(req, 'document_type');
+      kycDocs[type] = {'document_type': type, 'status': 'pending', 'file_name': 'upload.jpg'};
+      return ok(kycDocs[type], 201);
+    }
+
+    // Billing
+    if (path == '/api/v1/admin/billing' && m == 'GET') {
+      return ok({
+        'billing_model': 'payg',
+        'wallet_balance': wallet,
+        'currency': 'NGN',
+        'has_access': true,
+        'on_trial': false,
+        'subscription': null,
+        'plans': [{'id': 1, 'name': 'Starter', 'price': 8000, 'billing_interval': 'monthly', 'features': ['Unlimited invoices']}],
+        'wallet_transactions': [{'id': 1, 'type': 'credit', 'amount': 5000, 'description': 'Wallet top-up', 'created_at': '2026-11-22T09:00:00.000000Z'}],
+        'rates': [{'name': 'Invoice', 'fee': 50}],
+      });
+    }
+    if (m == 'POST' && (path == '/api/v1/admin/billing/topup' || path == '/api/v1/admin/billing/checkout')) {
+      return ok({'reference': 'BP_WLT_1', 'amount': body()['amount'] ?? 8000, 'bank_name': 'Wema Bank', 'account_number': '9900112233', 'account_name': 'Bizpaddi / Ada Fabrics'}, 201);
+    }
+    if (m == 'GET' && path == '/api/v1/admin/billing/status') return ok({'reference': req.url.queryParameters['reference'], 'status': 'pending'});
+
+    // Push tokens & 2FA settings
+    if (path == '/api/v1/admin/device-tokens') return ok([], m == 'POST' ? 201 : 200);
+    if (path == '/api/v1/admin/2fa' && m == 'GET') {
+      return ok(twoFactorEnabled ? {'enabled': true} : {'enabled': false, 'secret': 'JBSWY3DPEHPK3PXP', 'otpauth_url': 'otpauth://totp/Bizpaddi:ada@shop.ng?secret=JBSWY3DPEHPK3PXP&issuer=Bizpaddi'});
+    }
+    if (path == '/api/v1/admin/2fa/confirm') {
+      if (body()['code'] != '123456') return validation({'code': ['Invalid 6-digit code.']});
+      twoFactorEnabled = true;
+      return ok({'enabled': true, 'recovery_codes': ['ABCD-1234', 'EFGH-5678']});
+    }
+    if (path == '/api/v1/admin/2fa/disable') {
+      if (body()['password'] != 'secret123') return validation({'password': ['Incorrect password.']});
+      twoFactorEnabled = false;
+      return ok({'enabled': false});
+    }
+    return null;
+  }
 }
 

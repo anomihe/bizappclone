@@ -8,6 +8,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Bizpaddi uses your photos so you can set a profile picture or share images in project chats.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Bizpaddi uses Face ID so you can unlock the app without typing your password.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Bizpaddi uses the camera so you can take a profile picture or share photos in project chats.</string>
 	<key>CFBundleDisplayName</key>

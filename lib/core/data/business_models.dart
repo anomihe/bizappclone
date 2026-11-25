@@ -26,6 +26,10 @@ class Product {
   List<int> photos;
   bool showOnStorefront;
 
+  /// Backend id and photo URL in live mode (the API keeps one image per product).
+  int? serverId;
+  String? imageUrl;
+
   Product({
     required this.id,
     required this.name,
@@ -55,6 +59,17 @@ class Storefront {
   bool hasLogo;
   bool hasBanner;
 
+  // Live mode (GET /admin/storefront).
+  String tagline = '';
+  String currency = 'NGN';
+  String? bannerUrl;
+  String? liveUrl;
+  bool hasCustomDomainPlan = false;
+  String? expectedCname;
+
+  /// `not_configured`, `action_required`, `propagating`, `ssl_pending` or `live`.
+  String? domainStatus;
+
   Storefront({
     required this.name,
     required this.description,
@@ -67,7 +82,7 @@ class Storefront {
     this.hasBanner = false,
   });
 
-  String get link => 'bizpaddi.com/s/$slug';
+  String get link => liveUrl?.replaceFirst(RegExp(r'^https?://'), '') ?? 'bizpaddi.com/s/$slug';
 }
 
 // ------------------------------------------------------------------ orders
@@ -87,6 +102,11 @@ class Order {
   final List<Payment> payments;
   String? cancelReason;
   bool isNew;
+
+  /// Live mode: backend id, email and the raw status (`paid` and `processing` both show as Paid).
+  int? serverId;
+  String email = '';
+  String? backendStatus;
 
   Order({
     required this.id,
@@ -173,6 +193,14 @@ class StaffMember {
 
 // ------------------------------------------------------------------ business
 
+/// KYC document types the backend accepts → the label shown in the app.
+const kycDocumentTypes = {
+  'cac_certificate': 'CAC Certificate',
+  'director_id': 'Director’s ID',
+  'utility_bill': 'Utility Bill',
+  'tax_clearance': 'Tax Clearance',
+};
+
 enum VerificationStatus { incomplete, inReview, verified }
 
 class BankAccount {
@@ -204,6 +232,10 @@ class BusinessProfile {
 
   /// Document key → uploaded file name (null = not uploaded).
   final Map<String, String?> documents;
+
+  /// Live mode: document label → review status (`pending`, `verified`, `rejected`) and rejection reason.
+  final Map<String, String> documentStatus = {};
+  final Map<String, String> documentNotes = {};
   BankAccount? bank;
   final List<BankChange> bankHistory;
 
@@ -221,7 +253,7 @@ class BusinessProfile {
     Map<String, String?>? documents,
     this.bank,
     List<BankChange>? bankHistory,
-  })  : documents = documents ?? {'Government ID': null, 'CAC Certificate': null, 'Proof of Business Address': null},
+  })  : documents = documents ?? {for (final label in kycDocumentTypes.values) label: null},
         bankHistory = bankHistory ?? [];
 
   bool get infoComplete => [name, type, registrationNumber, phone, email, address].every((v) => v.trim().isNotEmpty);

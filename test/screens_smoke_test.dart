@@ -6,6 +6,7 @@ import 'package:bizpaddi/features/auth/presentation/screens/forgot_password_scre
 import 'package:bizpaddi/features/auth/presentation/screens/login_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/otp_verification_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/register_screen.dart';
+import 'package:bizpaddi/features/billing/billing_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/registration_success_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/welcome_back_screen.dart';
@@ -145,6 +146,9 @@ void main() {
     'balance sheet': () => const BalanceSheetScreen(),
     'my profile': () => const MyProfileScreen(),
     'change password': () => const ChangePasswordScreen(),
+    'wallet & billing': () => const BillingScreen(),
+    'sign-up email': () => const SignupEmailScreen(),
+    'sign-up details': () => const SignupDetailsScreen(email: 'tola@shop.ng', code: '654321'),
   };
 
   // Logical sizes covering the layouts we support.

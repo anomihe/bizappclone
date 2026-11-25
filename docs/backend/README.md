@@ -6,7 +6,8 @@ Extracted on 2026-11-24 by reading the Laravel route files in `bizpaddi-platform
 paths, prefixes, `apiResource` expansions and middleware were spot-checked by hand.
 
 - Full list (1,499 endpoints): [`endpoints.md`](endpoints.md) · spreadsheet-friendly: [`endpoints.tsv`](endpoints.tsv)
-- Draft spec for the endpoints the app still needs: [`api-spec.md`](api-spec.md)
+- Website features to expose as JSON (same logic, new routes): [`web-to-api.md`](web-to-api.md)
+- Draft spec for endpoints that don't exist anywhere yet: [`api-spec.md`](api-spec.md)
 - Part A = JSON API under `/api/...` (Sanctum bearer token) — what a mobile app can call.
 - Part B = web routes (browser pages, session cookie + CSRF) — **not** callable from the app.
 
@@ -99,12 +100,14 @@ and revisit **B** if in-app upgrades matter for conversion. Either way, payments
 
 ## 6. Mobile integration status
 
-The app runs in **demo mode** unless built with a backend URL:
+The app talks to **https://app.bizpaddi.com** by default ([api_config.dart](../../lib/core/api/api_config.dart)). Override at build time:
 
 ```
-flutter run   --dart-define=API_BASE_URL=https://app.bizpaddi.com
-flutter build apk --release --dart-define=API_BASE_URL=https://app.bizpaddi.com
+flutter run --dart-define=API_BASE_URL=https://staging.example.com   # another server
+flutter run --dart-define=DEMO_MODE=true                             # sample data, no network
 ```
+
+Tests always run on demo data (`test/flutter_test_config.dart`) unless a test turns live mode on with a fake backend.
 
 Live mode (code in `lib/core/api/`):
 

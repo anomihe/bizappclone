@@ -29,7 +29,7 @@ void main() {
   }
 
   setUp(() => backend = FakeBackend());
-  tearDown(() => LiveSession.debugEnabledOverride = null);
+  tearDown(() => LiveSession.debugEnabledOverride = false);
 
   group('API', () {
     setUp(signIn);

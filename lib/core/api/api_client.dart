@@ -12,10 +12,16 @@ class ApiException implements Exception {
   /// Laravel validation errors: field → messages.
   final Map<String, List<String>> fieldErrors;
 
-  const ApiException(this.message, {this.statusCode, this.fieldErrors = const {}});
+  /// Machine-readable reason, e.g. `billing_required` (HTTP 402).
+  final String? code;
+
+  const ApiException(this.message, {this.statusCode, this.fieldErrors = const {}, this.code});
 
   bool get isUnauthorized => statusCode == 401;
   bool get isNetwork => statusCode == null;
+
+  /// The action needs a wallet top-up or an active plan.
+  bool get needsBilling => statusCode == 402 || code == 'billing_required';
 
   /// First validation message for [field], if any.
   String? errorFor(String field) => fieldErrors[field]?.firstOrNull;
@@ -95,17 +101,24 @@ class ApiClient {
       throw ApiException(map['message'] as String? ?? 'Your session has ended. Please log in again.', statusCode: 401);
     }
     if (res.statusCode >= 400 || map['success'] == false) {
-      throw ApiException(_messageFor(res.statusCode, map), statusCode: res.statusCode, fieldErrors: _fieldErrors(map));
+      throw ApiException(_messageFor(res.statusCode, map),
+          statusCode: res.statusCode, fieldErrors: _fieldErrors(map), code: map['code'] as String?);
     }
     return map.containsKey('data') ? map['data'] : json;
   }
 
   /// Multipart POST for file uploads (profile picture, chat attachments).
-  Future<dynamic> upload(String path, {Map<String, String> fields = const {}, required String fileField, required List<int> bytes, required String filename}) async {
+  Future<dynamic> upload(String path, {Map<String, String> fields = const {}, required String fileField, required List<int> bytes, required String filename}) =>
+      multipart(path, fields: fields, files: {fileField: (bytes, filename)});
+
+  /// Multipart POST with any number of files (none is fine).
+  Future<dynamic> multipart(String path, {Map<String, String> fields = const {}, Map<String, (List<int>, String)> files = const {}}) async {
     final request = http.MultipartRequest('POST', _uri(path))
       ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
-      ..fields.addAll(fields)
-      ..files.add(http.MultipartFile.fromBytes(fileField, bytes, filename: filename));
+      ..fields.addAll(fields);
+    for (final e in files.entries) {
+      request.files.add(http.MultipartFile.fromBytes(e.key, e.value.$1, filename: e.value.$2));
+    }
     final http.Response res;
     try {
       res = await http.Response.fromStream(await _http.send(request).timeout(const Duration(seconds: 60)));
@@ -117,6 +130,28 @@ class ApiClient {
       throw const ApiException('Could not reach Bizpaddi. Check your connection and try again.');
     }
     return _decode(res);
+  }
+
+  /// Downloads a file (e.g. an invoice PDF). Errors come back as JSON and throw [ApiException].
+  Future<List<int>> getBytes(String path) async {
+    final request = http.Request('GET', _uri(path))
+      ..headers.addAll({'Accept': 'application/pdf, application/json', if (token != null) 'Authorization': 'Bearer $token'});
+    final http.Response res;
+    try {
+      res = await http.Response.fromStream(await _http.send(request).timeout(const Duration(seconds: 60)));
+    } on TimeoutException {
+      throw const ApiException('The download took too long. Check your connection and try again.');
+    } on SocketException {
+      throw const ApiException('No internet connection. Check your network and try again.');
+    } on http.ClientException {
+      throw const ApiException('Could not reach Bizpaddi. Check your connection and try again.');
+    }
+    final type = res.headers['content-type'] ?? '';
+    if (res.statusCode >= 400 || type.contains('json')) {
+      _decode(res); // throws with the server's message
+      throw const ApiException('The file could not be downloaded.');
+    }
+    return res.bodyBytes;
   }
 
   /// Fetches every page of a Laravel paginated list (up to [ApiConfig.maxPages]).
@@ -149,7 +184,8 @@ class ApiClient {
     }
     if (msg != null && msg.isNotEmpty && code < 500) return msg;
     return switch (code) {
-      403 => 'You don’t have permission to do that.',
+      402 => 'Top up your wallet or activate a plan to do this.',
+      403 =>'You don’t have permission to do that.',
       404 => 'That item could not be found.',
       429 => 'Too many attempts. Please wait a moment and try again.',
       >= 500 => 'Bizpaddi is having trouble right now. Please try again shortly.',

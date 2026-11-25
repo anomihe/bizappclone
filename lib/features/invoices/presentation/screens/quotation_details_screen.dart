@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
+import '../../../../core/utils/live_actions.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../widgets/doc_header_card.dart';
 import '../widgets/invoice_sheets.dart';
 import 'create_document_screen.dart';
+import 'invoice_details_screen.dart';
 
 /// "Quotation #Q016" — sent / accepted / expired / draft.
 class QuotationDetailsScreen extends StatefulWidget {
@@ -41,10 +44,24 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
   }
 
-  void _convert() {
+  Future<void> _convert() async {
+    if (LiveSession.enabled) {
+      // The server copies the items into a new draft invoice.
+      Invoice? created;
+      final ok = await runLiveAction(context, () async => created = await LiveSession.instance.convertQuotation(widget.quotation),
+          done: 'Invoice created from the quotation');
+      if (ok && created != null && mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => InvoiceDetailsScreen(invoice: created!)));
+      }
+      return;
+    }
     final invoice = BizStore.instance.invoiceFromQuotation(widget.quotation);
     Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.invoice(draft: invoice)));
   }
+
+  Future<void> _email() => runLiveAction(context, () => LiveSession.instance.emailQuotation(widget.quotation), done: 'Quotation emailed to the customer');
+
+  Future<void> _pdf() => sharePdf(context, () => LiveSession.instance.quotationPdf(widget.quotation), 'Quotation-${widget.quotation.number}.pdf');
 
   Future<void> _delete() async {
     final q = widget.quotation;
@@ -122,6 +139,11 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         if (!isDraft) ...[
           const SizedBox(height: 14),
           const SectionLabel('Actions'),
+          if (LiveSession.enabled) ...[
+            if (status == QuotationStatus.sent)
+              ActionTile(icon: Icons.mail_outline, title: 'Email to customer', subtitle: q.customer?.email.isNotEmpty == true ? q.customer!.email : 'Sends the quotation by email', onTap: _email),
+            ActionTile(icon: Icons.picture_as_pdf_outlined, title: 'Download PDF', subtitle: 'Save or share the quotation', onTap: _pdf),
+          ],
           ActionTile(icon: Icons.share_outlined, title: 'Share Quotation Link', subtitle: q.link, onTap: _share),
         ],
       ]),

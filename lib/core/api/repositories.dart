@@ -11,6 +11,23 @@ class LoginResult {
   /// `admin` (business owner), `team` (staff) or `client` (customer).
   final String type;
   const LoginResult({required this.token, required this.id, required this.name, required this.email, required this.type});
+
+  factory LoginResult.fromJson(Map<String, dynamic> data, {String fallbackEmail = ''}) {
+    final user = data['user'] as Map<String, dynamic>;
+    return LoginResult(
+      token: data['token'] as String,
+      id: (user['id'] as num).toInt(),
+      name: '${user['name'] ?? ''}',
+      email: '${user['email'] ?? fallbackEmail}',
+      type: '${user['type'] ?? ''}',
+    );
+  }
+}
+
+/// Login stopped at the 2FA step: send the authenticator code with [challengeToken].
+class TwoFactorRequired implements Exception {
+  final String challengeToken;
+  const TwoFactorRequired(this.challengeToken);
 }
 
 /// Shared auth — `/api/v1/auth/*` (public).
@@ -18,16 +35,49 @@ class AuthRepository {
   final ApiClient api;
   AuthRepository(this.api);
 
+  /// Throws [TwoFactorRequired] when the account has two-factor login on.
   Future<LoginResult> login(String email, String password) async {
     final data = await api.post('/v1/auth/login', {'email': email.trim(), 'password': password}) as Map<String, dynamic>;
-    final user = data['user'] as Map<String, dynamic>;
-    return LoginResult(
-      token: data['token'] as String,
-      id: (user['id'] as num).toInt(),
-      name: '${user['name'] ?? ''}',
-      email: '${user['email'] ?? email}',
-      type: '${user['type'] ?? ''}',
-    );
+    if (data['requires_2fa'] == true) throw TwoFactorRequired('${data['challenge_token']}');
+    return LoginResult.fromJson(data, fallbackEmail: email.trim());
+  }
+
+  /// Second login step: authenticator code or a recovery code.
+  Future<LoginResult> twoFactorChallenge(String challengeToken, String code) async {
+    final data = await api.post('/v1/auth/2fa-challenge', {'challenge_token': challengeToken, 'code': code.trim()}) as Map<String, dynamic>;
+    return LoginResult.fromJson(data);
+  }
+
+  // Sign-up: email → 6-digit code → details (same as app.bizpaddi.com/dashboard/register).
+  Future<void> registerSendOtp(String email, {String? companyName}) =>
+      api.post('/v1/auth/register/send-otp', {'email': email.trim(), 'company_name': ?companyName});
+  Future<void> registerVerifyOtp(String email, String code) =>
+      api.post('/v1/auth/register/verify-otp', {'email': email.trim(), 'otp_code': code});
+
+  Future<LoginResult> register({
+    required String companyName,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String dialCode,
+    required String phone,
+    required String password,
+    required String otp,
+  }) async {
+    final data = await api.post('/v1/auth/register', {
+      'company_name': companyName.trim(),
+      'first_name': firstName.trim(),
+      'last_name': lastName.trim(),
+      'email': email.trim(),
+      'phone_country_code': dialCode,
+      'phone': phone.trim(),
+      'password': password,
+      'password_confirmation': password,
+      'otp_code': otp,
+      'agree_terms': true,
+      'device_name': 'bizpaddi-mobile',
+    }) as Map<String, dynamic>;
+    return LoginResult.fromJson(data, fallbackEmail: email.trim());
   }
 
   /// Emails a reset **link** (the backend has no 6-digit reset code).
@@ -85,6 +135,11 @@ class BusinessRepository {
   Future<Map<String, dynamic>> updateInvoice(int id, Map<String, dynamic> body) async =>
       await api.put('$_acc/invoices/$id', body) as Map<String, dynamic>;
   Future<void> deleteInvoice(int id) => api.delete('$_acc/invoices/$id');
+  /// Emails the invoice to the customer.
+  Future<Map<String, dynamic>> sendInvoice(int id) async => await api.post('$_acc/invoices/$id/send') as Map<String, dynamic>;
+  /// Marks the whole invoice paid (records a transaction on the backend).
+  Future<Map<String, dynamic>> markInvoicePaid(int id) async => await api.post('$_acc/invoices/$id/mark-paid') as Map<String, dynamic>;
+  Future<List<int>> invoicePdf(int id) => api.getBytes('$_acc/invoices/$id/pdf');
 
   // Quotations
   Future<List<Map<String, dynamic>>> quotes() => api.getAllPages('$_acc/quotes');
@@ -93,6 +148,11 @@ class BusinessRepository {
   Future<Map<String, dynamic>> updateQuote(int id, Map<String, dynamic> body) async =>
       await api.put('$_acc/quotes/$id', body) as Map<String, dynamic>;
   Future<void> deleteQuote(int id) => api.delete('$_acc/quotes/$id');
+  Future<Map<String, dynamic>> sendQuote(int id) async => await api.post('$_acc/quotes/$id/send') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> approveQuote(int id) async => await api.post('$_acc/quotes/$id/approve') as Map<String, dynamic>;
+  /// Returns the new invoice.
+  Future<Map<String, dynamic>> convertQuote(int id) async => await api.post('$_acc/quotes/$id/convert') as Map<String, dynamic>;
+  Future<List<int>> quotePdf(int id) => api.getBytes('$_acc/quotes/$id/pdf');
 
   // Payments (transactions) — read only from the app
   Future<List<Map<String, dynamic>>> transactions() => api.getAllPages('$_acc/transactions');
@@ -130,4 +190,49 @@ class BusinessRepository {
   Future<List<Map<String, dynamic>>> notifications() async => ApiClient.parsePage(await api.get('$_base/notifications')).$1;
   Future<void> markNotificationRead(String id) => api.patch('$_base/notifications/$id/read');
   Future<void> markAllNotificationsRead() => api.post('$_base/notifications/read-all');
+
+  // Store: products (one image; category is free text), storefront, orders
+  Future<List<Map<String, dynamic>>> products() => api.getAllPages('$_base/store/products', query: {'per_page': 100});
+  Future<Map<String, dynamic>> saveProduct(int? id, Map<String, String> fields, {List<int>? image, String? filename}) async =>
+      await api.multipart(id == null ? '$_base/store/products' : '$_base/store/products/$id',
+          fields: fields, files: {if (image != null) 'image': (image, filename ?? 'product.jpg')}) as Map<String, dynamic>;
+  Future<void> deleteProduct(int id) => api.delete('$_base/store/products/$id');
+
+  Future<Map<String, dynamic>> storefront({bool checkDomain = false}) async =>
+      await api.get('$_base/storefront', query: {'check_domain': checkDomain ? 1 : 0}) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> saveStorefront(Map<String, String> fields, {List<int>? banner, String? filename}) async =>
+      await api.multipart('$_base/storefront', fields: fields, files: {if (banner != null) 'store_banner': (banner, filename ?? 'banner.jpg')})
+          as Map<String, dynamic>;
+
+  Future<List<Map<String, dynamic>>> orders() => api.getAllPages('$_base/store/orders', query: {'per_page': 100});
+  Future<Map<String, dynamic>> order(int id) async => await api.get('$_base/store/orders/$id') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> setOrderStatus(int id, String status, {String? notes}) async =>
+      await api.patch('$_base/store/orders/$id/status', {'status': status, 'notes': ?notes, 'notify_customer': true}) as Map<String, dynamic>;
+
+  // KYC documents
+  Future<Map<String, dynamic>> kyc() async => await api.get('$_base/kyc') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> uploadKyc(String type, List<int> bytes, String filename, {String? number}) async =>
+      await api.multipart('$_base/kyc', fields: {'document_type': type, 'document_number': ?number}, files: {'document_file': (bytes, filename)})
+          as Map<String, dynamic>;
+
+  // Plan & wallet (Billway bank transfer)
+  Future<Map<String, dynamic>> billing() async => await api.get('$_base/billing') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> topUp(double amount) async => await api.post('$_base/billing/topup', {'amount': amount}) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> checkoutPlan(int planId, {int? seats}) async =>
+      await api.post('$_base/billing/checkout', {'plan_id': planId, 'seats': ?seats}) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> paymentStatus(String reference) async =>
+      await api.get('$_base/billing/status', query: {'reference': reference}) as Map<String, dynamic>;
+  Future<void> switchBillingModel(String model) => api.post('$_base/billing/switch-model', {'billing_model': model});
+
+  // Push notifications
+  Future<void> addDeviceToken(String token) => api.post('$_base/device-tokens', {'token': token});
+  Future<void> removeDeviceToken(String token) => api.send('DELETE', '$_base/device-tokens', body: {'token': token});
+
+  // Two-factor login
+  Future<Map<String, dynamic>> twoFactor() async => await api.get('$_base/2fa') as Map<String, dynamic>;
+  Future<List<String>> confirmTwoFactor(String code) async {
+    final j = await api.post('$_base/2fa/confirm', {'code': code}) as Map<String, dynamic>;
+    return (j['recovery_codes'] as List? ?? const []).map((e) => '$e').toList();
+  }
+  Future<void> disableTwoFactor(String password) => api.post('$_base/2fa/disable', {'password': password});
 }

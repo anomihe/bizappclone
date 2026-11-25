@@ -115,7 +115,7 @@ class _StoreScreenState extends State<StoreScreen> {
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductFormScreen(product: x))),
               padding: const EdgeInsets.all(10),
               child: Row(children: [
-                ProductThumb(photo: x.photos.isEmpty ? null : x.photos.first, size: 48),
+                ProductThumb(photo: x.photos.isEmpty ? null : x.photos.first, url: x.imageUrl, size: 48),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

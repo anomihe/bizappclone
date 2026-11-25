@@ -1,5 +1,6 @@
 package com.bizpaddi.bizpaddi
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// FlutterFragmentActivity is required by local_auth (fingerprint / Face ID).
+class MainActivity : FlutterFragmentActivity()

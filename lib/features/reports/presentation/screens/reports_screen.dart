@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/api/live_session.dart';
 import '../../../../core/api/mappers.dart';
 import '../../../../core/data/biz_store.dart';
@@ -74,23 +77,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
     };
   }
 
+  /// Sales report as CSV (opens in Excel / Google Sheets), shared via the share sheet.
   Future<void> _download() async {
-    var format = 'PDF';
     final go = await showBpSheet<bool>(
       context,
       title: 'Download Sales Report',
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('Format', style: tx(ctx, 12.5, weight: FontWeight.w600, color: ctx.p.textSecondary)),
-          const SizedBox(height: 8),
-          SegmentedPills(options: const ['PDF', 'CSV'], index: format == 'PDF' ? 0 : 1, onChanged: (i) => setSheet(() => format = i == 0 ? 'PDF' : 'CSV')),
-          const SizedBox(height: 18),
-          CustomButton(text: 'Download', icon: const Icon(Icons.download_outlined), onPressed: () => Navigator.pop(ctx, true)),
-        ]),
-      ),
+      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('Every invoice with its customer, dates, status, total, amount paid and balance, as a CSV file you can open in Excel or Google Sheets.',
+            style: tx(ctx, 12.5, color: ctx.p.textSecondary, height: 1.4)),
+        const SizedBox(height: 18),
+        CustomButton(text: 'Download CSV', icon: const Icon(Icons.download_outlined), onPressed: () => Navigator.pop(ctx, true)),
+      ]),
     );
-    // Writing the file needs `path_provider` + `pdf`/`csv` packages.
-    if (go == true && mounted) showToast(context, '$format export is coming soon');
+    if (go != true || !mounted) return;
+
+    String cell(Object? v) {
+      final s = '${v ?? ''}';
+      return s.contains(RegExp(r'[",\n]')) ? '"${s.replaceAll('"', '""')}"' : s;
+    }
+
+    String ymd(DateTime? d) => d == null ? '' : d.toIso8601String().substring(0, 10);
+    final rows = <List<Object?>>[
+      ['Invoice', 'Customer', 'Issued', 'Due', 'Status', 'Total', 'Paid', 'Balance'],
+      for (final i in store.invoices.where((i) => i.kind == DocKind.invoice))
+        [i.number, i.customerName, ymd(i.createdAt), ymd(i.dueDate), StatusStyle.invoice(i.status).label, i.total.toStringAsFixed(2), i.paid.toStringAsFixed(2), i.balance.toStringAsFixed(2)],
+    ];
+    final csv = rows.map((r) => r.map(cell).join(',')).join('\r\n');
+    final name = 'Bizpaddi-sales-${ymd(DateTime.now())}.csv';
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(ShareParams(
+      files: [XFile.fromData(Uint8List.fromList(utf8.encode(csv)), mimeType: 'text/csv', name: name)],
+      fileNameOverrides: [name],
+      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+    ));
   }
 
   @override

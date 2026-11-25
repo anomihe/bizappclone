@@ -199,7 +199,11 @@ class Invoice {
   double get refundableBalance => (paid - credited - refunds.fold<double>(0, (s, r) => s + r.amount))
       .clamp(0, double.infinity)
       .toDouble();
-  String get payLink => 'bizpaddi.com/pay/i${id.hashCode.abs() % 900 + 100}';
+  /// Live: the customer-portal pay page the backend also emails (customers sign in there).
+  /// Demo: a sample address.
+  String get payLink => LiveLinks.host != null && serverId != null
+      ? '${LiveLinks.host}/dashboard/client/invoices/$serverId/pay'
+      : 'bizpaddi.com/pay/i${id.hashCode.abs() % 900 + 100}';
 
   /// Payment link title: what it is for ("Gucci Bags").
   String get purpose => items.isEmpty ? 'Payment link' : items.first.name;
@@ -262,7 +266,10 @@ class Quotation {
   double get net => (subtotal - discount).clamp(0, double.infinity).toDouble();
   double get vat => addVat ? net * vatRate : 0;
   double get total => items.isEmpty && totalOverride != null ? totalOverride! : net + vat;
-  String get link => 'bizpaddi.com/q/${id.hashCode.abs() % 900 + 100}';
+  /// Live: the quote page on the customer portal. Demo: a sample address.
+  String get link => LiveLinks.host != null && serverId != null
+      ? '${LiveLinks.host}/dashboard/client/quotes/$serverId'
+      : 'bizpaddi.com/q/${id.hashCode.abs() % 900 + 100}';
 
   /// Sent quotations flip to expired on their own once the validity ends.
   QuotationStatus get status {
@@ -384,4 +391,10 @@ class StatusStyle {
   static const notYet = StatusStyle('Not Yet', _grey);
   static const paid = StatusStyle('Paid', _green);
   static const current = StatusStyle('Current', _green);
+}
+
+/// Host (no scheme) of the live backend for links shared with customers;
+/// null in demo mode. Set by LiveSession when signed in.
+class LiveLinks {
+  static String? host;
 }

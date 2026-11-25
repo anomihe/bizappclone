@@ -5,6 +5,8 @@
 **Why:** these are the mobile screens that are built but have no API to call. Each section names the screens that use it.
 The current endpoint map and the security findings are in [README.md](README.md).
 
+> **Read [web-to-api.md](web-to-api.md) first.** Sign-up, invoice and quote send/PDF/mark-paid/approve/convert, products, storefront settings, orders, KYC, billing, the FCM token and 2FA **already exist as website pages**. They only need thin JSON routes, and for those features the field names in `web-to-api.md` win over this file. Use this file for the rest (payment links, credit notes and refunds, settlement account, reports, sessions, ticket replies, part payments).
+
 ---
 
 ## 0. Conventions (same as the existing `/api/v1/admin/*` API)
@@ -42,27 +44,7 @@ The app won't go live until these are fixed. Details are in [README.md §4](READ
 
 ## 1. Sign-up and device check
 
-**Screens:** Register → Verify phone (OTP) → Choose plan → Registration success. Login → "Verify your device".
-**Base path:** `/api/v1/auth`. These routes are public and need rate limits.
-
-| Method | Path | Body | Returns |
-|---|---|---|---|
-| GET | `/auth/register/options` | — | `{ categories: [{id, name}], currencies: [{code, name, symbol}] }` |
-| POST | `/auth/register/send-otp` | `{ phone }` (E.164) | `{ expires_in: 300, resend_in: 60 }` |
-| POST | `/auth/register` | `{ business_name, email, phone, category_id, currency, password, otp }` | `201 { token, type: "admin", user, tenant }` |
-| POST | `/auth/verify-device` | `{ verification_id, code, device_name }` | `{ token, type, user }` |
-| POST | `/auth/verify-device/resend` | `{ verification_id }` | `{ expires_in, resend_in }` |
-
-Rules:
-- **Registration:**
-  - `register` creates the tenant, the admin user and a **7-day trial** in one transaction.
-  - The OTP is 6 digits, expires after 5 minutes, and is tied to the phone.
-  - `send-otp` is limited to 3 sends per phone per 10 minutes.
-  - Email must be unique across admin users. Password needs at least 8 characters, including a letter and a number.
-- **Device check (optional — only if you want it):**
-  - When the device isn't recognised, `POST /auth/login` returns `200 { requires_device_verification: true, verification_id, masked_phone }` and no token.
-  - Mark a device as known with a hash of `device_name` plus the platform.
-  - Lock after 5 wrong codes.
+**Superseded.** Sign-up already exists on the website as a 3-step **email** code flow, and the "device check" is the website's authenticator-app 2FA. Wrap those instead: see [web-to-api.md §1 and §8](web-to-api.md).
 
 ---
 
@@ -421,7 +403,7 @@ The app doesn't use these until they're fixed.
 | 4 | Credit notes and refunds | 8 | P2 |
 | 6 | Business profile and KYC | 7 | P2 |
 | 7 | Bank and settlement | 5 | P2 |
-| 1 | Sign-up (+ optional device check) | 3 (+2) | P2 |
+| 1 | Sign-up and 2FA | → wrap the website version ([web-to-api.md](web-to-api.md)) | P2 |
 | 10 | Reports | 2 | P3 |
 | 13 | Sessions | 3 | P3 |
 | 14 | Ticket replies | 1 | P3 |
@@ -429,6 +411,6 @@ The app doesn't use these until they're fixed.
 | 9 | Store orders | 4 | P3 |
 | 12 | Plan and wallet (+ IAP if chosen) | 4 (+4) | P3, after the payments decision |
 | 15 | Business settings (+ per-business roles) | 2 (+5) | P3 |
-| | **Total** | **80 core + 11 optional** | |
+| | **Total** | **77 core + 9 optional** (before removing what `web-to-api.md` covers) | |
 
 When each endpoint is ready, the app side is small: the screens already exist and run on sample data. Each section needs a repository method, a mapper and a test against the fake backend, following the same pattern as the endpoints already connected.

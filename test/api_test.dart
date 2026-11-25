@@ -131,7 +131,7 @@ void main() {
       expect(store.quotations.single.status, QuotationStatus.accepted);
       expect(store.staff.map((s) => s.name), ['Segun Ajayi', 'Kola Damola']);
       expect(store.unreadCount, 1);
-      expect(store.products, isEmpty, reason: 'no demo data mixed with live data');
+      expect(store.products.map((p) => p.name), ['Ankara fabric', 'Gele'], reason: 'products come from the API, no demo data mixed in');
       expect(store.remote, same(session));
     });
 
@@ -172,8 +172,8 @@ void main() {
 
       final inv = jsonDecode(backend.requests.lastWhere((r) => r.url.path.endsWith('/accounting/invoices') && r.method == 'POST').body) as Map;
       expect(inv['status'], 'sent');
-      expect(inv['total_amount'], 10000);
-      expect((inv['items'] as List).single['title'], 'Gown');
+      expect(inv.containsKey('total_amount'), isFalse, reason: 'the server works out totals from the items');
+      expect((inv['items'] as List).single, {'title': 'Gown', 'description': 'Gown', 'quantity': 2, 'unit_price': 5000.0});
       expect(draft.serverId, 30);
       expect(draft.number, 'INV-0030');
     });

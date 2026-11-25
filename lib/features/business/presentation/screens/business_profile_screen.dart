@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
+import '../../../../core/utils/live_actions.dart';
+import '../../../../core/utils/pick_file.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../store/presentation/widgets/store_widgets.dart';
@@ -11,8 +14,15 @@ import 'edit_business_profile_screen.dart';
 class BusinessProfileScreen extends StatelessWidget {
   const BusinessProfileScreen({super.key});
 
-  /// Document upload needs `file_picker`; until then picking a source marks it uploaded.
+  /// Live mode uploads to `POST /admin/kyc`; demo mode just marks it uploaded.
   Future<void> _upload(BuildContext context, String key) async {
+    if (LiveSession.enabled) {
+      final file = await pickUploadFile(context, title: 'Upload $key', allowPdf: true);
+      if (file == null || !context.mounted) return;
+      showToast(context, 'Uploading $key…');
+      await runLiveAction(context, () => LiveSession.instance.uploadKyc(key, file.bytes, file.name), done: '$key uploaded. We’ll review it shortly.');
+      return;
+    }
     final ok = await showImageSourceSheet(context, title: 'Upload $key');
     if (!ok) return;
     final store = BizStore.instance;
@@ -20,6 +30,13 @@ class BusinessProfileScreen extends StatelessWidget {
     store.submitForReview();
     if (context.mounted) showToast(context, '$key uploaded');
   }
+
+  static StatusStyle? _reviewStyle(String? s) => switch (s) {
+        'pending' => const StatusStyle('In Review', Color(0xFFD48806)),
+        'verified' => const StatusStyle('Approved', Color(0xFF0E8A5F)),
+        'rejected' => const StatusStyle('Rejected', Color(0xFFDC2626)),
+        _ => null,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +89,16 @@ class BusinessProfileScreen extends StatelessWidget {
                     Text('Business Account', style: tx(context, 11.5, color: p.textMuted)),
                   ]),
                 ),
-                CustomButton(
-                  text: 'Edit',
-                  width: 82,
-                  height: 36,
-                  variant: ButtonVariant.outline,
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditBusinessProfileScreen())),
-                ),
+                // The backend has no business-profile API yet; editing is demo only.
+                if (!LiveSession.enabled)
+                  CustomButton(
+                    text: 'Edit',
+                    width: 82,
+                    height: 36,
+                    variant: ButtonVariant.outline,
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditBusinessProfileScreen())),
+                  ),
               ]),
             ),
             const SizedBox(height: 16),
@@ -127,10 +146,16 @@ class BusinessProfileScreen extends StatelessWidget {
                           Expanded(
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                               Text(e.value!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx(context, 12.5, weight: FontWeight.w700)),
-                              Text('1.4MB', style: tx(context, 10.5, color: p.textMuted)),
+                              if (_reviewStyle(b.documentStatus[e.key]) case final s?) ...[
+                                const SizedBox(height: 3),
+                                StatusPill(s),
+                              ] else
+                                Text('Uploaded', style: tx(context, 10.5, color: p.textMuted)),
+                              if (b.documentNotes[e.key] case final note?)
+                                Text(note, style: tx(context, 10.5, color: p.error)),
                             ]),
                           ),
-                          if (b.verification != VerificationStatus.inReview)
+                          if (LiveSession.enabled ? b.documentStatus[e.key] != 'verified' : b.verification != VerificationStatus.inReview)
                             CustomButton(text: 'Change', width: 80, height: 32, variant: ButtonVariant.outline, onPressed: () => _upload(context, e.key)),
                         ]),
                       ),
@@ -138,7 +163,11 @@ class BusinessProfileScreen extends StatelessWidget {
                 ),
             ]),
             section('Bank & Settlement Details', null, [
-              if (b.bank == null)
+              // No settlement-account API yet: don't let a live owner "save" bank details that go nowhere.
+              if (LiveSession.enabled)
+                const InfoBanner('Payouts go to the settlement account on your Bizpaddi workspace. Changing it in the app is coming soon.',
+                    icon: Icons.account_balance_outlined)
+              else if (b.bank == null)
                 BpCard(
                   child: Column(children: [
                     Icon(Icons.account_balance_outlined, color: p.textSecondary),

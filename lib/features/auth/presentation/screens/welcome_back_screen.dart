@@ -2,8 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
+import '../../../../core/api/repositories.dart' show TwoFactorRequired;
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
+import '../../../../core/utils/biometrics.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -12,6 +14,7 @@ import '../../../home/presentation/screens/main_navigation_screen.dart';
 import '../../../onboarding/presentation/screens/welcome_screen.dart';
 import 'forgot_password_screen.dart';
 import 'login_screen.dart';
+import 'two_factor_challenge.dart';
 
 /// Returning user on this device: password or fingerprint.
 class WelcomeBackScreen extends StatefulWidget {
@@ -33,12 +36,18 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
 
   String? _savedEmail;
 
+  /// Live: only offer fingerprint once the owner turned it on on this device.
+  bool _biometricOn = !LiveSession.enabled;
+
   @override
   void initState() {
     super.initState();
     if (LiveSession.enabled) {
       LiveSession.instance.savedEmail().then((e) {
         if (mounted) setState(() => _savedEmail = e);
+      });
+      Biometrics.isEnabled().then((on) {
+        if (mounted) setState(() => _biometricOn = on);
       });
     }
   }
@@ -58,6 +67,8 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
       try {
         await LiveSession.instance.login(_savedEmail!, _password.text);
         if (mounted) _enter();
+      } on TwoFactorRequired catch (t) {
+        if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
       } on ApiException catch (e) {
         if (mounted) showToast(context, e.message);
       } finally {
@@ -81,8 +92,19 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     }
   }
 
-  /// Visual stand-in for the OS biometric prompt (needs `local_auth` for real).
+  /// Live: the real OS fingerprint / Face ID prompt opens the saved session.
+  /// Demo: a visual stand-in.
   Future<void> _fingerprint() async {
+    if (LiveSession.enabled) {
+      final passed = await Biometrics.authenticate('Unlock Bizpaddi');
+      if (!mounted) return;
+      if (passed) {
+        await _resumeLive();
+      } else {
+        showToast(context, 'Fingerprint / Face ID not confirmed. Enter your password to continue.');
+      }
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black54,
@@ -112,7 +134,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         );
       },
     );
-    if (ok == true && mounted) LiveSession.enabled ? await _resumeLive() : _enter();
+    if (ok == true && mounted) _enter();
   }
 
   @override
@@ -155,13 +177,15 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                 ),
                 const SizedBox(height: 8),
                 CustomButton(text: 'Continue', isLoading: _loading, onPressed: _password.text.isEmpty ? null : _continue),
-                const SizedBox(height: 10),
-                CustomButton(
-                  text: 'Log in with Fingerprint',
-                  variant: ButtonVariant.outline,
-                  icon: const Icon(Icons.fingerprint),
-                  onPressed: _fingerprint,
-                ),
+                if (_biometricOn) ...[
+                  const SizedBox(height: 10),
+                  CustomButton(
+                    text: 'Log in with Fingerprint',
+                    variant: ButtonVariant.outline,
+                    icon: const Icon(Icons.fingerprint),
+                    onPressed: _fingerprint,
+                  ),
+                ],
               ]),
             ),
           ),

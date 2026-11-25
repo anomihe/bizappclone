@@ -79,6 +79,11 @@ class _PermissionToggles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The backend has no per-person permissions (only the role is saved), so
+    // live mode doesn't show toggles that wouldn't be kept.
+    if (LiveSession.enabled) {
+      return const InfoBanner('What they can use follows their role. Per-person permissions aren’t available yet.', icon: Icons.lock_outline);
+    }
     return BpCard(
       padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
       child: Column(children: [

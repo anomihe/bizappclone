@@ -4,6 +4,7 @@ import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
+import '../../../../core/utils/live_actions.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../payments/presentation/screens/payment_details_screen.dart';
@@ -68,6 +69,24 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
       if (mounted) showToast(context, _isLink ? 'Payment link cancelled' : 'Invoice voided');
     }
   }
+
+  Future<void> _email() => runLiveAction(context, () => LiveSession.instance.emailInvoice(widget.invoice),
+      done: widget.invoice.customer?.email.isNotEmpty == true ? 'Invoice emailed to ${widget.invoice.customer!.email}' : 'Invoice emailed');
+
+  Future<void> _markPaid() async {
+    final i = widget.invoice;
+    final ok = await showConfirmSheet(
+      context,
+      title: 'Mark ${i.number} as paid?',
+      message: 'Use this when the customer paid you directly (cash, POS or a transfer to your own account). The full ${Fmt.money(i.balance)} is recorded as received.',
+      confirmLabel: 'Mark as Paid',
+      cancelLabel: 'Not Yet',
+    );
+    if (!ok || !mounted) return;
+    await runLiveAction(context, () => LiveSession.instance.markInvoicePaid(i), done: 'Invoice marked as paid');
+  }
+
+  Future<void> _pdf() => sharePdf(context, () => LiveSession.instance.invoicePdf(widget.invoice), 'Invoice-${widget.invoice.number.replaceAll('#', '')}.pdf');
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +191,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CreditNoteScreen(invoice: i, note: cn))),
             ),
         ],
-        if (!closed && (status == InvoiceStatus.draft || open || (status == InvoiceStatus.paid && i.refundableBalance > 0))) ...[
+        if (!closed && (status == InvoiceStatus.draft || open || (status == InvoiceStatus.paid && i.refundableBalance > 0 && !LiveSession.enabled))) ...[
           const SizedBox(height: 14),
           const SectionLabel('Actions'),
           if (status == InvoiceStatus.draft)
@@ -187,11 +206,16 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             ActionTile(icon: Icons.delete_outline, title: 'Delete draft', danger: true, onTap: _deleteDraft),
           ],
           if (open) ...[
+            if (LiveSession.enabled) ...[
+              ActionTile(icon: Icons.mail_outline, title: 'Email to customer', subtitle: i.customer?.email.isNotEmpty == true ? i.customer!.email : 'Sends the invoice and pay details', onTap: _email),
+              ActionTile(icon: Icons.task_alt, title: 'Mark as paid', subtitle: 'Customer paid you directly', onTap: _markPaid),
+            ],
             ActionTile(icon: Icons.notifications_active_outlined, title: 'Send Reminder', subtitle: 'Reminders stop once it is paid', onTap: () => showSendReminderSheet(context, i)),
             ActionTile(icon: Icons.share_outlined, title: 'Share pay link', subtitle: i.payLink, onTap: () => showSharePayLinkSheet(context, i)),
             ActionTile(icon: Icons.block, title: _isLink ? 'Cancel Payment Link' : 'Void invoice', danger: true, onTap: _void),
           ],
-          if (status == InvoiceStatus.paid && i.refundableBalance > 0) ...[
+          // Credit notes and refunds have no backend yet: demo only.
+          if (status == InvoiceStatus.paid && i.refundableBalance > 0 && !LiveSession.enabled) ...[
             ActionTile(
               icon: Icons.receipt_long_outlined,
               title: 'Issue credit note',
@@ -205,6 +229,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RequestRefundScreen(invoice: i))),
             ),
           ],
+        ],
+        if (LiveSession.enabled && status != InvoiceStatus.draft) ...[
+          const SizedBox(height: 8),
+          ActionTile(icon: Icons.picture_as_pdf_outlined, title: 'Download PDF', subtitle: 'Save or share the invoice', onTap: _pdf),
         ],
       ]),
     );

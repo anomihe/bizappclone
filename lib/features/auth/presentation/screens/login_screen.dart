@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
+import '../../../../core/api/repositories.dart' show TwoFactorRequired;
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
@@ -13,6 +14,7 @@ import '../widgets/auth_scaffold.dart';
 import 'forgot_password_screen.dart';
 import 'otp_verification_screen.dart';
 import 'register_screen.dart';
+import 'two_factor_challenge.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,8 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (LiveSession.enabled) {
       try {
         await LiveSession.instance.login(_id.text, _password.text);
-        // The backend has no device-verification code; go straight in.
         if (mounted) MainNavigationScreen.go(context);
+      } on TwoFactorRequired catch (t) {
+        if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
       } on ApiException catch (e) {
         if (mounted) setState(() => _error = e.message);
       } finally {

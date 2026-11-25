@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
@@ -31,6 +32,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         Text('Hey $name', style: tx(context, 13, color: p.textSecondary)),
         Text('How can we help you?', style: tx(context, 20, weight: FontWeight.w800)),
         const SizedBox(height: 16),
+        // There's no support-chat API yet; don't show a chat that goes nowhere.
+        if (LiveSession.enabled)
+          const InfoBanner('For anything the answers below don’t cover, contact Bizpaddi support from your dashboard at app.bizpaddi.com.',
+              icon: Icons.support_agent)
+        else
         BpCard(
           color: p.primarySoft,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportChatScreen())),

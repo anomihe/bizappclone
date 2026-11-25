@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/ui_kit.dart';
@@ -10,13 +11,29 @@ class ProductThumb extends StatelessWidget {
   final int? photo;
   final double size;
   final VoidCallback? onRemove;
-  const ProductThumb({super.key, this.photo, this.size = 44, this.onRemove});
+
+  /// A real photo: from the API ([url]) or just picked ([bytes]).
+  final String? url;
+  final List<int>? bytes;
+  const ProductThumb({super.key, this.photo, this.size = 44, this.onRemove, this.url, this.bytes});
 
   @override
   Widget build(BuildContext context) {
     final p = context.p;
     final i = photo;
-    final thumb = Container(
+    final radius = BorderRadius.circular(size * 0.18);
+    final placeholder = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: p.cardAlt, borderRadius: radius),
+      child: Icon(Icons.image_outlined, color: p.textMuted, size: size * 0.45),
+    );
+    final Widget? real = bytes != null
+        ? Image.memory(Uint8List.fromList(bytes!), width: size, height: size, fit: BoxFit.cover)
+        : (url != null
+            ? Image.network(url!, width: size, height: size, fit: BoxFit.cover, errorBuilder: (_, _, _) => placeholder)
+            : null);
+    final thumb = real != null ? ClipRRect(borderRadius: radius, child: real) : Container(
       width: size,
       height: size,
       decoration: BoxDecoration(

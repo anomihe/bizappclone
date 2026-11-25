@@ -436,7 +436,8 @@ class BizStore extends ChangeNotifier {
   }
 
   ProductCategory addCategory(String name) {
-    final c = ProductCategory(id: _id(), name: name.trim());
+    // Live mode keys categories by name (the API stores the category as text).
+    final c = ProductCategory(id: remote != null ? 'cat:${name.trim().toLowerCase()}' : _id(), name: name.trim());
     categories.add(c);
     notifyListeners();
     return c;
@@ -810,7 +811,7 @@ class BizStore extends ChangeNotifier {
       address: '12 Allen Avenue, Ikeja, Lagos',
       currency: 'Nigeria Naira (NGN)',
       hasLogo: true,
-      documents: {'Government ID': 'Government ID.png', 'CAC Certificate': null, 'Proof of Business Address': null},
+      documents: {'CAC Certificate': 'CAC Certificate.png', 'Director’s ID': null, 'Utility Bill': null, 'Tax Clearance': null},
       bank: const BankAccount(bank: 'GTBank', number: '0123456789', name: 'MAMA NKECHI FOODS'),
       bankHistory: [
         BankChange('Account Number Changed', 'GTBank · ******* 6789', daysAgo(10)),
