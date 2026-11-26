@@ -44,19 +44,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
   }
 
+  /// The server copies the items into a new draft invoice.
   Future<void> _convert() async {
-    if (LiveSession.enabled) {
-      // The server copies the items into a new draft invoice.
-      Invoice? created;
-      final ok = await runLiveAction(context, () async => created = await LiveSession.instance.convertQuotation(widget.quotation),
-          done: 'Invoice created from the quotation');
-      if (ok && created != null && mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => InvoiceDetailsScreen(invoice: created!)));
-      }
-      return;
+    Invoice? created;
+    final ok = await runLiveAction(context, () async => created = await LiveSession.instance.convertQuotation(widget.quotation),
+        done: 'Invoice created from the quotation');
+    if (ok && created != null && mounted) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => InvoiceDetailsScreen(invoice: created!)));
     }
-    final invoice = BizStore.instance.invoiceFromQuotation(widget.quotation);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.invoice(draft: invoice)));
   }
 
   Future<void> _email() => runLiveAction(context, () => LiveSession.instance.emailQuotation(widget.quotation), done: 'Quotation emailed to the customer');
@@ -139,7 +134,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         if (!isDraft) ...[
           const SizedBox(height: 14),
           const SectionLabel('Actions'),
-          if (LiveSession.enabled) ...[
+          ...[
             if (status == QuotationStatus.sent)
               ActionTile(icon: Icons.mail_outline, title: 'Email to customer', subtitle: q.customer?.email.isNotEmpty == true ? q.customer!.email : 'Sends the quotation by email', onTap: _email),
             ActionTile(icon: Icons.picture_as_pdf_outlined, title: 'Download PDF', subtitle: 'Save or share the quotation', onTap: _pdf),

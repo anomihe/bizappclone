@@ -66,7 +66,6 @@ class SecurityScreen extends StatelessWidget {
               subtitle: 'You can always use your password.',
               value: store.account.biometricsEnabled,
               onChanged: (on) async {
-                if (!LiveSession.enabled) return store.setBiometrics(on);
                 // Live: needs a real fingerprint / Face ID check, and is saved on this device.
                 final now = await Biometrics.setEnabled(on);
                 store.setBiometrics(now);
@@ -81,23 +80,12 @@ class SecurityScreen extends StatelessWidget {
             subtitle: 'Enter your current password to set a new one',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
           ),
-          if (LiveSession.enabled)
+          if (LiveSession.instance.role == AccountRole.owner)
             ActionTile(
               icon: Icons.phonelink_lock_outlined,
               title: 'Two-step verification',
               subtitle: 'Ask for an authenticator code when you log in',
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFactorSettingsScreen())),
-            ),
-          // No backend endpoint for revoking other sessions yet.
-          if (!LiveSession.enabled)
-            ActionTile(
-              icon: Icons.devices_other,
-              title: 'Log out of other devices',
-              subtitle: 'Keeps you signed in on this phone',
-              onTap: () async {
-                final ok = await showConfirmSheet(context, title: 'Log out other devices?', message: 'Anyone signed in elsewhere will need your password again.', confirmLabel: 'Log Them Out', cancelLabel: 'Cancel');
-                if (ok && context.mounted) showToast(context, 'Other devices logged out');
-              },
             ),
           const SizedBox(height: 12),
           const SectionLabel('Danger zone'),
@@ -123,7 +111,7 @@ class SecurityScreen extends StatelessWidget {
     );
     if (!ok || !context.mounted) return;
     try {
-      if (LiveSession.enabled) await LiveSession.instance.deleteAccount();
+      await LiveSession.instance.deleteAccount();
     } on ApiException catch (e) {
       if (context.mounted) showToast(context, e.message);
       return;

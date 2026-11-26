@@ -10,16 +10,15 @@ import '../widgets/auth_scaffold.dart';
 /// One screen for "Verify your email", "Verify your device" and
 /// "Verify it's you". [onVerified] runs after a successful check.
 ///
-/// With [onSubmit] the code is checked by the backend (it returns an error
-/// message, or null when the code is right). Without it (demo mode) any 6
-/// digits pass except `000000`, which shows the "Incorrect code entered" state.
+/// [onSubmit] checks the code with the backend (it returns an error
+/// message, or null when the code is right).
 class OtpVerificationScreen extends StatefulWidget {
   final String title;
   final String subtitle;
   final void Function(BuildContext context) onVerified;
 
   /// Checks the code; returns an error message or null.
-  final Future<String?> Function(String code)? onSubmit;
+  final Future<String?> Function(String code) onSubmit;
 
   /// Sends a new code; returns an error message or null.
   final Future<String?> Function()? onResend;
@@ -35,7 +34,7 @@ class OtpVerificationScreen extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.onVerified,
-    this.onSubmit,
+    required this.onSubmit,
     this.onResend,
     this.canResend = true,
     this.extra,
@@ -84,28 +83,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   Future<void> _verify() async {
     setState(() => _loading = true);
-    if (widget.onSubmit != null) {
-      final error = await widget.onSubmit!(_code);
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = error != null;
-        _errorText = error;
-      });
-      if (error == null) widget.onVerified(context);
-      return;
-    }
-    await Future.delayed(const Duration(milliseconds: 1100));
+    final error = await widget.onSubmit(_code);
     if (!mounted) return;
-    if (_code == '000000') {
-      setState(() {
-        _loading = false;
-        _error = true;
-      });
-      return;
-    }
-    setState(() => _loading = false);
-    widget.onVerified(context);
+    setState(() {
+      _loading = false;
+      _error = error != null;
+      _errorText = error;
+    });
+    if (error == null) widget.onVerified(context);
   }
 
   Future<void> _resend() async {

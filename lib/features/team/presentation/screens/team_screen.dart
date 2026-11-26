@@ -8,7 +8,6 @@ import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/ui_kit.dart';
-import '../../../store/presentation/widgets/store_widgets.dart';
 
 class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
@@ -79,22 +78,8 @@ class _PermissionToggles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The backend has no per-person permissions (only the role is saved), so
-    // live mode doesn't show toggles that wouldn't be kept.
-    if (LiveSession.enabled) {
-      return const InfoBanner('What they can use follows their role. Per-person permissions aren’t available yet.', icon: Icons.lock_outline);
-    }
-    return BpCard(
-      padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
-      child: Column(children: [
-        for (final perm in Permission.values)
-          ToggleRow(
-            title: permissionLabels[perm]!,
-            value: value.contains(perm),
-            onChanged: onChanged == null ? null : (on) => onChanged!(on ? ({...value, perm}) : ({...value}..remove(perm))),
-          ),
-      ]),
-    );
+    // The backend has no per-person permissions (only the role is saved).
+    return const InfoBanner('What they can use follows their role. Per-person permissions aren’t available yet.', icon: Icons.lock_outline);
   }
 }
 
@@ -306,39 +291,30 @@ class _InviteStaffScreenState extends State<InviteStaffScreen> {
         },
       );
   Future<void> _send() async {
-    setState(() => _loading = true);
-    if (LiveSession.enabled) {
-      final contact = _contact.text.trim();
-      if (!Fmt.isEmail(contact)) {
-        setState(() => _loading = false);
-        showToast(context, 'Enter the staff member’s email — Bizpaddi creates their login with it');
-        return;
-      }
-      try {
-        final m = StaffMember(
-          id: 'new-${DateTime.now().microsecondsSinceEpoch}',
-          name: contact.split('@').first,
-          email: contact,
-          role: _role,
-          permissions: _perms,
-          lastActive: DateTime.now(),
-        );
-        final password = await LiveSession.instance.inviteStaff(m);
-        if (!mounted) return;
-        await _showTempPassword(contact, password);
-        if (mounted) Navigator.pop(context);
-      } on ApiException catch (e) {
-        if (mounted) showToast(context, e.message);
-      } finally {
-        if (mounted) setState(() => _loading = false);
-      }
+    final contact = _contact.text.trim();
+    if (!Fmt.isEmail(contact)) {
+      showToast(context, 'Enter the staff member’s email — Bizpaddi creates their login with it');
       return;
     }
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    BizStore.instance.inviteStaff(contact: _contact.text.trim(), role: _role, permissions: _perms);
-    showToast(context, 'Invite sent');
-    Navigator.pop(context);
+    setState(() => _loading = true);
+    try {
+      final m = StaffMember(
+        id: 'new-${DateTime.now().microsecondsSinceEpoch}',
+        name: contact.split('@').first,
+        email: contact,
+        role: _role,
+        permissions: _perms,
+        lastActive: DateTime.now(),
+      );
+      final password = await LiveSession.instance.inviteStaff(m);
+      if (!mounted) return;
+      await _showTempPassword(contact, password);
+      if (mounted) Navigator.pop(context);
+    } on ApiException catch (e) {
+      if (mounted) showToast(context, e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override

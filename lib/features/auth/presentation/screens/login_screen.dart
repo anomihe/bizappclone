@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
 import '../../../../core/api/repositories.dart' show TwoFactorRequired;
-import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -12,7 +11,6 @@ import '../../../../core/widgets/ui_kit.dart';
 import '../../../home/presentation/screens/main_navigation_screen.dart';
 import '../widgets/auth_scaffold.dart';
 import 'forgot_password_screen.dart';
-import 'otp_verification_screen.dart';
 import 'register_screen.dart';
 import 'two_factor_challenge.dart';
 
@@ -38,44 +36,25 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   // The backend logs in by email only.
-  bool get _valid => (LiveSession.enabled ? Fmt.isEmail(_id.text) : _id.text.trim().isNotEmpty) && _password.text.isNotEmpty;
+  bool get _valid => Fmt.isEmail(_id.text) && _password.text.isNotEmpty;
 
+  /// Owners, staff and customers all log in here; the backend decides which home opens.
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
     setState(() {
       _loading = true;
       _error = null;
     });
-    if (LiveSession.enabled) {
-      try {
-        await LiveSession.instance.login(_id.text, _password.text);
-        if (mounted) MainNavigationScreen.go(context);
-      } on TwoFactorRequired catch (t) {
-        if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
-      } on ApiException catch (e) {
-        if (mounted) setState(() => _error = e.message);
-      } finally {
-        if (mounted) setState(() => _loading = false);
-      }
-      return;
+    try {
+      await LiveSession.instance.login(_id.text, _password.text);
+      if (mounted) MainNavigationScreen.go(context);
+    } on TwoFactorRequired catch (t) {
+      if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OtpVerificationScreen(
-          title: 'Verify your device',
-          subtitle: 'Please enter the 6-digit code sent to your phone number: +234 ****** 484. Enter it below to continue.',
-          onVerified: (ctx) {
-            BizStore.instance.loadDemoWorkspace();
-            MainNavigationScreen.go(ctx);
-          },
-        ),
-      ),
-    );
   }
 
   @override
@@ -83,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final p = context.p;
     return AuthScaffold(
       title: 'Log in',
-      subtitle: "Enter your email or phone number. We'll send a one-time code to verify it's you.",
+      subtitle: 'Enter the email and password for your Bizpaddi account.',
       footer: Text.rich(TextSpan(children: [
         TextSpan(text: "Don't have an account? ", style: tx(context, 12.5, color: p.textSecondary)),
         TextSpan(
@@ -95,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ])),
       children: [
         CustomTextField(
-          label: LiveSession.enabled ? 'Email' : 'Email or Phone',
+          label: 'Email',
           hint: 'Enter your email',
           controller: _id,
           keyboardType: TextInputType.emailAddress,

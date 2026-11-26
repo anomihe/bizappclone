@@ -73,7 +73,7 @@ class ChatMessage {
 
   bool get editable => mine && DateTime.now().difference(sentAt).inMinutes < 5;
 
-  factory ChatMessage.fromJson(Map<String, dynamic> j, {int? myId}) {
+  factory ChatMessage.fromJson(Map<String, dynamic> j, {int? myId, String myType = 'admin'}) {
     final media = (j['media'] as List? ?? const []).whereType<Map>().firstOrNull;
     final senderType = ApiMappers.str(j['sender_type']).toLowerCase();
     final mime = ApiMappers.str(media?['mime_type']);
@@ -81,7 +81,7 @@ class ChatMessage {
       id: j['id'],
       content: ApiMappers.str(j['content']),
       senderName: ResourceRepository.nameOf(j['sender']),
-      mine: myId != null && ApiMappers.intOrNull(j['sender_id']) == myId && (senderType.isEmpty || senderType.contains('admin')),
+      mine: myId != null && ApiMappers.intOrNull(j['sender_id']) == myId && (senderType.isEmpty || senderType.contains(myType)),
       sentAt: ApiMappers.date(j['created_at']) ?? DateTime.now(),
       attachmentUrl: media == null ? null : ApiMappers.str(media['original_url'] ?? media['url']),
       attachmentName: media == null ? null : ApiMappers.str(media['file_name'] ?? media['name']),
@@ -90,69 +90,65 @@ class ChatMessage {
   }
 }
 
-/// Chat API (live) or an in-memory conversation (demo).
+/// Project chat on the backend (owner, staff and customer routes).
 class ProjectChatRepository {
   static ProjectChatRepository instance = ProjectChatRepository();
-  final _demo = <String, List<ChatMessage>>{};
-  final _demoStatus = <String, String>{};
-  var _seq = 1;
+  AccountRole get _role => LiveSession.instance.role;
+  int? get _myId => _role == AccountRole.owner ? BizStore.instance.account.userId : LiveSession.instance.portalAccount.value?.id;
 
-  bool get _live => LiveSession.enabled;
-  int? get _myId => BizStore.instance.account.userId;
+  /// Sender type of my own messages (App\Models\Admin / User / Client).
+  String get _myType => switch (_role) {
+        AccountRole.owner => 'admin',
+        AccountRole.staff => r'models\user',
+        AccountRole.customer => 'client',
+      };
 
-  List<ChatMessage> _demoFor(Object project, ChatType t) => _demo.putIfAbsent('$project/${t.api}', () => [
-        ChatMessage(id: _seq++, content: t == ChatType.team ? 'Fabric is in. Starting the cutting today.' : 'Hello! Please can we move the fitting to Saturday?', senderName: t == ChatType.team ? 'Amaka Eze' : 'Ada Obi', mine: false, sentAt: DateTime.now().subtract(const Duration(hours: 3))),
-      ]);
+  /// Project chat routes differ by portal.
+  String get _projects => switch (_role) {
+        AccountRole.owner => '/v1/admin/pm/projects',
+        AccountRole.staff => '/v1/team/projects',
+        AccountRole.customer => '/v1/client/projects',
+      };
+  ApiClient get _api => LiveSession.instance.api;
+
+  /// Customers can't pause or close a conversation.
+  bool get canChangeStatus => _role != AccountRole.customer;
 
   /// Messages oldest → newest, and the conversation status.
   Future<(List<ChatMessage>, String)> load(Object project, ChatType t) async {
-    if (!_live) return (List.of(_demoFor(project, t)), _demoStatus['$project/${t.api}'] ?? 'active');
-    final data = await LiveSession.instance.business.projectChat(project, t.api);
+    final data = await _api.get('$_projects/$project/chat', query: {'type': t.api}) as Map<String, dynamic>;
     final conv = data['conversation'] is Map ? data['conversation'] as Map : const {};
     final raw = ApiClient.parsePage(data['messages']).$1;
-    final msgs = raw.map((j) => ChatMessage.fromJson(j, myId: _myId)).toList().reversed.toList();
+    final msgs = raw.map((j) => ChatMessage.fromJson(j, myId: _myId, myType: _myType)).toList().reversed.toList();
     // Mark the newest messages from others as read (best effort).
     final me = '$_myId';
     for (final j in raw.take(10)) {
       final reads = (j['reads'] as List? ?? const []).whereType<Map>();
-      final fromMe = '${j['sender_id']}' == me && ApiMappers.str(j['sender_type']).toLowerCase().contains('admin');
+      final fromMe = '${j['sender_id']}' == me && ApiMappers.str(j['sender_type']).toLowerCase().contains(_myType);
       if (!fromMe && !reads.any((r) => '${r['user_id']}' == me)) {
-        LiveSession.instance.business.markProjectMessageRead(j['id']).catchError((_) {});
+        _api.post('$_projects/chat/messages/${j['id']}/read').catchError((_) => null);
       }
     }
     return (msgs, ApiMappers.str(conv['status']).isEmpty ? 'active' : ApiMappers.str(conv['status']));
   }
 
   Future<ChatMessage> send(Object project, ChatType t, String content, {List<int>? bytes, String? filename}) async {
-    if (!_live) {
-      final m = ChatMessage(id: _seq++, content: content, senderName: BizStore.instance.account.ownerFullName, mine: true, sentAt: DateTime.now(), attachmentName: filename, attachmentIsImage: bytes != null);
-      _demoFor(project, t).add(m);
-      return m;
-    }
-    final j = await LiveSession.instance.business.sendProjectMessage(project, t.api, content, bytes: bytes, filename: filename);
-    return ChatMessage.fromJson(j, myId: _myId);
+    final path = '$_projects/$project/chat';
+    final j = bytes != null
+        ? await _api.upload(path, fields: {'type': t.api, 'content': content}, fileField: 'attachment', bytes: bytes, filename: filename ?? 'photo.jpg')
+        : await _api.post(path, {'type': t.api, 'content': content});
+    return ChatMessage.fromJson(j as Map<String, dynamic>, myId: _myId, myType: _myType);
   }
 
   Future<void> edit(Object project, ChatType t, ChatMessage m, String content) async {
-    if (_live) await LiveSession.instance.business.editProjectMessage(m.id, content);
+    await _api.put('$_projects/chat/messages/${m.id}', {'content': content});
     m.content = content;
   }
 
-  Future<void> delete(Object project, ChatType t, ChatMessage m) async {
-    if (_live) {
-      await LiveSession.instance.business.deleteProjectMessage(m.id);
-    } else {
-      _demoFor(project, t).remove(m);
-    }
-  }
+  Future<void> delete(Object project, ChatType t, ChatMessage m) => _api.delete('$_projects/chat/messages/${m.id}');
 
-  Future<void> setStatus(Object project, ChatType t, String status) async {
-    if (_live) {
-      await LiveSession.instance.business.setChatStatus(project, t.api, status);
-    } else {
-      _demoStatus['$project/${t.api}'] = status;
-    }
-  }
+  Future<void> setStatus(Object project, ChatType t, String status) =>
+      _api.post('$_projects/$project/chat/status', {'type': t.api, 'status': status});
 }
 
 class ProjectChatScreen extends StatefulWidget {
@@ -316,7 +312,7 @@ class _ProjectChatScreenState extends State<ProjectChatScreen> {
       subtitle: widget.projectName,
       scroll: false,
       bodyPadding: EdgeInsets.zero,
-      actions: [CircleIconButton(icon: Icons.more_horiz, tooltip: 'Conversation options', onTap: _conversationMenu)],
+      actions: [if (_repo.canChangeStatus) CircleIconButton(icon: Icons.more_horiz, tooltip: 'Conversation options', onTap: _conversationMenu)],
       bottom: _open
           ? Column(mainAxisSize: MainAxisSize.min, children: [
               if (_attachment != null)
@@ -441,12 +437,6 @@ class _BalanceSheetScreenState extends State<BalanceSheetScreen> {
   Map<String, dynamic>? _data;
   String? _error;
 
-  static Map<String, dynamic> get _demo => {
-        'assets': {'total': 2450000, 'accounts': [{'name': 'Cash at bank', 'current_balance': 1850000}, {'name': 'Money owed by customers', 'current_balance': 400000}, {'name': 'Stock', 'current_balance': 200000}]},
-        'liabilities': {'total': 350000, 'accounts': [{'name': 'Supplier bills', 'current_balance': 350000}]},
-        'equity': {'total': 2100000, 'accounts': [{'name': 'Owner’s capital', 'current_balance': 1500000}, {'name': 'Retained profit', 'current_balance': 600000}]},
-      };
-
   @override
   void initState() {
     super.initState();
@@ -455,7 +445,7 @@ class _BalanceSheetScreenState extends State<BalanceSheetScreen> {
 
   Future<void> _load() async {
     try {
-      final d = LiveSession.enabled ? await LiveSession.instance.business.balanceSheet() : _demo;
+      final d = await LiveSession.instance.business.balanceSheet();
       if (mounted) setState(() => (_data = d, _error = null));
     } catch (e) {
       if (mounted) setState(() => _error = _err(e));
@@ -557,7 +547,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       final bytes = await f.readAsBytes();
       if (!mounted) return;
       setState(() => (_uploading = true, _localPhoto = bytes));
-      if (LiveSession.enabled) await LiveSession.instance.uploadAvatar(bytes, f.name);
+      await LiveSession.instance.uploadAvatar(bytes, f.name);
       if (mounted) showToast(context, 'Profile photo updated');
     } catch (e) {
       if (mounted) showToast(context, _err(e));
@@ -571,15 +561,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     try {
       final name = _name.text.trim();
       final phone = _phone.text.trim();
-      if (LiveSession.enabled) {
-        await LiveSession.instance.updateProfile(name: name, phone: phone);
-      } else {
-        _store.account
-          ..ownerFullName = name
-          ..ownerFirstName = name.split(' ').first
-          ..businessPhone = phone;
-        _store.refresh();
-      }
+      await LiveSession.instance.updateProfile(name: name, phone: phone);
       if (!mounted) return;
       showToast(context, 'Profile updated');
       Navigator.pop(context);
@@ -670,11 +652,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Future<void> _save() async {
     setState(() => (_saving = true, _currentError = null));
     try {
-      if (LiveSession.enabled) {
-        await LiveSession.instance.changePassword(current: _current.text, password: _new.text);
-      } else {
-        await Future<void>.delayed(const Duration(milliseconds: 400));
-      }
+      await LiveSession.instance.changePassword(current: _current.text, password: _new.text);
       if (!mounted) return;
       showToast(context, 'Password changed');
       Navigator.pop(context);

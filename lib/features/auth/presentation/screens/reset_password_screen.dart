@@ -15,8 +15,8 @@ import 'login_screen.dart';
 /// With [email] (live mode) it also asks for the code from the reset email
 /// and calls `POST /api/v1/auth/reset-password`.
 class ResetPasswordScreen extends StatefulWidget {
-  final String? email;
-  const ResetPasswordScreen({super.key, this.email});
+  final String email;
+  const ResetPasswordScreen({super.key, required this.email});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -29,8 +29,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _loading = false;
   String? _error;
 
-  bool get _withToken => widget.email != null && LiveSession.enabled;
-
   @override
   void dispose() {
     _token.dispose();
@@ -40,7 +38,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   bool get _mismatch => _confirm.text.isNotEmpty && _confirm.text != _password.text;
-  bool get _valid => PasswordRules.isValid(_password.text) && _confirm.text == _password.text && (!_withToken || _token.text.trim().isNotEmpty);
+  bool get _valid => PasswordRules.isValid(_password.text) && _confirm.text == _password.text && _token.text.trim().isNotEmpty;
 
   /// Accepts the raw token or the whole link from the email (…/reset-password/{token}?email=…).
   String get _tokenValue {
@@ -53,11 +51,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Future<void> _save() async {
     setState(() => (_loading = true, _error = null));
     try {
-      if (_withToken) {
-        await LiveSession.instance.resetPassword(token: _tokenValue, email: widget.email!, password: _password.text);
-      } else {
-        await Future.delayed(const Duration(milliseconds: 1000));
-      }
+      await LiveSession.instance.resetPassword(token: _tokenValue, email: widget.email, password: _password.text);
     } on ApiException catch (e) {
       if (mounted) setState(() => (_loading = false, _error = e.message));
       return;
@@ -71,10 +65,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return AuthScaffold(
       title: 'Set New Password',
       children: [
-        if (_withToken) ...[
-          CustomTextField(label: 'Reset code', hint: 'Paste the code or link from the email', controller: _token, onChanged: (_) => setState(() {})),
-          const SizedBox(height: 14),
-        ],
+        CustomTextField(label: 'Reset code', hint: 'Paste the code or link from the email', controller: _token, onChanged: (_) => setState(() {})),
+        const SizedBox(height: 14),
         CustomTextField(label: 'New Password', hint: 'Enter New Password', controller: _password, isPassword: true, onChanged: (_) => setState(() {})),
         const SizedBox(height: 14),
         CustomTextField(

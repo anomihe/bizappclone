@@ -470,7 +470,7 @@ class _ResourceFormScreenState extends State<ResourceFormScreen> {
     return body;
   }
 
-  /// Demo mode keeps related names so lists can show them.
+  /// Adds customer / staff names the API reply leaves out, so lists can show them.
   Map<String, dynamic> _withRelations(Map<String, dynamic> saved) {
     final out = {...saved};
     for (final f in _fields.where((f) => f.kind == FieldKind.customer || f.kind == FieldKind.staff)) {

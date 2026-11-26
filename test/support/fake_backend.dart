@@ -141,7 +141,7 @@ class FakeBackend {
     }
 
     // Project chat
-    final chat = RegExp(r'^/api/v1/admin/pm/projects/(\d+)/chat(/status)?$').firstMatch(path);
+    final chat = RegExp(r'^/api/v1/(?:admin/pm|team|client)/projects/(\d+)/chat(/status)?$').firstMatch(path);
     if (chat != null) {
       if (chat.group(2) != null) return ok({'status': (jsonDecode(req.body) as Map)['status']});
       if (req.method == 'GET') {
@@ -149,11 +149,15 @@ class FakeBackend {
       }
       final multipart = req.headers['content-type']?.startsWith('multipart/') ?? false;
       final content = multipart ? RegExp(r'name="content"\r\n\r\n([^\r]*)').firstMatch(utf8.decode(req.bodyBytes, allowMalformed: true))?.group(1) ?? '' : (jsonDecode(req.body) as Map)['content'];
-      final m = {'id': 500 + chatMessages.length, 'content': content, 'sender_id': 7, 'sender_type': r'App\Models\Admin', 'sender': {'name': 'Ada Obi'}, 'created_at': DateTime.now().toIso8601String(), 'media': []};
+      // The sender is whoever calls: owner (admin), staff (team) or customer (client).
+      final (sid, stype) = path.contains('/client/')
+          ? (11, r'Modules\Clients\Models\Client')
+          : (path.contains('/team/') ? (5, r'App\Models\User') : (7, r'App\Models\Admin'));
+      final m = {'id': 500 + chatMessages.length, 'content': content, 'sender_id': sid, 'sender_type': stype, 'sender': {'name': 'Me'}, 'created_at': DateTime.now().toIso8601String(), 'media': []};
       chatMessages.add(m);
       return ok(m, 201);
     }
-    if (path.startsWith('/api/v1/admin/pm/projects/chat/messages/')) return ok([]);
+    if (RegExp(r'^/api/v1/(admin/pm|team|client)/projects/chat/messages/').hasMatch(path)) return ok([]);
 
     // Generic admin resources (leads, contacts, projects, tasks, …)
     final res = RegExp(r'^/api/v1/admin/((?:pm|accounting|contracts)/[a-z-]+|[a-z-]+)(?:/(\d+))?(/status)?$').firstMatch(path);
@@ -221,7 +225,145 @@ class FakeBackend {
     return {'status': all ? 'verified' : (docs.any((d) => d['status'] == 'missing') ? 'incomplete' : 'in_review'), 'documents': docs};
   }
 
+  // ---------------------------------------------------------------- staff & customer portals
+
+  /// Staff job role returned by /team/profile (`pm` = project manager).
+  String staffRole = 'bdm';
+  Map<String, dynamic>? attendanceToday;
+  Map<String, dynamic>? activeSession;
+  final staffBanks = <Map<String, dynamic>>[];
+  final tickets = <Map<String, dynamic>>[];
+  final forgotGuards = <String>[];
+
+  http.Response? _portalRoutes(http.Request req, String path) {
+    Map<String, dynamic> body() => req.body.isEmpty ? {} : jsonDecode(req.body) as Map<String, dynamic>;
+    final m = req.method;
+    http.Response err(String msg, int code) => http.Response.bytes(utf8.encode(jsonEncode({'success': false, 'message': msg})), code, headers: {'content-type': 'application/json'});
+
+    if (m == 'POST' && path == '/api/v1/auth/forgot-password') {
+      final guard = '${body()['guard']}';
+      forgotGuards.add(guard);
+      // This email only exists as a staff account.
+      final staffOnly = '${body()['email']}' == 'amaka@shop.ng';
+      return guard == 'team' || (!staffOnly && guard == 'admin') ? ok(null) : http.Response(jsonEncode({'success': false, 'message': 'Unable to send reset link.'}), 400);
+    }
+
+    // ---- staff
+    if (path.startsWith('/api/v1/team/')) {
+      final p = path.substring('/api/v1/team'.length);
+      switch ((m, p)) {
+        case ('GET', '/profile'):
+          return ok({'id': 5, 'name': 'Amaka Eze', 'email': 'amaka@shop.ng', 'role': staffRole, 'department': {'name': 'Production'}, 'phone': '0803', 'status': 'active', 'avatar': ''});
+        case ('POST', '/logout'):
+          return ok([]);
+        case ('GET', '/dashboard'):
+          return ok({
+            'stats': {'pending_tasks': 2, 'completed_tasks': 1, 'total_tasks': 4, 'in_review_tasks': 1},
+            'recent_tasks': [
+              {'id': 31, 'title': 'Cut fabric', 'status': 'in_progress', 'priority': 'high', 'due_date': '2099-01-01', 'project': {'id': 3, 'title': 'Obi wedding'}},
+            ],
+            'attendance_today': attendanceToday == null ? null : {'clock_in': attendanceToday!['clock_in'], 'clock_out': attendanceToday!['clock_out'], 'status': 'clocked_in'},
+          });
+        case ('GET', '/kanban'):
+          return ok({
+            'todo': [{'id': 32, 'title': 'Sew gowns', 'priority': 'medium', 'project': {'id': 3, 'name': 'Obi wedding'}}],
+            'in_progress': [{'id': 31, 'title': 'Cut fabric', 'priority': 'high', 'project': {'id': 3, 'name': 'Obi wedding'}}],
+            'review': [],
+            'done': [],
+          });
+        case ('GET', '/tasks'):
+          return ok(page([{'id': 31, 'title': 'Cut fabric', 'status': 'in_progress', 'project': {'id': 3, 'name': 'Obi wedding'}}]));
+        case ('GET', '/attendance'):
+          return ok({'today': attendanceToday, 'records': page([?attendanceToday])});
+        case ('POST', '/attendance/clock-in'):
+          if (attendanceToday != null) return err('You have already clocked in today.', 400);
+          attendanceToday = {'id': 1, 'date': '2026-11-25', 'clock_in': '08:01:00', 'clock_out': null};
+          return ok(attendanceToday, 201);
+        case ('POST', '/attendance/clock-out'):
+          attendanceToday?['clock_out'] = '17:00:00';
+          return ok(attendanceToday);
+        case ('GET', '/work-logs'):
+          return ok({'active_session': activeSession, 'history': page([])});
+        case ('POST', '/work-logs/check-in'):
+          final b = body();
+          if (b['planned_projects'] is! List || (b['planned_tasks'] is! List && b['session_goal'] == null)) {
+            return validation({'planned_tasks': ['The planned tasks field is required.']});
+          }
+          activeSession = {'id': 70, 'status': 'in_progress', 'start_time': '2026-11-25T09:00:00Z', 'planned_tasks': (b['planned_tasks'] as List?)?.join(', ')};
+          return ok(activeSession, 201);
+        case ('GET', '/projects'):
+          return ok(page([{'id': 3, 'name': 'Obi wedding', 'status': 'in_progress', 'client': {'name': 'Mama Chidi'}}]));
+        case ('GET', '/wallet'):
+          return ok({'balance': '45000.00', 'virtual_account': {'bank_name': 'Wema Bank', 'account_number': '9912345678'}});
+        case ('GET', '/earnings'):
+          return ok(page([{'id': 1, 'amount': '45000.00', 'status': 'successful', 'description': 'November salary', 'payment_date': '2026-11-22'}]));
+        case ('GET', '/bank-accounts'):
+          return ok(staffBanks);
+        case ('GET', '/bank-accounts/banks'):
+          return ok([{'name': 'GTBank', 'code': '058'}]);
+        case ('POST', '/bank-accounts'):
+          final b = body();
+          if (!RegExp(r'^\d{10}$').hasMatch('${b['account_number']}')) return validation({'account_number': ['The account number must be 10 digits.']});
+          final a = {'id': 1, ...b, 'account_name': 'AMAKA EZE', 'bank_name': 'GTBank', 'is_primary': true};
+          staffBanks.add(a);
+          return ok(a, 201);
+        case ('POST', '/reports'):
+          return ok({'id': 1, ...body()}, 201);
+        case ('GET', '/pm/dashboard'):
+          return staffRole == 'pm' ? ok({'total_projects': 1, 'active_projects': 1, 'pending_tasks': 2, 'completed_tasks': 0}) : err('Unauthorized access.', 403);
+      }
+      final status = RegExp(r'^/tasks/(\d+)/status$').firstMatch(p);
+      if (status != null && m == 'PATCH') {
+        if (body()['status'] == 'done' && staffRole != 'pm') return err('Only Project Managers can mark tasks as Completed.', 403);
+        return ok({'id': int.parse(status.group(1)!), 'status': body()['status']});
+      }
+      final out = RegExp(r'^/work-logs/(\d+)/check-out$').firstMatch(p);
+      if (out != null && m == 'PUT') {
+        if ((body()['actual_tasks'] ?? '').toString().isEmpty && body()['key_issues'] == null) return validation({'actual_tasks': ['The actual tasks field is required.']});
+        activeSession = null;
+        return ok({'id': 70, 'status': 'completed'});
+      }
+    }
+
+    // ---- customer
+    if (path.startsWith('/api/v1/client/')) {
+      final p = path.substring('/api/v1/client'.length);
+      switch ((m, p)) {
+        case ('GET', '/profile'):
+          return ok({'id': 11, 'name': 'Chidi Okafor', 'email': 'chidi@mail.com', 'company_name': 'Mama Chidi Stores', 'avatar': ''});
+        case ('POST', '/logout'):
+          return ok([]);
+        case ('GET', '/invoices'):
+          return ok(page([
+            {'id': 21, 'invoice_number': 'INV-0021', 'status': 'sent', 'total_amount': '37000.00', 'due_date': '2099-01-10', 'issue_date': '2026-11-20'},
+            {'id': 22, 'invoice_number': 'INV-0022', 'status': 'paid', 'total_amount': '10000.00', 'issue_date': '2026-11-01'},
+          ]));
+        case ('GET', '/invoices/21'):
+          return ok({'id': 21, 'invoice_number': 'INV-0021', 'status': 'sent', 'total_amount': '37000.00', 'items': [{'title': 'Ankara', 'quantity': '4.00', 'unit_price': '6500.00', 'total': '26000.00'}]});
+        case ('GET', '/quotes'):
+          return ok(page([]));
+        case ('GET', '/projects'):
+          return ok(page([{'id': 3, 'name': 'Obi wedding', 'status': 'in_progress', 'manager': {'name': 'Segun Ajayi'}}]));
+        case ('GET', '/tickets'):
+          return ok(page(tickets));
+        case ('POST', '/tickets'):
+          final b = body();
+          if (!const ['low', 'medium', 'high', 'urgent'].contains(b['priority'])) return validation({'priority': ['The selected priority is invalid.']});
+          final t = {'id': 40 + tickets.length, 'ticket_id': 'TKT-1', 'status': 'open', ...b};
+          tickets.add(t);
+          return ok(t, 201);
+        case ('GET', '/support-settings'):
+          return ok({'support_email': 'help@bizpaddi.com', 'support_phone': '', 'support_whatsapp': '+234 803 000 0000'});
+        case ('POST', '/update-device-token'):
+          return ok([]);
+      }
+    }
+    return null;
+  }
+
   http.Response? _mobileRoutes(http.Request req, String path) {
+    final portal = _portalRoutes(req, path);
+    if (portal != null) return portal;
     Map<String, dynamic> body() => req.body.isEmpty ? {} : jsonDecode(req.body) as Map<String, dynamic>;
     final m = req.method;
 

@@ -26,18 +26,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
   int _period = 0; // 7, 30, 90, custom
   DateTimeRange? _custom;
 
-  /// Live mode: `GET /api/v1/admin/dashboard` stats (null in demo mode).
+  /// `GET /api/v1/admin/dashboard` stats (null until loaded).
   Map<String, dynamic>? _overview;
 
   @override
   void initState() {
     super.initState();
-    if (LiveSession.enabled) {
-      LiveSession.instance.business.dashboard().then((d) {
-        final stats = d['stats'];
-        if (mounted && stats is Map<String, dynamic>) setState(() => _overview = stats);
-      }).catchError((_) {});
-    }
+    LiveSession.instance.business.dashboard().then((d) {
+      final stats = d['stats'];
+      if (mounted && stats is Map<String, dynamic>) setState(() => _overview = stats);
+    }).catchError((_) {});
   }
 
   Widget _overviewCard(BuildContext context) {

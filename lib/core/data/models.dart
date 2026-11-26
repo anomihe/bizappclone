@@ -200,7 +200,7 @@ class Invoice {
       .clamp(0, double.infinity)
       .toDouble();
   /// Live: the customer-portal pay page the backend also emails (customers sign in there).
-  /// Demo: a sample address.
+  /// Before it is saved (no server id) the link is a placeholder.
   String get payLink => LiveLinks.host != null && serverId != null
       ? '${LiveLinks.host}/dashboard/client/invoices/$serverId/pay'
       : 'bizpaddi.com/pay/i${id.hashCode.abs() % 900 + 100}';
@@ -266,7 +266,7 @@ class Quotation {
   double get net => (subtotal - discount).clamp(0, double.infinity).toDouble();
   double get vat => addVat ? net * vatRate : 0;
   double get total => items.isEmpty && totalOverride != null ? totalOverride! : net + vat;
-  /// Live: the quote page on the customer portal. Demo: a sample address.
+  /// The quote page on the customer portal (placeholder until saved).
   String get link => LiveLinks.host != null && serverId != null
       ? '${LiveLinks.host}/dashboard/client/quotes/$serverId'
       : 'bizpaddi.com/q/${id.hashCode.abs() % 900 + 100}';
@@ -394,7 +394,7 @@ class StatusStyle {
 }
 
 /// Host (no scheme) of the live backend for links shared with customers;
-/// null in demo mode. Set by LiveSession when signed in.
+/// null until signed in. Set by LiveSession.
 class LiveLinks {
   static String? host;
 }

@@ -13,8 +13,6 @@ class Specs {
   }
 
   static String _join(List<String> parts) => parts.where((p) => p.trim().isNotEmpty).join(' · ');
-  static String _ago(int days) => DateTime.now().subtract(Duration(days: days)).toIso8601String();
-  static String _ahead(int days) => DateTime.now().add(Duration(days: days)).toIso8601String();
 
   static const _taskStatuses = [('todo', 'To do'), ('in_progress', 'In progress'), ('review', 'In review'), ('done', 'Done')];
   static const _priorities = [('low', 'Low'), ('medium', 'Medium'), ('high', 'High'), ('urgent', 'Urgent')];
@@ -43,11 +41,6 @@ class Specs {
     titleOf: (m) => _s(m['name']),
     subtitleOf: (m) => _join([_s(m['company']), _s(m['source']), ResourceRepository.nameOf(m['assigned_to_user'] ?? m['assigned_to'])]),
     statusOf: (m) => _s(m['status']).isEmpty ? 'new' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'name': 'Bisi Adeyemi', 'company': 'Bisi Bakes', 'phone': '08031112222', 'status': 'new', 'source': 'Instagram', 'score': 60, 'created_at': _ago(1)},
-      {'id': 2, 'name': 'Chuka Obi', 'company': 'Obi Logistics', 'email': 'chuka@obilog.ng', 'status': 'qualified', 'source': 'Referral', 'score': 80, 'created_at': _ago(4)},
-      {'id': 3, 'name': 'Halima Bello', 'status': 'contacted', 'source': 'WhatsApp', 'score': 45, 'created_at': _ago(7)},
-    ],
   );
 
   static final contacts = ResourceSpec(
@@ -69,10 +62,6 @@ class Specs {
     titleOf: (m) => _join([_s(m['first_name']), _s(m['last_name'])]).replaceAll(' · ', ' '),
     subtitleOf: (m) => _join([_s(m['email']), _s(m['company'])]),
     statusOf: (m) => _s(m['status']).isEmpty ? 'active' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'first_name': 'Ada', 'last_name': 'Obi', 'email': 'ada@gmail.com', 'company': 'Ada Couture', 'status': 'active'},
-      {'id': 2, 'first_name': 'Tunde', 'last_name': 'Bakare', 'email': 'tunde@mail.com', 'status': 'unsubscribed'},
-    ],
   );
 
   static final campaigns = ResourceSpec(
@@ -99,10 +88,6 @@ class Specs {
       return sent > 0 ? '$sent sent · $opened opened' : _s(m['subject']);
     },
     statusOf: (m) => _s(m['status']).isEmpty ? 'draft' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'name': 'December sale', 'subject': '20% off all Ankara this week', 'status': 'sent', 'total_sent': 120, 'total_opened': 54},
-      {'id': 2, 'name': 'New arrivals', 'subject': 'Fresh lace just landed', 'status': 'draft'},
-    ],
   );
 
   // ------------------------------------------------------------ support
@@ -123,11 +108,6 @@ class Specs {
     titleOf: (m) => _s(m['subject']),
     subtitleOf: (m) => _join([ResourceRepository.nameOf(m['client']), _date(m['created_at'])]),
     statusOf: (m) => _s(m['status']).isEmpty ? 'open' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'subject': 'I paid but the invoice still shows unpaid', 'status': 'open', 'priority': 'high', 'client': {'name': 'Mama Chidi Stores'}, 'created_at': _ago(0),
-        'messages': [{'message': 'I transferred ₦37,000 yesterday but it still says unpaid.', 'created_at': _ago(0)}]},
-      {'id': 2, 'subject': 'Can I change my delivery address?', 'status': 'resolved', 'priority': 'low', 'client': {'name': 'Ada Obi'}, 'created_at': _ago(3)},
-    ],
   );
 
   // ------------------------------------------------------------ operations
@@ -150,10 +130,6 @@ class Specs {
     titleOf: (m) => _s(m['name']),
     subtitleOf: (m) => _join([_s(m['unit']), m['is_active'] == false || m['is_active'] == 0 ? 'Not offered' : '']),
     amountOf: (m) => ApiMappers.num0(m['base_price']),
-    demo: () => [
-      {'id': 1, 'name': 'Custom tailoring', 'base_price': '15000.00', 'unit': 'per outfit', 'is_active': true},
-      {'id': 2, 'name': 'Event catering', 'base_price': '250000.00', 'unit': 'per event', 'is_active': true},
-    ],
   );
 
   static final salaries = ResourceSpec(
@@ -179,10 +155,6 @@ class Specs {
     subtitleOf: (m) => _join([_date(m['payment_date']), _s(m['bank_name'])]),
     amountOf: (m) => ApiMappers.num0(m['amount']),
     statusOf: (m) => _s(m['status']).isEmpty ? 'pending' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'user': {'name': 'Amaka Eze'}, 'amount': '120000.00', 'payment_date': _ago(5), 'status': 'successful', 'bank_name': 'GTBank'},
-      {'id': 2, 'user': {'name': 'Segun Ajayi'}, 'amount': '150000.00', 'payment_date': _ago(5), 'status': 'pending', 'bank_name': 'Access Bank'},
-    ],
   );
 
   static final departments = ResourceSpec(
@@ -201,10 +173,6 @@ class Specs {
     titleOf: (m) => _s(m['name']),
     subtitleOf: (m) => _s(m['description']),
     statusOf: (m) => m['is_active'] == false || m['is_active'] == 0 ? 'inactive' : 'active',
-    demo: () => [
-      {'id': 1, 'name': 'Sales', 'description': 'Shop floor and online orders', 'is_active': true},
-      {'id': 2, 'name': 'Production', 'description': 'Tailoring and finishing', 'is_active': true},
-    ],
   );
 
   static final currencies = ResourceSpec(
@@ -227,11 +195,6 @@ class Specs {
     ],
     titleOf: (m) => _join([_s(m['code']), _s(m['name'])]),
     subtitleOf: (m) => _join([_s(m['symbol']), _s(m['exchange_rate']).isEmpty ? '' : 'Rate ${_s(m['exchange_rate'])}']),
-    demo: () => [
-      {'id': 1, 'code': 'NGN', 'name': 'Nigerian Naira', 'symbol': '₦', 'exchange_rate': '1.00'},
-      {'id': 2, 'code': 'USD', 'name': 'US Dollar', 'symbol': '\$', 'exchange_rate': '1550.00'},
-      {'id': 3, 'code': 'GHS', 'name': 'Ghana Cedi', 'symbol': '₵', 'exchange_rate': '102.00'},
-    ],
   );
 
   // ------------------------------------------------------------ contracts
@@ -261,10 +224,6 @@ class Specs {
     subtitleOf: (m) => _join([_s(m['party_name']).isEmpty ? ResourceRepository.nameOf(m['client']) : _s(m['party_name']), _date(m['end_date']).isEmpty ? '' : 'Ends ${_date(m['end_date'])}']),
     amountOf: (m) => ApiMappers.num0(m['value']),
     statusOf: (m) => _s(m['status']).isEmpty ? 'draft' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'title': 'Monthly supply — Ankara fabric', 'contract_type': 'supply', 'party_name': 'Kano Textiles Ltd', 'value': '450000.00', 'status': 'active', 'start_date': _ago(40), 'end_date': _ahead(320)},
-      {'id': 2, 'title': 'Wedding catering — Obi family', 'contract_type': 'service', 'party_name': 'Ada Obi', 'value': '1200000.00', 'status': 'sent', 'start_date': _ahead(20)},
-    ],
   );
 
   static final contractTemplates = ResourceSpec(
@@ -284,9 +243,6 @@ class Specs {
     ],
     titleOf: (m) => _s(m['name']),
     subtitleOf: (m) => _join([_s(m['contract_type']), _s(m['description'])]),
-    demo: () => [
-      {'id': 1, 'name': 'Standard service agreement', 'contract_type': 'service', 'content': 'This agreement is between {business} and {party}…', 'is_active': true},
-    ],
   );
 
   // ------------------------------------------------------------ project management
@@ -314,10 +270,6 @@ class Specs {
     subtitleOf: (m) => _join([ResourceRepository.nameOf(m['client']), _date(m['due_date']).isEmpty ? '' : 'Due ${_date(m['due_date'])}']),
     amountOf: (m) => ApiMappers.num0(m['budget']),
     statusOf: (m) => _s(m['status']).isEmpty ? 'pending' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'name': 'Obi wedding outfits', 'client': {'name': 'Ada Obi'}, 'manager': {'name': 'Amaka Eze'}, 'status': 'active', 'start_date': _ago(10), 'due_date': _ahead(14), 'budget': '850000.00', 'description': '12 outfits for the bridal party.'},
-      {'id': 2, 'name': 'School uniforms — 200 sets', 'client': {'name': 'Mama Chioma Stores'}, 'manager': {'name': 'Segun Ajayi'}, 'status': 'pending', 'due_date': _ahead(40), 'budget': '1200000.00'},
-    ],
   );
 
   static final milestones = ResourceSpec(
@@ -338,10 +290,6 @@ class Specs {
     titleOf: (m) => _s(m['title']),
     subtitleOf: (m) => _date(m['due_date']).isEmpty ? '' : 'Due ${_date(m['due_date'])}',
     statusOf: (m) => _s(m['status']).isEmpty ? 'pending' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'project_id': 1, 'title': 'Fabric bought', 'status': 'completed', 'due_date': _ago(5)},
-      {'id': 2, 'project_id': 1, 'title': 'First fitting', 'status': 'pending', 'due_date': _ahead(4)},
-    ],
   );
 
   static final tasks = ResourceSpec(
@@ -365,11 +313,6 @@ class Specs {
     titleOf: (m) => _s(m['title']),
     subtitleOf: (m) => _join([ResourceRepository.nameOf(m['assignee']), _s(m['priority']), _date(m['due_date']).isEmpty ? '' : 'Due ${_date(m['due_date'])}']),
     statusOf: (m) => _s(m['status']).isEmpty ? 'todo' : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'project_id': 1, 'title': 'Take bridesmaids’ measurements', 'status': 'done', 'priority': 'high', 'assignee': {'name': 'Amaka Eze'}},
-      {'id': 2, 'project_id': 1, 'title': 'Cut and sew 6 gowns', 'status': 'in_progress', 'priority': 'medium', 'assignee': {'name': 'Amaka Eze'}, 'due_date': _ahead(6)},
-      {'id': 3, 'project_id': 2, 'title': 'Confirm sizes list', 'status': 'todo', 'priority': 'low'},
-    ],
   );
 
   static final workLogs = ResourceSpec(
@@ -399,9 +342,5 @@ class Specs {
       return _join([Fmt.relativeDay(start), hours == null ? 'Still working' : '${hours.toStringAsFixed(1)} h']);
     },
     statusOf: (m) => _s(m['status']).isEmpty ? (m['end_time'] == null ? 'in_progress' : 'completed') : _s(m['status']),
-    demo: () => [
-      {'id': 1, 'user': {'name': 'Amaka Eze'}, 'start_time': DateTime.now().subtract(const Duration(hours: 9)).toIso8601String(), 'end_time': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(), 'status': 'completed', 'actual_tasks': 'Finished 2 gowns'},
-      {'id': 2, 'user': {'name': 'Segun Ajayi'}, 'start_time': DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(), 'status': 'in_progress', 'planned_tasks': 'Deliveries to Ikeja'},
-    ],
   );
 }

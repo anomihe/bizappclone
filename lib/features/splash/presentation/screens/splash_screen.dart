@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Stage 2: White/Themed splash for 1.4 seconds, then proceed to onboarding
     // Live mode: a saved login goes to "Welcome back" instead of onboarding.
-    final returning = LiveSession.enabled && await LiveSession.instance.hasSavedSession();
+    final returning = await LiveSession.instance.hasSavedSession();
     if (returning) BizStore.instance.hasRememberedUser = true;
     await Future.delayed(const Duration(milliseconds: 1400));
     if (mounted) {

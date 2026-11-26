@@ -53,27 +53,22 @@ class _EditStorefrontScreenState extends State<EditStorefrontScreen> {
       ..phone = _phone.text.trim()
       ..email = _email.text.trim();
 
-    if (LiveSession.enabled) {
-      setState(() => _saving = true);
-      final ok = await runLiveAction(context, () => LiveSession.instance.saveStorefront(banner: _banner?.bytes, filename: _banner?.name),
-          done: 'Storefront updated');
-      if (!mounted) return;
-      setState(() => _saving = false);
-      if (!ok) {
-        s
-          ..name = before.$1
-          ..tagline = before.$2
-          ..description = before.$3
-          ..dialCode = before.$4
-          ..phone = before.$5
-          ..email = before.$6;
-        return;
-      }
-    } else {
-      BizStore.instance.updateStorefront();
-      showToast(context, 'Storefront updated');
+    setState(() => _saving = true);
+    final ok = await runLiveAction(context, () => LiveSession.instance.saveStorefront(banner: _banner?.bytes, filename: _banner?.name),
+        done: 'Storefront updated');
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (!ok) {
+      s
+        ..name = before.$1
+        ..tagline = before.$2
+        ..description = before.$3
+        ..dialCode = before.$4
+        ..phone = before.$5
+        ..email = before.$6;
+      return;
     }
-    if (mounted) Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   Future<void> _pickBanner() async {
@@ -84,12 +79,11 @@ class _EditStorefrontScreenState extends State<EditStorefrontScreen> {
   @override
   Widget build(BuildContext context) {
     void refresh(_) => setState(() {});
-    final live = LiveSession.enabled;
     return InnerScaffold(
       title: 'Edit Storefront',
       bottom: CustomButton(text: 'Save', isLoading: _saving, onPressed: _valid && !_saving ? _save : null),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (live) ...[
+        ...[
           Text('Banner', style: tx(context, 12.5, weight: FontWeight.w600, color: context.p.textSecondary)),
           const SizedBox(height: 6),
           InkWell(
@@ -112,7 +106,7 @@ class _EditStorefrontScreenState extends State<EditStorefrontScreen> {
           const SizedBox(height: 14),
         ],
         CustomTextField(label: 'Store name', hint: 'Enter store name', controller: _name, onChanged: refresh),
-        if (live) ...[
+        ...[
           const SizedBox(height: 14),
           CustomTextField(label: 'Tagline (optional)', hint: 'e.g. Fresh fabrics, fast delivery', controller: _tagline),
         ],

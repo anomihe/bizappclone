@@ -35,24 +35,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<void> _cancel() async {
     final reason = await showBpSheet<String>(context, showHandle: true, builder: (_) => const _CancelOrderForm());
     if (reason == null || !mounted) return;
-    if (LiveSession.enabled) {
-      await runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'cancelled', reason: reason),
-          done: 'Order cancelled — the customer has been notified');
-      return;
-    }
-    store.cancelOrder(widget.order, reason);
-    showToast(context, 'Order cancelled — the customer has been notified');
+    await runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'cancelled', reason: reason),
+        done: 'Order cancelled — the customer has been notified');
   }
 
-  Future<void> _delivered() async {
-    if (LiveSession.enabled) {
-      await runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'completed'), done: 'Order marked as delivered');
-      return;
-    }
-    store.completeOrder(widget.order);
-  }
+  Future<void> _delivered() =>
+      runLiveAction(context, () => LiveSession.instance.setOrderStatus(widget.order, 'completed'), done: 'Order marked as delivered');
 
-  /// Calling / WhatsApp need `url_launcher`; copy the number meanwhile.
+  /// Copies the customer's number so it can be pasted into the phone or WhatsApp.
   void _contact(String via) {
     Clipboard.setData(ClipboardData(text: widget.order.phone));
     showToast(context, 'Number copied — open $via to reach the customer');

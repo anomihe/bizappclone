@@ -27,13 +27,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late final _price = TextEditingController(text: _editing == null ? '' : _editing.price.toStringAsFixed(0));
   late final _discount = TextEditingController(text: (_editing?.discount ?? 0) > 0 ? _editing!.discount.toStringAsFixed(0) : '');
   late final _description = TextEditingController(text: _editing?.description ?? '');
-  late List<int> _photos = [...?_editing?.photos];
   late String? _categoryId = _editing?.categoryId;
   late int _qty = _editing?.quantity ?? 0;
   late bool _visible = _editing?.showOnStorefront ?? true;
 
-  // Live mode: the API keeps one photo per product.
-  bool get _live => LiveSession.enabled;
+  // The API keeps one photo per product.
   late final String? _imageUrl = _editing?.imageUrl;
   PickedFile? _newPhoto;
   bool _removePhoto = false;
@@ -55,19 +53,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   bool get _valid => _name.text.trim().isNotEmpty && _priceValue > 0 && !_discountInvalid;
 
   Future<void> _addPhoto() async {
-    if (_live) {
-      final f = await pickUploadFile(context, title: 'Add Photo');
-      if (f != null && mounted) {
-        setState(() {
-          _newPhoto = f;
-          _removePhoto = false;
-        });
-      }
-      return;
+    final f = await pickUploadFile(context, title: 'Add Photo');
+    if (f != null && mounted) {
+      setState(() {
+        _newPhoto = f;
+        _removePhoto = false;
+      });
     }
-    if (_photos.length >= 3) return;
-    final ok = await showImageSourceSheet(context, title: 'Add Photo');
-    if (ok) setState(() => _photos = [..._photos, DateTime.now().millisecond % 6]);
   }
 
   Future<void> _pickCategory() async {
@@ -76,30 +68,42 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       title: 'Select Category',
       builder: (ctx) => ListenableBuilder(
         listenable: store,
-        builder: (ctx, _) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          for (final c in store.categories)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: BpCard(
-                onTap: () => Navigator.pop(ctx, c.id),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                child: Row(children: [
-                  Expanded(child: Text(c.name, style: tx(ctx, 13.5, weight: FontWeight.w600))),
-                  Icon(c.id == _categoryId ? Icons.check_circle : Icons.chevron_right, size: 20, color: c.id == _categoryId ? ctx.p.brand : ctx.p.textMuted),
-                ]),
+        builder: (ctx, _) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final c in store.categories)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: BpCard(
+                  onTap: () => Navigator.pop(ctx, c.id),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(c.name, style: tx(ctx, 13.5, weight: FontWeight.w600)),
+                      ),
+                      Icon(
+                        c.id == _categoryId ? Icons.check_circle : Icons.chevron_right,
+                        size: 20,
+                        color: c.id == _categoryId ? ctx.p.brand : ctx.p.textMuted,
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            const SizedBox(height: 4),
+            CustomButton(
+              text: 'Add new Category',
+              variant: ButtonVariant.outline,
+              icon: const Icon(Icons.add),
+              onPressed: () async {
+                final created = await showAddCategorySheet(ctx);
+                if (created != null && ctx.mounted) Navigator.pop(ctx, created.id);
+              },
             ),
-          const SizedBox(height: 4),
-          CustomButton(
-            text: 'Add new Category',
-            variant: ButtonVariant.outline,
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              final created = await showAddCategorySheet(ctx);
-              if (created != null && ctx.mounted) Navigator.pop(ctx, created.id);
-            },
-          ),
-        ]),
+          ],
+        ),
       ),
     );
     if (picked != null) setState(() => _categoryId = picked);
@@ -114,41 +118,28 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       ..categoryId = _categoryId
       ..quantity = _qty
       ..description = _description.text.trim()
-      ..photos = _photos
       ..showOnStorefront = _visible;
 
-    if (_live) {
-      // Save a copy first so a failed request doesn't change the list.
-      final draft = Product(id: p.id, name: '', sku: p.sku, price: 0)
-        ..serverId = p.serverId
-        ..imageUrl = p.imageUrl;
-      apply(draft);
-      setState(() => _saving = true);
-      final ok = await runLiveAction(context, () async {
-        final saved = await LiveSession.instance.saveProduct(draft, image: _newPhoto?.bytes, filename: _newPhoto?.name, removeImage: _removePhoto);
-        if (_editing != null) {
-          apply(_editing);
-          _editing
-            ..serverId = saved.serverId
-            ..imageUrl = saved.imageUrl;
-          store.products.remove(saved);
-          store.updateProduct(_editing);
-        }
-      }, done: _editing == null ? 'Product added' : 'Product updated');
-      if (!mounted) return;
-      setState(() => _saving = false);
-      if (ok) Navigator.pop(context);
-      return;
-    }
-
-    apply(p);
-    if (_editing == null) {
-      store.addProduct(p);
-    } else {
-      store.updateProduct(p);
-    }
-    showToast(context, _editing == null ? 'Product added' : 'Product updated');
-    Navigator.pop(context);
+    // Save a copy first so a failed request doesn't change the list.
+    final draft = Product(id: p.id, name: '', sku: p.sku, price: 0)
+      ..serverId = p.serverId
+      ..imageUrl = p.imageUrl;
+    apply(draft);
+    setState(() => _saving = true);
+    final ok = await runLiveAction(context, () async {
+      final saved = await LiveSession.instance.saveProduct(draft, image: _newPhoto?.bytes, filename: _newPhoto?.name, removeImage: _removePhoto);
+      if (_editing != null) {
+        apply(_editing);
+        _editing
+          ..serverId = saved.serverId
+          ..imageUrl = saved.imageUrl;
+        store.products.remove(saved);
+        store.updateProduct(_editing);
+      }
+    }, done: _editing == null ? 'Product added' : 'Product updated');
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) Navigator.pop(context);
   }
 
   Future<void> _delete() async {
@@ -159,13 +150,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       confirmLabel: 'Delete Product',
     );
     if (!ok || !mounted) return;
-    if (_live) {
-      final done = await runLiveAction(context, () => LiveSession.instance.deleteProduct(_editing), done: 'Product deleted');
-      if (done && mounted) Navigator.pop(context);
-      return;
-    }
-    store.deleteProduct(_editing);
-    Navigator.pop(context);
+    final done = await runLiveAction(context, () => LiveSession.instance.deleteProduct(_editing), done: 'Product deleted');
+    if (done && mounted) Navigator.pop(context);
   }
 
   Widget _livePhoto(BuildContext context) {
@@ -176,28 +162,40 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           height: 96,
-          decoration: BoxDecoration(color: p.cardAlt, borderRadius: BorderRadius.circular(12), border: Border.all(color: p.border)),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.add_a_photo_outlined, color: p.textSecondary),
-            const SizedBox(height: 6),
-            Text('Add Photo', style: tx(context, 12.5, weight: FontWeight.w600, color: p.textSecondary)),
-          ]),
+          decoration: BoxDecoration(
+            color: p.cardAlt,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: p.border),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_a_photo_outlined, color: p.textSecondary),
+              const SizedBox(height: 6),
+              Text(
+                'Add Photo',
+                style: tx(context, 12.5, weight: FontWeight.w600, color: p.textSecondary),
+              ),
+            ],
+          ),
         ),
       );
     }
-    return Row(children: [
-      ProductThumb(
-        size: 88,
-        bytes: _newPhoto?.bytes,
-        url: _newPhoto == null ? _imageUrl : null,
-        onRemove: () => setState(() {
-          _newPhoto = null;
-          _removePhoto = _imageUrl != null;
-        }),
-      ),
-      const SizedBox(width: 14),
-      TextButton.icon(onPressed: _addPhoto, icon: const Icon(Icons.photo_camera_outlined, size: 18), label: const Text('Change photo')),
-    ]);
+    return Row(
+      children: [
+        ProductThumb(
+          size: 88,
+          bytes: _newPhoto?.bytes,
+          url: _newPhoto == null ? _imageUrl : null,
+          onRemove: () => setState(() {
+            _newPhoto = null;
+            _removePhoto = _imageUrl != null;
+          }),
+        ),
+        const SizedBox(width: 14),
+        TextButton.icon(onPressed: _addPhoto, icon: const Icon(Icons.photo_camera_outlined, size: 18), label: const Text('Change photo')),
+      ],
+    );
   }
 
   @override
@@ -207,98 +205,89 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final numeric = [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))];
 
     Widget label(String t) => Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Text(t, style: tx(context, 12.5, weight: FontWeight.w600, color: p.textSecondary)),
-        );
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        t,
+        style: tx(context, 12.5, weight: FontWeight.w600, color: p.textSecondary),
+      ),
+    );
 
     return InnerScaffold(
       title: _editing == null ? 'Add product' : 'Edit product',
-      actions: [
-        if (_editing != null) CircleIconButton(icon: Icons.delete_outline, color: p.error, tooltip: 'Delete product', onTap: _delete),
-      ],
+      actions: [if (_editing != null) CircleIconButton(icon: Icons.delete_outline, color: p.error, tooltip: 'Delete product', onTap: _delete)],
       bottom: CustomButton(text: _editing == null ? 'Add Product' : 'Save Changes', isLoading: _saving, onPressed: _valid && !_saving ? _save : null),
-      body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        label(_live ? 'Product photo' : (_photos.isEmpty ? 'Photos' : 'Product photos')),
-        if (_live)
-          _livePhoto(context)
-        else if (_photos.isEmpty)
-          InkWell(
-            onTap: _addPhoto,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 96,
-              decoration: BoxDecoration(color: p.cardAlt, borderRadius: BorderRadius.circular(12), border: Border.all(color: p.border)),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.add_a_photo_outlined, color: p.textSecondary),
-                const SizedBox(height: 6),
-                Text('Add Photo', style: tx(context, 12.5, weight: FontWeight.w600, color: p.textSecondary)),
-              ]),
-            ),
-          )
-        else
-          Wrap(spacing: 12, runSpacing: 12, children: [
-            for (var i = 0; i < _photos.length; i++)
-              ProductThumb(photo: _photos[i], size: 72, onRemove: () => setState(() => _photos = [..._photos]..removeAt(i))),
-            if (_photos.length < 3)
-              InkWell(
-                onTap: _addPhoto,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: p.border)),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.add_a_photo_outlined, size: 20, color: p.textSecondary),
-                    Text('Add photo', style: tx(context, 10.5, color: p.textSecondary)),
-                  ]),
-                ),
-              ),
-          ]),
-        const SizedBox(height: 6),
-        Text(_live ? 'One photo, up to 10MB. Camera and gallery access are asked only when you add it.' : 'Up to 3 photos. Camera and gallery access are asked only when you add one.',
-            style: tx(context, 11, color: p.textMuted)),
-        const SizedBox(height: 16),
-        CustomTextField(label: 'Product Name', hint: 'Enter product name', controller: _name, textCapitalization: TextCapitalization.words, onChanged: (_) => setState(() {})),
-        const SizedBox(height: 14),
-        CustomTextField(label: 'Price', hint: '0', prefixText: '₦ ', controller: _price, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: numeric, onChanged: (_) => setState(() {})),
-        const SizedBox(height: 14),
-        CustomTextField(
-          label: 'Discount Price (optional)',
-          hint: '0',
-          prefixText: '₦ ',
-          controller: _discount,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: numeric,
-          errorText: _discountInvalid ? 'Discount must be less than the price' : null,
-          onChanged: (_) => setState(() {}),
-        ),
-        const SizedBox(height: 14),
-        label('Category'),
-        InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: _pickCategory,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(color: p.card, borderRadius: BorderRadius.circular(10), border: Border.all(color: p.border, width: 1.2)),
-            child: Row(children: [
-              Expanded(child: Text(category?.name ?? 'Select Category', style: tx(context, 14, color: category == null ? p.textMuted : p.text))),
-              Icon(Icons.keyboard_arrow_down, color: p.textSecondary),
-            ]),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          label('Product photo'),
+          _livePhoto(context),
+          const SizedBox(height: 6),
+          Text('One photo, up to 10MB. Camera and gallery access are asked only when you add it.', style: tx(context, 11, color: p.textMuted)),
+          const SizedBox(height: 16),
+          CustomTextField(
+            label: 'Product Name',
+            hint: 'Enter product name',
+            controller: _name,
+            textCapitalization: TextCapitalization.words,
+            onChanged: (_) => setState(() {}),
           ),
-        ),
-        const SizedBox(height: 14),
-        label('Stock quantity'),
-        QuantityStepper(value: _qty, onChanged: (v) => setState(() => _qty = v)),
-        const SizedBox(height: 14),
-        CustomTextField(label: 'Description', hint: 'Product description here', controller: _description, maxLines: 4),
-        const SizedBox(height: 10),
-        ToggleRow(
-          title: _editing == null ? 'Show on storefront' : 'Publish to store',
-          subtitle: 'Customers can see and buy this item.',
-          value: _visible,
-          onChanged: (v) => setState(() => _visible = v),
-        ),
-      ]),
+          const SizedBox(height: 14),
+          CustomTextField(
+            label: 'Price',
+            hint: '0',
+            prefixText: '₦ ',
+            controller: _price,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: numeric,
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 14),
+          CustomTextField(
+            label: 'Discount Price (optional)',
+            hint: '0',
+            prefixText: '₦ ',
+            controller: _discount,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: numeric,
+            errorText: _discountInvalid ? 'Discount must be less than the price' : null,
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 14),
+          label('Category'),
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: _pickCategory,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: p.card,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: p.border, width: 1.2),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(category?.name ?? 'Select Category', style: tx(context, 14, color: category == null ? p.textMuted : p.text)),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: p.textSecondary),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          label('Stock quantity'),
+          QuantityStepper(value: _qty, onChanged: (v) => setState(() => _qty = v)),
+          const SizedBox(height: 14),
+          CustomTextField(label: 'Description', hint: 'Product description here', controller: _description, maxLines: 4),
+          const SizedBox(height: 10),
+          ToggleRow(
+            title: _editing == null ? 'Show on storefront' : 'Publish to store',
+            subtitle: 'Customers can see and buy this item.',
+            value: _visible,
+            onChanged: (v) => setState(() => _visible = v),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,27 +8,16 @@ import '../../../../core/utils/pick_file.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../store/presentation/widgets/store_widgets.dart';
-import 'bank_settlement_screen.dart';
-import 'edit_business_profile_screen.dart';
 
 class BusinessProfileScreen extends StatelessWidget {
   const BusinessProfileScreen({super.key});
 
-  /// Live mode uploads to `POST /admin/kyc`; demo mode just marks it uploaded.
+  /// Uploads to `POST /admin/kyc`; the backend reviews it.
   Future<void> _upload(BuildContext context, String key) async {
-    if (LiveSession.enabled) {
-      final file = await pickUploadFile(context, title: 'Upload $key', allowPdf: true);
-      if (file == null || !context.mounted) return;
-      showToast(context, 'Uploading $key…');
-      await runLiveAction(context, () => LiveSession.instance.uploadKyc(key, file.bytes, file.name), done: '$key uploaded. We’ll review it shortly.');
-      return;
-    }
-    final ok = await showImageSourceSheet(context, title: 'Upload $key');
-    if (!ok) return;
-    final store = BizStore.instance;
-    store.uploadDocument(key, '$key.pdf');
-    store.submitForReview();
-    if (context.mounted) showToast(context, '$key uploaded');
+    final file = await pickUploadFile(context, title: 'Upload $key', allowPdf: true);
+    if (file == null || !context.mounted) return;
+    showToast(context, 'Uploading $key…');
+    await runLiveAction(context, () => LiveSession.instance.uploadKyc(key, file.bytes, file.name), done: '$key uploaded. We’ll review it shortly.');
   }
 
   static StatusStyle? _reviewStyle(String? s) => switch (s) {
@@ -89,16 +78,6 @@ class BusinessProfileScreen extends StatelessWidget {
                     Text('Business Account', style: tx(context, 11.5, color: p.textMuted)),
                   ]),
                 ),
-                // The backend has no business-profile API yet; editing is demo only.
-                if (!LiveSession.enabled)
-                  CustomButton(
-                    text: 'Edit',
-                    width: 82,
-                    height: 36,
-                    variant: ButtonVariant.outline,
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditBusinessProfileScreen())),
-                  ),
               ]),
             ),
             const SizedBox(height: 16),
@@ -155,7 +134,7 @@ class BusinessProfileScreen extends StatelessWidget {
                                 Text(note, style: tx(context, 10.5, color: p.error)),
                             ]),
                           ),
-                          if (LiveSession.enabled ? b.documentStatus[e.key] != 'verified' : b.verification != VerificationStatus.inReview)
+                          if (b.documentStatus[e.key] != 'verified')
                             CustomButton(text: 'Change', width: 80, height: 32, variant: ButtonVariant.outline, onPressed: () => _upload(context, e.key)),
                         ]),
                       ),
@@ -163,43 +142,9 @@ class BusinessProfileScreen extends StatelessWidget {
                 ),
             ]),
             section('Bank & Settlement Details', null, [
-              // No settlement-account API yet: don't let a live owner "save" bank details that go nowhere.
-              if (LiveSession.enabled)
-                const InfoBanner('Payouts go to the settlement account on your Bizpaddi workspace. Changing it in the app is coming soon.',
-                    icon: Icons.account_balance_outlined)
-              else if (b.bank == null)
-                BpCard(
-                  child: Column(children: [
-                    Icon(Icons.account_balance_outlined, color: p.textSecondary),
-                    const SizedBox(height: 6),
-                    Text('No settlement account added', style: tx(context, 13, weight: FontWeight.w700)),
-                    Text('Add a bank account to receive payouts.', style: tx(context, 11.5, color: p.textMuted)),
-                    const SizedBox(height: 10),
-                    CustomButton(
-                      text: 'Add Bank Details',
-                      width: 190,
-                      height: 38,
-                      variant: ButtonVariant.outline,
-                      icon: const Icon(Icons.add),
-                      onPressed: () => startBankChange(context),
-                    ),
-                  ]),
-                )
-              else
-                BpCard(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BankSettlementScreen())),
-                  child: Row(children: [
-                    LeadingIcon(Icons.account_balance_outlined, size: 34),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(b.bank!.name, style: tx(context, 13, weight: FontWeight.w700)),
-                        Text('${b.bank!.bank} · ${b.bank!.masked}', style: tx(context, 11.5, color: p.textMuted)),
-                      ]),
-                    ),
-                    Icon(Icons.chevron_right, color: p.textMuted),
-                  ]),
-                ),
+              // There's no settlement-account API yet.
+              const InfoBanner('Payouts go to the settlement account on your Bizpaddi workspace. Changing it in the app is coming soon.',
+                  icon: Icons.account_balance_outlined),
             ]),
           ]),
         );

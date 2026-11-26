@@ -29,32 +29,12 @@ class _BillingScreenState extends State<BillingScreen> {
   bool _loading = false;
   String? _error;
 
-  static final Map<String, dynamic> _demo = {
-    'billing_model': 'payg',
-    'wallet_balance': 3250,
-    'currency': 'NGN',
-    'subscription': null,
-    'plans': [
-      {'id': 1, 'name': 'Starter', 'price': 8000, 'billing_interval': 'monthly', 'included_users': 2, 'features': ['Unlimited invoices', 'Payment links', '2 team members']},
-      {'id': 2, 'name': 'Growth', 'price': 20000, 'billing_interval': 'monthly', 'included_users': 5, 'features': ['Everything in Starter', 'Storefront & orders', 'Custom domain']},
-    ],
-    'wallet_transactions': [
-      {'id': 1, 'type': 'debit', 'amount': 50, 'description': 'Smart Invoice Generation', 'created_at': DateTime.now().subtract(const Duration(hours: 3)).toIso8601String()},
-      {'id': 2, 'type': 'credit', 'amount': 5000, 'description': 'Wallet top-up', 'created_at': DateTime.now().subtract(const Duration(days: 2)).toIso8601String()},
-    ],
-    'rates': [
-      {'name': 'Invoice', 'fee': 50},
-      {'name': 'Quotation', 'fee': 50},
-      {'name': 'Add a product', 'fee': 20},
-    ],
-  };
-
-  Map<String, dynamic>? get _data => LiveSession.enabled ? LiveSession.instance.billing.value : _demo;
+  Map<String, dynamic>? get _data => LiveSession.instance.billing.value;
 
   @override
   void initState() {
     super.initState();
-    if (LiveSession.enabled) _refresh();
+    _refresh();
   }
 
   Future<void> _refresh() async {
@@ -73,10 +53,6 @@ class _BillingScreenState extends State<BillingScreen> {
   Future<void> _topUp() async {
     final amount = await _askAmount(context);
     if (amount == null || !mounted) return;
-    if (!LiveSession.enabled) {
-      showToast(context, 'Demo: wallet top-ups need a live account');
-      return;
-    }
     try {
       final t = await LiveSession.instance.business.topUp(amount);
       if (mounted) await _showTransfer(t, 'Top up your wallet');
@@ -86,10 +62,6 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   Future<void> _activate(Map plan) async {
-    if (!LiveSession.enabled) {
-      showToast(context, 'Demo: plans need a live account');
-      return;
-    }
     final id = ApiMappers.intOrNull(plan['id']);
     if (id == null) return;
     try {
@@ -161,7 +133,6 @@ class _BillingScreenState extends State<BillingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final live = LiveSession.enabled;
     return ValueListenableBuilder(
       valueListenable: LiveSession.instance.billing,
       builder: (context, _, _) {
@@ -169,7 +140,7 @@ class _BillingScreenState extends State<BillingScreen> {
         return InnerScaffold(
           title: 'Wallet & Billing',
           subtitle: 'Balance, plan and charges',
-          actions: [if (live) CircleIconButton(icon: Icons.refresh, tooltip: 'Refresh', onTap: _loading ? () {} : _refresh)],
+          actions: [CircleIconButton(icon: Icons.refresh, tooltip: 'Refresh', onTap: _loading ? () {} : _refresh)],
           body: d == null
               ? (_error != null
                   ? EmptyState(icon: Icons.cloud_off, title: 'Couldn’t load billing', message: _error, action: CustomButton(text: 'Try Again', onPressed: _refresh))

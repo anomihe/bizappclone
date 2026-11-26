@@ -16,14 +16,12 @@ void main() {
 
   setUp(() {
     backend = FakeBackend();
-    LiveSession.debugEnabledOverride = true;
     LiveSession.instance = LiveSession(
       api: ApiClient(baseUrl: 'https://x.test', httpClient: backend.client),
       tokens: MemoryTokenStore(),
       store: BizStore.instance,
     );
   });
-  tearDown(() => LiveSession.debugEnabledOverride = false);
 
   Future<void> pumpApp(WidgetTester tester, Widget home) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);

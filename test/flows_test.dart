@@ -6,14 +6,13 @@ import 'package:bizpaddi/features/more/presentation/screens/appearance_screen.da
 import 'package:bizpaddi/features/auth/presentation/screens/otp_verification_screen.dart';
 import 'package:bizpaddi/features/home/presentation/screens/main_navigation_screen.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/invoice_details_screen.dart';
-import 'package:bizpaddi/features/business/presentation/screens/bank_settlement_screen.dart';
-import 'package:bizpaddi/features/invoices/presentation/screens/payment_link_details_screen.dart';
 import 'package:bizpaddi/features/orders/presentation/screens/order_details_screen.dart';
 import 'package:bizpaddi/features/store/presentation/screens/store_screen.dart';
 import 'package:bizpaddi/features/team/presentation/screens/team_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/sample_workspace.dart';
 
 Future<void> _pumpApp(WidgetTester tester, Widget home) async {
   tester.view.physicalSize = const Size(390 * 3, 844 * 3);
@@ -31,7 +30,7 @@ Future<void> _settle(WidgetTester tester, [int ms = 1500]) async {
 
 void main() {
   final store = BizStore.instance;
-  setUp(store.loadDemoWorkspace);
+  setUp(store.loadSampleWorkspace);
 
   testWidgets('create and issue an invoice from the FAB menu', (tester) async {
     final before = store.invoices.length;
@@ -79,11 +78,16 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('OTP shows error for 000000 and succeeds otherwise', (tester) async {
+  testWidgets('OTP shows the backend error and succeeds with the right code', (tester) async {
     var verified = false;
     await _pumpApp(
       tester,
-      OtpVerificationScreen(title: 'Verify your phone', subtitle: 'code sent', onVerified: (_) => verified = true),
+      OtpVerificationScreen(
+        title: 'Verify your email',
+        subtitle: 'code sent',
+        onSubmit: (code) async => code == '000000' ? 'Incorrect code entered' : null,
+        onVerified: (_) => verified = true,
+      ),
     );
     await tester.enterText(find.byType(TextField), '000000');
     await tester.pump();
@@ -228,7 +232,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  group('store, orders, team, links', () {
+  group('store, orders, team (through the fake backend)', () {
     testWidgets('add a product from the store', (tester) async {
       final before = store.products.length;
       await _pumpApp(tester, const StoreScreen());
@@ -248,7 +252,7 @@ void main() {
     });
 
     testWidgets('cancel a pending order with a reason', (tester) async {
-      final order = store.orders.firstWhere((o) => o.status == OrderStatus.pending);
+      final order = store.orders.firstWhere((o) => o.status == OrderStatus.pending)..serverId = 71; // the fake backend's order
       await _pumpApp(tester, OrderDetailsScreen(order: order));
       await tester.tap(find.text('Cancel Order'));
       await _settle(tester);
@@ -273,40 +277,9 @@ void main() {
       expect(store.staff.length, before + 1);
       final m = store.staff.last;
       expect(m.role, StaffRole.cashier);
-      expect(m.status, StaffStatus.invited);
+      expect(m.status, StaffStatus.active, reason: 'the backend creates the login straight away');
+      expect(find.textContaining('temporary password'), findsOneWidget);
       expect(m.permissions, defaultPermissions(StaffRole.cashier));
-    });
-
-    testWidgets('disable an active payment link', (tester) async {
-      final link = store.paymentLinks.firstWhere((l) => BizStatus.link(l).label == 'Active');
-      await _pumpApp(tester, PaymentLinkDetailsScreen(link: link));
-      await tester.scrollUntilVisible(find.text('Disable Payment Link'), 200, scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.text('Disable Payment Link'));
-      await _settle(tester);
-      await tester.tap(find.text('Disable Link'));
-      await _settle(tester);
-      expect(BizStatus.link(link).label, 'Disabled');
-      expect(find.text('Disable Payment Link'), findsNothing);
-    });
-
-    testWidgets('bank change needs password then OTP', (tester) async {
-      await _pumpApp(tester, const BankSettlementScreen());
-      await tester.tap(find.text('Change Bank Details'));
-      await _settle(tester);
-      await tester.tap(find.text('Use Password'));
-      await _settle(tester);
-      await tester.enterText(find.widgetWithText(TextFormField, 'Enter Password'), '123');
-      await tester.pump();
-      await tester.tap(find.text('Continue'));
-      await _settle(tester);
-      expect(find.text('Wrong password. Try again'), findsOneWidget);
-      await tester.enterText(find.widgetWithText(TextFormField, 'Enter Password'), 'secret123');
-      await tester.pump();
-      await tester.tap(find.text('Continue'));
-      await _settle(tester);
-      expect(find.text('Verify your phone'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(const Duration(seconds: 2));
     });
   });
 

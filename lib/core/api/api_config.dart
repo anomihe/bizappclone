@@ -1,21 +1,15 @@
 /// Backend connection settings.
 ///
-/// Builds talk to https://app.bizpaddi.com by default. Override at build time:
+/// The app always talks to the Bizpaddi backend; there is no demo mode.
+/// Builds use https://app.bizpaddi.com unless another server is given:
 ///
-///   flutter run --dart-define=API_BASE_URL=https://staging.example.com   (another server)
-///   flutter run --dart-define=DEMO_MODE=true                             (sample data, no network)
+///   flutter run --dart-define=API_BASE_URL=https://staging.example.com
 class ApiConfig {
   static const defaultBaseUrl = 'https://app.bizpaddi.com';
-  static const baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: defaultBaseUrl);
+  static const _override = String.fromEnvironment('API_BASE_URL');
+  static const baseUrl = _override == '' ? defaultBaseUrl : _override;
 
-  /// Runs on the in-memory sample data instead of the backend.
-  static const demoMode = bool.fromEnvironment('DEMO_MODE');
-
-  /// True when the app talks to the real Bizpaddi backend.
-  static bool get isLive => !demoMode && baseUrl.isNotEmpty;
-
-  /// The backend authenticates every portal with one login; the business app
-  /// only accepts business-owner accounts.
+  /// The business app's own account type at login (staff and customers get their own homes).
   static const accountType = 'admin';
 
   static const timeout = Duration(seconds: 20);

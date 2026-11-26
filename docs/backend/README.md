@@ -136,10 +136,41 @@ Live mode (code in `lib/core/api/`):
 | Currencies | ✅ live, read-only (shared by all businesses) |
 | **Not wired on purpose** | `settings` (exposes Billway/FCM secrets — see §4), roles & permissions editing (global, not per business) |
 | Home KPIs | Computed in the app from invoices + transactions (the dashboard API returns agency stats) |
-| Payment links, credit notes/refunds, storefront & products, orders, KYC, bank/settlement, reports, plan/wallet | App-only (empty in live mode) until the backend adds APIs |
+| Storefront & products, orders, KYC, plan/wallet, invoice/quote actions, sign-up, 2FA | ✅ live once `feature/mobile-api` is deployed (see [web-to-api.md](web-to-api.md)) |
+| Payment links, credit notes/refunds, business bank/settlement, business-profile editing, per-person staff permissions, support chat for owners | Hidden in live mode (no backend yet); demo only |
+
+### One app, three portals
+
+The login API reports who is signing in (`type`), and the app opens the matching home. The role is saved with the token, so "Welcome back" reopens the same home.
+
+| Who | Home | Uses | Screens |
+|---|---|---|---|
+| Business owner (`admin`) | Home · Payments · Invoices · Customers · More | `/api/v1/admin/*` | Everything above |
+| Staff (`team`) | Home · Tasks · Work · Pay · More | `/api/v1/team/*` (all 74 routes) | Dashboard with clock in/out; my tasks by status (moving a task to Done is project-manager only); work sessions (check-in plan / check-out report); attendance; daily reports; wallet, earnings and the salary bank account (verified by the backend); performance; my projects with team and customer chat; messages to the business; profile, photo, password, delete account |
+| Staff project manager (`role: pm`) | The staff tabs, plus a "Project manager" section in More | `/api/v1/team/pm/*`, `clients`, `invoices`, `quotes`, `services` | Projects I manage with stats; create, assign, edit and delete tasks; milestones; the team's work sessions; customers, invoices, quotations and services (read-only) |
+| Customer (`client`) | Home · Invoices · Projects · Support · More | `/api/v1/client/*` (all 36 routes; self sign-up not used) | What they owe; invoices and quotations with items; **Pay Now** opens the customer-portal pay page; projects with the team chat; support tickets; messages to the business; services; contact support (email, phone, WhatsApp from the support settings); terms and privacy; profile, photo, password, delete account |
+
+Not used:
+- **Customer self sign-up** (`POST /client/register`). It creates a customer that doesn't belong to any business, so customers are invited by the business instead.
+- **Staff push tokens.** There's no staff device-token route.
+
+Forgot / reset password tries each account type (owner, then staff, then customer), because the app doesn't know which one it is before login.
+
+**Demo mode:** log in with an email that starts with `staff` or `customer` to preview those apps on sample data.
+
+#### Backend gaps found while connecting the portals (not changed)
+
+| Where | Problem |
+|---|---|
+| `POST /client/tickets` | `SupportTicket::$fillable` has no `message` or `ticket_id`, so the customer's description and the ticket number are **dropped**. Only the subject, priority and status are saved. |
+| Tickets (all portals) | There's no reply thread: customers can't see an answer in the app. |
+| `GET /team/wallet` | The balance is a placeholder: it adds up every transaction, both money in and money out. |
+| `POST /client/register` | Public, and it creates a customer with no business (`tenant_id`). Anyone can create logins. |
+| `WorkLogController@checkOut` (project managers) | It counts closed tasks with `status = 'completed'`, but tasks use `done`, so that count is always 0. |
+| Customer pay | The API has no pay endpoint (virtual account or status), so the app opens the web pay page, where the customer must sign in again. |
 
 Login tokens are stored in the iOS Keychain / Android Keystore (`flutter_secure_storage`).
-Tests use a fake backend shaped like the Laravel controllers: `test/api_test.dart`, `test/live_flow_test.dart`, `test/workspace_test.dart`.
+Tests use a fake backend shaped like the Laravel controllers: `test/api_test.dart`, `test/live_flow_test.dart`, `test/workspace_test.dart`, `test/mobile_api_test.dart`, `test/portal_test.dart`.
 
 > ⚠️ Don't ship live mode to real businesses until the two security issues marked above are fixed on the backend.
 

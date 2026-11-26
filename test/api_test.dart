@@ -135,10 +135,12 @@ void main() {
       expect(store.remote, same(session));
     });
 
-    test('rejects staff and customer accounts', () async {
+    test('staff accounts open the staff app instead of the business workspace', () async {
       backend.loginType = 'team';
-      await expectLater(session.login('s@x.ng', 'secret123'), throwsA(isA<ApiException>().having((e) => e.message, 'm', contains('staff'))));
-      expect(tokens.token, isNull);
+      await session.login('s@x.ng', 'secret123');
+      expect(session.role, AccountRole.staff);
+      expect(session.portalAccount.value?.name, 'Amaka Eze');
+      expect(tokens.role, 'team');
     });
 
     test('wrong password shows the server message', () async {

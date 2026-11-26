@@ -142,18 +142,8 @@ class _StoreScreenState extends State<StoreScreen> {
 class _StorefrontTab extends StatelessWidget {
   const _StorefrontTab();
 
-  Future<void> _upload(BuildContext context, {required bool logo}) async {
-    final ok = await showImageSourceSheet(context, title: logo ? 'Add Logo' : 'Add Banner');
-    if (!ok) return;
-    final s = BizStore.instance.storefront;
-    if (logo) {
-      s.hasLogo = true;
-    } else {
-      s.hasBanner = true;
-    }
-    BizStore.instance.updateStorefront();
-    if (context.mounted) showToast(context, logo ? 'Logo uploaded' : 'Banner uploaded');
-  }
+  /// The banner is uploaded from the storefront editor (the API has no logo upload).
+  void _editStorefront(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditStorefrontScreen()));
 
   @override
   Widget build(BuildContext context) {
@@ -190,13 +180,13 @@ class _StorefrontTab extends StatelessWidget {
             Stack(clipBehavior: Clip.none, children: [
               Container(
                 height: 96,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  gradient: s.hasBanner
-                      ? const LinearGradient(colors: [Color(0xFF7A4BA0), Color(0xFF2F5D9E), Color(0xFFB4532A)])
-                      : LinearGradient(colors: [p.primarySoft, p.accentSoft]),
+                  gradient: LinearGradient(colors: [p.primarySoft, p.accentSoft]),
+                  image: s.bannerUrl == null ? null : DecorationImage(image: NetworkImage(s.bannerUrl!), fit: BoxFit.cover),
                 ),
                 alignment: Alignment.center,
-                child: s.hasBanner ? null : Text('No banner yet', style: tx(context, 12, color: p.textMuted)),
+                child: s.bannerUrl != null ? null : Text('No banner yet', style: tx(context, 12, color: p.textMuted)),
               ),
               Positioned(
                 left: 14,
@@ -204,7 +194,7 @@ class _StorefrontTab extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(color: p.card, shape: BoxShape.circle),
-                  child: s.hasLogo ? const ClipOval(child: ProductThumb(photo: 3, size: 52)) : InitialsAvatar(s.name, size: 52),
+                  child: InitialsAvatar(s.name, size: 52),
                 ),
               ),
             ]),
@@ -260,10 +250,8 @@ class _StorefrontTab extends StatelessWidget {
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomDomainScreen()))),
       const SizedBox(height: 8),
       const SectionLabel('Brand'),
-      row(Icons.image_outlined, 'Logo', s.hasLogo ? 'Added' : 'Not added', StatusPill(s.hasLogo ? BizStatus.uploaded : BizStatus.notUploaded),
-          () => _upload(context, logo: true)),
-      row(Icons.panorama_outlined, 'Banner', s.hasBanner ? 'Added' : 'Not added', StatusPill(s.hasBanner ? BizStatus.uploaded : BizStatus.notUploaded),
-          () => _upload(context, logo: false)),
+      row(Icons.panorama_outlined, 'Banner', s.bannerUrl != null ? 'Added' : 'Not added', StatusPill(s.bannerUrl != null ? BizStatus.uploaded : BizStatus.notUploaded),
+          () => _editStorefront(context)),
       const SizedBox(height: 12),
       CustomButton(
         text: 'Edit Storefront',

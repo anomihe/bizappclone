@@ -9,10 +9,9 @@ import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../widgets/auth_scaffold.dart';
-import 'otp_verification_screen.dart';
 import 'reset_password_screen.dart';
 
-/// "Reset Password" — step 1: ask for email or phone.
+/// "Reset Password" — step 1: ask for the account email.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -31,37 +30,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _send() async {
-    setState(() => _loading = true);
-    if (LiveSession.enabled) {
-      // The backend emails a reset link (no 6-digit code).
-      if (!Fmt.isEmail(_id.text)) {
-        setState(() => _loading = false);
-        showToast(context, 'Enter the email address on your account');
-        return;
-      }
-      try {
-        await LiveSession.instance.sendResetLink(_id.text);
-        if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ResetLinkSentScreen(email: _id.text.trim())));
-      } on ApiException catch (e) {
-        if (mounted) showToast(context, e.message);
-      } finally {
-        if (mounted) setState(() => _loading = false);
-      }
+    // The backend emails a reset link / code.
+    if (!Fmt.isEmail(_id.text)) {
+      showToast(context, 'Enter the email address on your account');
       return;
     }
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OtpVerificationScreen(
-          title: "Verify it's you.",
-          subtitle: 'Please enter the 6-digit code sent to your phone number: +234 ****** 484. Enter it below to continue.',
-          onVerified: (ctx) => Navigator.pushReplacement(ctx, MaterialPageRoute(builder: (_) => const ResetPasswordScreen())),
-        ),
-      ),
-    );
+    setState(() => _loading = true);
+    try {
+      await LiveSession.instance.sendResetLink(_id.text);
+      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ResetLinkSentScreen(email: _id.text.trim())));
+    } on ApiException catch (e) {
+      if (mounted) showToast(context, e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -69,7 +51,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final p = context.p;
     return AuthScaffold(
       title: 'Reset Password',
-      subtitle: "Enter the email or phone number on your account. We'll send a code to verify it's you.",
+      subtitle: "Enter the email on your account. We'll email you a link and code to reset your password.",
       footer: Text.rich(TextSpan(children: [
         TextSpan(text: 'Remembered my password? ', style: tx(context, 12.5, color: p.textSecondary)),
         TextSpan(
@@ -80,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ])),
       children: [
         CustomTextField(
-          label: 'Email or Phone',
+          label: 'Email',
           hint: 'Enter your email',
           controller: _id,
           keyboardType: TextInputType.emailAddress,

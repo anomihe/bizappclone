@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/biz_store.dart';
+import 'api_client.dart';
 import 'live_session.dart';
 import 'mappers.dart';
 
@@ -50,7 +51,6 @@ class ResourceSpec {
   final String? parentKey;
   final String emptyMessage;
   final String? notice;
-  final List<Map<String, dynamic>> Function() demo;
 
   const ResourceSpec({
     required this.id,
@@ -71,7 +71,6 @@ class ResourceSpec {
     this.parentKey,
     required this.emptyMessage,
     this.notice,
-    required this.demo,
   });
 }
 
@@ -90,62 +89,27 @@ StatusStyle genericStatus(String raw) {
   return StatusStyle(label, color);
 }
 
-/// CRUD over the API (live) or an in-memory sample set (demo).
+/// CRUD for the generic `/api/v1/admin/*` resources.
 class ResourceRepository {
   static ResourceRepository instance = ResourceRepository();
 
-  final _demo = <String, List<Map<String, dynamic>>>{};
-  var _seq = 5000;
+  ApiClient get _api => LiveSession.instance.api;
 
-  bool get _live => LiveSession.enabled;
+  Future<List<Map<String, dynamic>>> list(ResourceSpec s, {Map<String, dynamic>? query}) => _api.getAllPages(s.path, query: query);
 
-  List<Map<String, dynamic>> _demoFor(ResourceSpec s) => _demo.putIfAbsent(s.id, () => s.demo().map((m) => {...m}).toList());
+  Future<Map<String, dynamic>> show(ResourceSpec s, Object id) async => Map<String, dynamic>.from(await _api.get('${s.path}/$id') as Map);
 
-  Future<List<Map<String, dynamic>>> list(ResourceSpec s, {Map<String, dynamic>? query}) async {
-    if (_live) return LiveSession.instance.api.getAllPages(s.path, query: query);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    return _demoFor(s).where((m) => query == null || query.entries.every((q) => '${m[q.key]}' == '${q.value}')).toList();
-  }
+  Future<Map<String, dynamic>> create(ResourceSpec s, Map<String, dynamic> body) async => Map<String, dynamic>.from(await _api.post(s.path, body) as Map);
 
-  Future<Map<String, dynamic>> show(ResourceSpec s, Object id) async {
-    if (_live) return Map<String, dynamic>.from(await LiveSession.instance.api.get('${s.path}/$id') as Map);
-    return _demoFor(s).firstWhere((m) => '${m['id']}' == '$id', orElse: () => {});
-  }
+  Future<Map<String, dynamic>> update(ResourceSpec s, Object id, Map<String, dynamic> body) async =>
+      Map<String, dynamic>.from(await _api.put('${s.path}/$id', body) as Map);
 
-  Future<Map<String, dynamic>> create(ResourceSpec s, Map<String, dynamic> body) async {
-    if (_live) return Map<String, dynamic>.from(await LiveSession.instance.api.post(s.path, body) as Map);
-    final m = {...body, 'id': _seq++, 'created_at': DateTime.now().toIso8601String()};
-    _demoFor(s).insert(0, m);
-    return m;
-  }
-
-  Future<Map<String, dynamic>> update(ResourceSpec s, Object id, Map<String, dynamic> body) async {
-    if (_live) return Map<String, dynamic>.from(await LiveSession.instance.api.put('${s.path}/$id', body) as Map);
-    final list = _demoFor(s);
-    final i = list.indexWhere((m) => '${m['id']}' == '$id');
-    if (i >= 0) list[i] = {...list[i], ...body};
-    return i >= 0 ? list[i] : body;
-  }
-
-  Future<void> delete(ResourceSpec s, Object id) async {
-    if (_live) {
-      await LiveSession.instance.api.delete('${s.path}/$id');
-      return;
-    }
-    _demoFor(s).removeWhere((m) => '${m['id']}' == '$id');
-  }
+  Future<void> delete(ResourceSpec s, Object id) => _api.delete('${s.path}/$id');
 
   /// `PATCH {path}/{id}/status` (projects, milestones, tasks).
-  Future<void> setStatus(ResourceSpec s, Object id, String status) async {
-    if (_live) {
-      await LiveSession.instance.api.patch('${s.path}/$id/status', {'status': status});
-      return;
-    }
-    final m = _demoFor(s).firstWhere((m) => '${m['id']}' == '$id', orElse: () => {});
-    m['status'] = status;
-  }
+  Future<void> setStatus(ResourceSpec s, Object id, String status) => _api.patch('${s.path}/$id/status', {'status': status});
 
-  /// Options for customer / staff pickers, keyed by backend id when live.
+  /// Options for customer / staff pickers, keyed by backend id.
   static List<(String, String)> customerOptions() => [
         for (final c in BizStore.instance.customers) ('${c.serverId ?? c.id}', c.name),
       ];

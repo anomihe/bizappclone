@@ -71,36 +71,6 @@ class ProductThumb extends StatelessWidget {
 
 /// "Add Logo" / "Add Banner" / "Add Photo" source picker. Returns true when
 /// the user picked a source (camera/gallery access needs `image_picker`).
-Future<bool> showImageSourceSheet(BuildContext context, {String title = 'Add Logo'}) async {
-  final picked = await showBpSheet<bool>(
-    context,
-    title: title,
-    builder: (ctx) {
-      final p = ctx.p;
-      Widget option(IconData icon, String label) => Expanded(
-            child: InkWell(
-              onTap: () => Navigator.pop(ctx, true),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Column(children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(color: p.primarySoft, shape: BoxShape.circle),
-                    child: Icon(icon, size: 30, color: p.brand),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(label, style: tx(ctx, 12.5, color: p.textSecondary)),
-                ]),
-              ),
-            ),
-          );
-      return Row(children: [option(Icons.photo_camera_outlined, 'Take a photo'), option(Icons.photo_library_outlined, 'Choose from Gallery')]);
-    },
-  );
-  return picked ?? false;
-}
 
 /// Quantity − n + stepper used on the product form.
 class QuantityStepper extends StatelessWidget {

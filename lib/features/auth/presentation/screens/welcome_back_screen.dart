@@ -6,7 +6,6 @@ import '../../../../core/api/repositories.dart' show TwoFactorRequired;
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/biometrics.dart';
-import '../../../../core/widgets/bizpaddi_logo.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/ui_kit.dart';
@@ -16,7 +15,7 @@ import 'forgot_password_screen.dart';
 import 'login_screen.dart';
 import 'two_factor_challenge.dart';
 
-/// Returning user on this device: password or fingerprint.
+/// Returning user on this device: password, or fingerprint / Face ID if they turned it on.
 class WelcomeBackScreen extends StatefulWidget {
   const WelcomeBackScreen({super.key});
 
@@ -27,6 +26,19 @@ class WelcomeBackScreen extends StatefulWidget {
 class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
   final _password = TextEditingController();
   bool _loading = false;
+  String? _savedEmail;
+  bool _biometricOn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    LiveSession.instance.savedEmail().then((e) {
+      if (mounted) setState(() => _savedEmail = e);
+    });
+    Biometrics.isEnabled().then((on) {
+      if (mounted) setState(() => _biometricOn = on);
+    });
+  }
 
   @override
   void dispose() {
@@ -34,115 +46,45 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     super.dispose();
   }
 
-  String? _savedEmail;
-
-  /// Live: only offer fingerprint once the owner turned it on on this device.
-  bool _biometricOn = !LiveSession.enabled;
-
-  @override
-  void initState() {
-    super.initState();
-    if (LiveSession.enabled) {
-      LiveSession.instance.savedEmail().then((e) {
-        if (mounted) setState(() => _savedEmail = e);
-      });
-      Biometrics.isEnabled().then((on) {
-        if (mounted) setState(() => _biometricOn = on);
-      });
-    }
-  }
-
-  /// Live mode with no remembered email: fall back to the full login form.
+  /// No remembered email: fall back to the full login form.
   void _toLogin() => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
 
-  void _enter() {
-    if (!LiveSession.enabled) BizStore.instance.loadDemoWorkspace();
-    MainNavigationScreen.go(context);
+  Future<void> _continue() async {
+    if (_savedEmail == null) return _toLogin();
+    setState(() => _loading = true);
+    try {
+      await LiveSession.instance.login(_savedEmail!, _password.text);
+      if (mounted) MainNavigationScreen.go(context);
+    } on TwoFactorRequired catch (t) {
+      if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
+    } on ApiException catch (e) {
+      if (mounted) showToast(context, e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
-  Future<void> _continue() async {
-    setState(() => _loading = true);
-    if (LiveSession.enabled) {
-      if (_savedEmail == null) return _toLogin();
-      try {
-        await LiveSession.instance.login(_savedEmail!, _password.text);
-        if (mounted) _enter();
-      } on TwoFactorRequired catch (t) {
-        if (mounted) await openTwoFactorChallenge(context, t.challengeToken, onSignedIn: MainNavigationScreen.go);
-      } on ApiException catch (e) {
-        if (mounted) showToast(context, e.message);
-      } finally {
-        if (mounted) setState(() => _loading = false);
-      }
+  /// The real OS fingerprint / Face ID prompt re-opens the saved session.
+  Future<void> _fingerprint() async {
+    final passed = await Biometrics.authenticate('Unlock Bizpaddi');
+    if (!mounted) return;
+    if (!passed) {
+      showToast(context, 'Fingerprint / Face ID not confirmed. Enter your password to continue.');
       return;
     }
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
-    _enter();
-  }
-
-  /// Live mode: biometrics re-open the saved session token.
-  Future<void> _resumeLive() async {
     try {
       await LiveSession.instance.resume();
-      if (mounted) _enter();
+      if (mounted) MainNavigationScreen.go(context);
     } on ApiException catch (e) {
-      if (!mounted) return;
-      showToast(context, e.isUnauthorized ? 'Your session ended. Enter your password to continue.' : e.message);
+      if (mounted) showToast(context, e.isUnauthorized ? 'Your session ended. Enter your password to continue.' : e.message);
     }
-  }
-
-  /// Live: the real OS fingerprint / Face ID prompt opens the saved session.
-  /// Demo: a visual stand-in.
-  Future<void> _fingerprint() async {
-    if (LiveSession.enabled) {
-      final passed = await Biometrics.authenticate('Unlock Bizpaddi');
-      if (!mounted) return;
-      if (passed) {
-        await _resumeLive();
-      } else {
-        showToast(context, 'Fingerprint / Face ID not confirmed. Enter your password to continue.');
-      }
-      return;
-    }
-    final ok = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black54,
-      builder: (ctx) {
-        Future.delayed(const Duration(milliseconds: 1400), () {
-          if (ctx.mounted) Navigator.pop(ctx, true);
-        });
-        return Dialog(
-          backgroundColor: ctx.p.card,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: ctx.p.primarySoft, borderRadius: BorderRadius.circular(12)),
-                child: const BizpaddiLogo(size: 30),
-              ),
-              const SizedBox(height: 12),
-              Text('Bizpaddi', style: tx(ctx, 15, weight: FontWeight.w800)),
-              const SizedBox(height: 4),
-              Text('Verify Fingerprint', style: tx(ctx, 12.5, color: ctx.p.textSecondary)),
-              const SizedBox(height: 20),
-              Icon(Icons.fingerprint, size: 56, color: context.p.brand),
-            ]),
-          ),
-        );
-      },
-    );
-    if (ok == true && mounted) _enter();
   }
 
   @override
   Widget build(BuildContext context) {
     final p = context.p;
-    final account = BizStore.instance.account;
-    // Live mode: the workspace isn't loaded yet, so greet by the saved email.
-    final displayName = LiveSession.enabled ? (_savedEmail ?? '') : account.ownerFullName;
+    // The account isn't loaded yet, so greet by the saved email.
+    final displayName = _savedEmail ?? '';
 
     return Scaffold(
       backgroundColor: p.bg,
@@ -179,12 +121,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                 CustomButton(text: 'Continue', isLoading: _loading, onPressed: _password.text.isEmpty ? null : _continue),
                 if (_biometricOn) ...[
                   const SizedBox(height: 10),
-                  CustomButton(
-                    text: 'Log in with Fingerprint',
-                    variant: ButtonVariant.outline,
-                    icon: const Icon(Icons.fingerprint),
-                    onPressed: _fingerprint,
-                  ),
+                  CustomButton(text: 'Log in with Fingerprint', variant: ButtonVariant.outline, icon: const Icon(Icons.fingerprint), onPressed: _fingerprint),
                 ],
               ]),
             ),
@@ -199,10 +136,8 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
                     BizStore.instance.hasRememberedUser = false;
-                    if (LiveSession.enabled) {
-                      LiveSession.instance.logout();
-                      LiveSession.instance.tokens.clearAll();
-                    }
+                    LiveSession.instance.logout();
+                    LiveSession.instance.tokens.clearAll();
                     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const WelcomeScreen()), (_) => false);
                   },
               ),

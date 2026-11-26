@@ -81,16 +81,17 @@ class AuthRepository {
   }
 
   /// Emails a reset **link** (the backend has no 6-digit reset code).
-  Future<void> forgotPassword(String email) =>
-      api.post('/v1/auth/forgot-password', {'email': email.trim(), 'guard': ApiConfig.accountType});
+  Future<void> forgotPassword(String email, {String guard = ApiConfig.accountType}) =>
+      api.post('/v1/auth/forgot-password', {'email': email.trim(), 'guard': guard});
 
   /// Completes a reset with the token from the emailed link.
-  Future<void> resetPassword({required String token, required String email, required String password}) => api.post('/v1/auth/reset-password', {
+  Future<void> resetPassword({required String token, required String email, required String password, String guard = ApiConfig.accountType}) =>
+      api.post('/v1/auth/reset-password', {
         'token': token,
         'email': email.trim(),
         'password': password,
         'password_confirmation': password,
-        'guard': ApiConfig.accountType,
+        'guard': guard,
       });
 }
 

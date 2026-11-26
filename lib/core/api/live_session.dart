@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import '../data/biz_store.dart';
 import '../utils/biometrics.dart';
 import 'api_client.dart';
-import 'api_config.dart';
 import 'mappers.dart';
+import 'portal_repositories.dart';
 import 'repositories.dart';
 import 'token_store.dart';
 
@@ -22,7 +22,16 @@ class LiveSession implements BizRemote {
   final TokenStore tokens;
   late final AuthRepository auth = AuthRepository(api);
   late final BusinessRepository business = BusinessRepository(api);
+  late final TeamRepository team = TeamRepository(api);
+  late final ClientRepository client = ClientRepository(api);
   final BizStore store;
+
+  /// Who is signed in: [AccountRole.owner] (business), [AccountRole.staff]
+  /// or [AccountRole.customer]. Decides which home the app opens.
+  AccountRole role = AccountRole.owner;
+
+  /// Staff / customer profile (null for business owners, who use [BizStore.account]).
+  final ValueNotifier<PortalAccount?> portalAccount = ValueNotifier(null);
 
   /// Becomes true when the backend rejects the token; the shell sends the
   /// user back to log in.
@@ -42,12 +51,6 @@ class LiveSession implements BizRemote {
       sessionExpired.value = true;
     };
   }
-
-  /// Tests can force live mode without a build-time API_BASE_URL.
-  @visibleForTesting
-  static bool? debugEnabledOverride;
-
-  static bool get enabled => debugEnabledOverride ?? ApiConfig.isLive;
 
   // ---------------------------------------------------------------- auth
 
@@ -97,16 +100,34 @@ class LiveSession implements BizRemote {
   Future<void> verifySignupCode(String email, String code) => auth.registerVerifyOtp(email, code);
 
   Future<void> _signIn(LoginResult result) async {
-    if (result.type != ApiConfig.accountType) {
-      // Staff and customers have their own portals; don't keep their token.
-      throw ApiException(result.type == 'team'
-          ? 'This is a staff account. Staff use the Bizpaddi Team app or bizpaddi.com.'
-          : 'This is a customer account. Customers use the client portal on bizpaddi.com.');
-    }
+    final r = AccountRole.fromApi(result.type);
+    if (r == null) throw const ApiException('This account type can’t use the Bizpaddi app.');
     api.token = result.token;
-    await tokens.save(token: result.token, email: result.email);
     sessionExpired.value = false;
-    await loadWorkspace();
+    await _open(r);
+    await tokens.save(token: result.token, email: result.email, role: r.api);
+  }
+
+  /// Loads what the signed-in person sees: the business workspace, or their staff / customer profile.
+  Future<void> _open(AccountRole r) async {
+    role = r;
+    LiveLinks.host = api.baseUrl.replaceFirst(RegExp(r'^https?://'), '');
+    if (r == AccountRole.owner) {
+      portalAccount.value = null;
+      await loadWorkspace();
+      return;
+    }
+    store.remote = null;
+    await refreshPortalProfile();
+    final push = pushToken;
+    if (push != null) unawaited(_optional(_registerPortalToken(push)));
+  }
+
+  Future<PortalAccount> refreshPortalProfile() async {
+    final j = role == AccountRole.staff ? await team.profile() : await client.profile();
+    final a = PortalAccount.fromJson(j, role);
+    portalAccount.value = a;
+    return a;
   }
 
   /// Re-opens a saved session (fingerprint / app restart). Throws if the token expired.
@@ -114,31 +135,75 @@ class LiveSession implements BizRemote {
     final token = await tokens.readToken();
     if (token == null) throw const ApiException('Please log in again.', statusCode: 401);
     api.token = token;
-    await loadWorkspace();
+    await _open(AccountRole.fromApi(await tokens.readRole() ?? 'admin') ?? AccountRole.owner);
   }
 
   Future<void> logout() async {
     try {
       final push = pushToken;
-      if (api.token != null && push != null) await business.removeDeviceToken(push);
-      if (api.token != null) await business.logout();
+      if (api.token != null) {
+        switch (role) {
+          case AccountRole.owner:
+            if (push != null) await business.removeDeviceToken(push);
+            await business.logout();
+          case AccountRole.staff:
+            await team.logout();
+          case AccountRole.customer:
+            await client.logout();
+        }
+      }
     } on ApiException {
       // Token already invalid or offline — still sign out locally.
     }
     api.token = null;
     store.remote = null;
+    portalAccount.value = null;
     await tokens.clearToken();
   }
 
-  Future<void> sendResetLink(String email) => auth.forgotPassword(email);
+  /// The reset link is per account type and we don't know it before login,
+  /// so try business owner, then staff, then customer.
+  Future<void> sendResetLink(String email) async {
+    ApiException? last;
+    for (final guard in const ['admin', 'team', 'client']) {
+      try {
+        await auth.forgotPassword(email, guard: guard);
+        return;
+      } on ApiException catch (e) {
+        if (e.isNetwork) rethrow;
+        last = e;
+      }
+    }
+    throw last ?? const ApiException('We couldn’t send a reset link to that email.');
+  }
 
-  /// Sets a new password with the token from the reset email.
-  Future<void> resetPassword({required String token, required String email, required String password}) =>
-      auth.resetPassword(token: token, email: email, password: password);
+  /// Sets a new password with the token from the reset email (tries each account type).
+  Future<void> resetPassword({required String token, required String email, required String password}) async {
+    ApiException? last;
+    for (final guard in const ['admin', 'team', 'client']) {
+      try {
+        await auth.resetPassword(token: token, email: email, password: password, guard: guard);
+        return;
+      } on ApiException catch (e) {
+        if (e.isNetwork || e.statusCode == 422) rethrow;
+        last = e;
+      }
+    }
+    throw last ?? const ApiException('This reset code is invalid or has expired.');
+  }
 
   // ---------------------------------------------------------------- profile
 
   Future<void> updateProfile({required String name, required String phone}) async {
+    if (role != AccountRole.owner) {
+      if (role == AccountRole.staff) {
+        await team.updateProfile(name: name, phone: phone);
+      } else {
+        await client.updateProfile(name: name, companyName: phone);
+      }
+      await refreshPortalProfile();
+      return;
+    }
     await business.updateProfile(name: name, phone: phone);
     store.account
       ..ownerFullName = name
@@ -150,20 +215,40 @@ class LiveSession implements BizRemote {
   }
 
   Future<void> uploadAvatar(List<int> bytes, String filename) async {
-    final j = await business.uploadAvatar(bytes, filename);
+    final j = switch (role) {
+      AccountRole.owner => await business.uploadAvatar(bytes, filename),
+      AccountRole.staff => await team.uploadAvatar(bytes, filename),
+      AccountRole.customer => await client.uploadAvatar(bytes, filename),
+    };
     final url = ApiMappers.str(j is Map ? j['avatar'] : null);
+    if (role != AccountRole.owner) {
+      portalAccount.value = portalAccount.value?.copyWith(avatarUrl: url.isEmpty ? null : url);
+      return;
+    }
     store.account.avatarUrl = url.isEmpty ? null : url;
     store.refresh();
   }
 
-  Future<void> changePassword({required String current, required String password}) => business.changePassword(current: current, password: password);
+  Future<void> changePassword({required String current, required String password}) => switch (role) {
+        AccountRole.owner => business.changePassword(current: current, password: password),
+        AccountRole.staff => team.changePassword(current: current, password: password),
+        AccountRole.customer => client.changePassword(current: current, password: password),
+      };
 
-  /// Deletes the owner account on the backend and signs out locally.
+  /// Deletes the signed-in account on the backend and signs out locally.
   Future<void> deleteAccount() async {
-    await business.deleteAccount();
+    switch (role) {
+      case AccountRole.owner:
+        await business.deleteAccount();
+      case AccountRole.staff:
+        await team.deleteAccount();
+      case AccountRole.customer:
+        await client.deleteAccount();
+    }
     api.token = null;
     store.remote = null;
-    await tokens.clearToken();
+    portalAccount.value = null;
+    await tokens.clearAll();
   }
 
   // ---------------------------------------------------------------- loading
@@ -302,7 +387,19 @@ class LiveSession implements BizRemote {
 
   Future<void> registerPushToken(String token) async {
     pushToken = token;
-    if (api.token != null) await _optional(business.addDeviceToken(token));
+    if (api.token == null) return;
+    if (role == AccountRole.owner) {
+      await _optional(business.addDeviceToken(token));
+    } else {
+      await _optional(_registerPortalToken(token));
+    }
+  }
+
+  /// Customers have their own device-token route; staff have none on the API yet.
+  Future<void> _registerPortalToken(String token) async {
+    if (role == AccountRole.customer) {
+      await client.addDeviceToken(token, defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android');
+    }
   }
 
   // ---------------------------------------------------------------- billing
@@ -588,4 +685,82 @@ class LiveSession implements BizRemote {
   Future<void> deleteQuotation(Quotation q) => _guard(() async {
         if (q.serverId != null) await business.deleteQuote(q.serverId!);
       });
+}
+
+/// Who is signed in. Each opens a different home in the same app.
+enum AccountRole {
+  owner('admin'),
+  staff('team'),
+  customer('client');
+
+  /// The `type` the login API returns.
+  final String api;
+  const AccountRole(this.api);
+
+  static AccountRole? fromApi(String type) => switch (type) {
+        'admin' => AccountRole.owner,
+        'team' => AccountRole.staff,
+        'client' => AccountRole.customer,
+        _ => null,
+      };
+}
+
+/// Staff or customer profile from `GET /team/profile` or `GET /client/profile`.
+class PortalAccount {
+  final int? id;
+  final String name;
+  final String email;
+  final String phone;
+  final AccountRole role;
+
+  /// Staff: job role (e.g. `pm`, `bdm`) and department. Customer: company name.
+  final String jobRole;
+  final String department;
+  final String companyName;
+  final String? avatarUrl;
+
+  const PortalAccount({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+    this.phone = '',
+    this.jobRole = '',
+    this.department = '',
+    this.companyName = '',
+    this.avatarUrl,
+  });
+
+  String get firstName => name.trim().split(' ').first;
+
+  /// Same rule as the backend's User::isProjectManager().
+  bool get isProjectManager => role == AccountRole.staff && const ['pm', 'project_manager', 'project manager'].contains(jobRole.toLowerCase());
+
+  factory PortalAccount.fromJson(Map<String, dynamic> j, AccountRole role) {
+    final dept = j['department'];
+    final avatar = ApiMappers.str(j['avatar']);
+    return PortalAccount(
+      id: ApiMappers.intOrNull(j['id']),
+      name: ApiMappers.str(j['name']),
+      email: ApiMappers.str(j['email']),
+      phone: ApiMappers.str(j['phone']),
+      role: role,
+      jobRole: ApiMappers.str(j['role']),
+      department: dept is Map ? ApiMappers.str(dept['name']) : ApiMappers.str(dept),
+      companyName: ApiMappers.str(j['company_name']),
+      avatarUrl: avatar.isEmpty ? null : avatar,
+    );
+  }
+
+  PortalAccount copyWith({String? avatarUrl}) => PortalAccount(
+        id: id,
+        name: name,
+        email: email,
+        role: role,
+        phone: phone,
+        jobRole: jobRole,
+        department: department,
+        companyName: companyName,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+      );
 }

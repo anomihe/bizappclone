@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/api/live_session.dart';
+import '../../../portal/customer_app.dart';
+import '../../../portal/staff_app.dart';
 import '../../../../core/data/models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
@@ -10,7 +12,6 @@ import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../customers/presentation/screens/customer_form_screen.dart';
 import '../../../customers/presentation/screens/customers_tab.dart';
 import '../../../invoices/presentation/screens/create_document_screen.dart';
-import '../../../invoices/presentation/screens/create_payment_link_screen.dart';
 import '../../../invoices/presentation/screens/invoices_tab.dart';
 import '../../../more/presentation/screens/more_tab.dart';
 import '../../../payments/presentation/screens/payments_tab.dart';
@@ -24,11 +25,14 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key, this.initialTab = 0, this.openNewInvoice = false});
 
   /// Replace the whole stack with the signed-in shell.
+  /// Opens the home for whoever is signed in: business owner, staff or customer.
   static void go(BuildContext context, {int tab = 0, bool openNewInvoice = false}) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => MainNavigationScreen(initialTab: tab, openNewInvoice: openNewInvoice)),
-      (_) => false,
-    );
+    final Widget home = switch (LiveSession.instance.role) {
+      AccountRole.staff => const StaffShell(),
+      AccountRole.customer => const CustomerShell(),
+      AccountRole.owner => MainNavigationScreen(initialTab: tab, openNewInvoice: openNewInvoice),
+    };
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => home), (_) => false);
   }
 
   /// Switch tabs from anywhere inside the shell (e.g. "View All").
@@ -58,10 +62,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         if (mounted) CreateActions.newInvoice(context);
       });
     }
-    if (LiveSession.enabled) {
-      LiveSession.instance.syncError.addListener(_onSyncError);
-      LiveSession.instance.sessionExpired.addListener(_onSessionExpired);
-    }
+    LiveSession.instance.syncError.addListener(_onSyncError);
+    LiveSession.instance.sessionExpired.addListener(_onSessionExpired);
   }
 
   @override
@@ -188,9 +190,6 @@ class CreateActions {
   static Future<void> newQuotation(BuildContext context) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.quotation()));
 
-  static Future<void> newPaymentLink(BuildContext context) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePaymentLinkScreen()));
-
   static Future<void> newCustomer(BuildContext context) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerFormScreen()));
 }
@@ -221,8 +220,6 @@ class CreateNewFab extends StatelessWidget {
         CreateActions.newInvoice(context);
       case 'quotation':
         CreateActions.newQuotation(context);
-      case 'link':
-        CreateActions.newPaymentLink(context);
       case 'customer':
         CreateActions.newCustomer(context);
       case 'product':
@@ -251,7 +248,6 @@ class _CreateMenu extends StatelessWidget {
   static const _options = [
     ('invoice', Icons.receipt_long_outlined, 'Invoice'),
     ('quotation', Icons.request_quote_outlined, 'Quotation'),
-    ('link', Icons.link, 'Payment Link'),
     ('customer', Icons.person_add_alt_outlined, 'New Customer'),
     ('product', Icons.inventory_2_outlined, 'New Product'),
   ];
@@ -267,8 +263,7 @@ class _CreateMenu extends StatelessWidget {
           child: Material(
             type: MaterialType.transparency,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              // Payment links have no backend yet, so they're demo-only.
-              for (final o in _options.where((o) => o.$1 != 'link' || !LiveSession.enabled))
+              for (final o in _options)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Material(

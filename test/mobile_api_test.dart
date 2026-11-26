@@ -26,13 +26,11 @@ void main() {
       );
 
   Future<void> signIn() async {
-    LiveSession.debugEnabledOverride = true;
     await session().login('ada@shop.ng', 'secret123');
     backend.requests.clear();
   }
 
   setUp(() => backend = FakeBackend());
-  tearDown(() => LiveSession.debugEnabledOverride = false);
 
   group('auth', () {
     test('2FA login: stops at the challenge, then signs in with the code', () async {

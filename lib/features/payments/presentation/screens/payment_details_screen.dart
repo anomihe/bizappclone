@@ -5,7 +5,6 @@ import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
-import '../../../invoices/presentation/screens/credit_note_screens.dart';
 import '../../../invoices/presentation/screens/invoice_details_screen.dart';
 import '../../../orders/presentation/screens/order_details_screen.dart';
 import '../../../support/presentation/screens/help_support_screen.dart';
@@ -27,34 +26,9 @@ class PaymentDetailsScreen extends StatelessWidget {
 
     void receipt() => Navigator.push(context, MaterialPageRoute(builder: (_) => ReceiptScreen(payment: pay)));
 
-    Widget? bottom;
-    if (canReceipt && pay.isOrder) {
-      bottom = Row(children: [
-        Expanded(
-          child: CustomButton(
-            text: 'Download',
-            variant: ButtonVariant.outline,
-            icon: const Icon(Icons.download_outlined),
-            onPressed: () => showToast(context, 'PDF download is coming soon — use View Receipt to share it'),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: CustomButton(text: 'View Receipt', variant: ButtonVariant.accent, icon: const Icon(Icons.receipt_outlined), onPressed: receipt)),
-      ]);
-    } else if (canReceipt) {
-      bottom = Column(mainAxisSize: MainAxisSize.min, children: [
-        if (pay.status == PaymentStatus.paid && invoice != null) ...[
-          CustomButton(
-            text: 'Issue Credit Note or Refund',
-            variant: ButtonVariant.outline,
-            icon: const Icon(Icons.receipt_long_outlined),
-            onPressed: () => showCreditOrRefundSheet(context, invoice),
-          ),
-          const SizedBox(height: 10),
-        ],
-        CustomButton(text: 'View Receipt', variant: ButtonVariant.accent, icon: const Icon(Icons.receipt_outlined), onPressed: receipt),
-      ]);
-    }
+    final Widget? bottom = canReceipt
+        ? CustomButton(text: 'View Receipt', variant: ButtonVariant.accent, icon: const Icon(Icons.receipt_outlined), onPressed: receipt)
+        : null;
 
     return InnerScaffold(
       title: 'Payments Details',

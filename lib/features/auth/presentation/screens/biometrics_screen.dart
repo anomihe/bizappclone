@@ -1,33 +1,25 @@
 import 'package:flutter/material.dart';
-import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../../core/utils/biometrics.dart';
-import 'choose_plan_screen.dart';
 import 'registration_success_screen.dart';
 
 /// "Log in faster" — offer fingerprint / Face ID after sign-up.
-/// Live mode uses the real OS prompt (local_auth); demo mode only records the choice.
+/// Uses the real OS prompt (local_auth).
 class BiometricsScreen extends StatelessWidget {
   const BiometricsScreen({super.key});
 
+  /// Real OS prompt, saved on this device. New businesses are pay-as-you-go
+  /// (no trial to choose), so go straight to the welcome screen.
   Future<void> _next(BuildContext context, bool enable) async {
-    if (LiveSession.enabled) {
-      // Real prompt; saved on this device. New businesses are pay-as-you-go
-      // (no trial to choose), so go straight to the welcome screen.
-      final on = enable && await Biometrics.setEnabled(true);
-      BizStore.instance.setBiometrics(on);
-      if (!context.mounted) return;
-      if (enable) showToast(context, on ? 'Biometric login enabled' : 'Fingerprint / Face ID wasn’t confirmed. You can turn it on later in Security.');
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegistrationSuccessScreen()));
-      return;
-    }
-    BizStore.instance.setBiometrics(enable);
-    if (enable) showToast(context, 'Biometric login enabled');
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ChoosePlanScreen()));
+    final on = enable && await Biometrics.setEnabled(true);
+    BizStore.instance.setBiometrics(on);
+    if (!context.mounted) return;
+    if (enable) showToast(context, on ? 'Biometric login enabled' : 'Fingerprint / Face ID wasn’t confirmed. You can turn it on later in Security.');
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegistrationSuccessScreen()));
   }
 
   @override

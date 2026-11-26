@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -36,7 +35,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   }
 
   // The backend requires an email for every customer (they get a portal login).
-  bool get _emailOk => LiveSession.enabled ? Fmt.isEmail(_email.text) : (_email.text.trim().isEmpty || Fmt.isEmail(_email.text));
+  bool get _emailOk => Fmt.isEmail(_email.text);
   bool get _valid => _name.text.trim().isNotEmpty && _phone.text.replaceAll(' ', '').length >= 7 && _emailOk;
 
   void _save() {
@@ -78,7 +77,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         PhoneField(controller: _phone, country: _country, onCountryChanged: (c) => setState(() => _country = c), onChanged: refresh),
         const SizedBox(height: 14),
         CustomTextField(
-          label: LiveSession.enabled ? 'Email' : 'Email (optional)',
+          label: 'Email',
           hint: 'Enter your email',
           controller: _email,
           keyboardType: TextInputType.emailAddress,

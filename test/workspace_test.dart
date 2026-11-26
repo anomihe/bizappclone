@@ -18,7 +18,6 @@ void main() {
   late FakeBackend backend;
 
   Future<void> signIn() async {
-    LiveSession.debugEnabledOverride = true;
     LiveSession.instance = LiveSession(
       api: ApiClient(baseUrl: 'https://x.test', httpClient: backend.client),
       tokens: MemoryTokenStore(),
@@ -29,7 +28,6 @@ void main() {
   }
 
   setUp(() => backend = FakeBackend());
-  tearDown(() => LiveSession.debugEnabledOverride = false);
 
   group('API', () {
     setUp(signIn);
@@ -239,16 +237,19 @@ void main() {
     });
   });
 
-  group('screens (demo)', () {
-    testWidgets('every workspace list renders sample data', (tester) async {
+  group('screens (from the backend)', () {
+    testWidgets('every workspace list loads from the API', (tester) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
+      await tester.runAsync(signIn);
+      // The fake backend has rows for these; the rest show their empty state.
+      const withRows = {'leads', 'tickets', 'currencies', 'projects', 'tasks'};
       for (final spec in [Specs.leads, Specs.contacts, Specs.campaigns, Specs.tickets, Specs.services, Specs.salaries, Specs.departments, Specs.currencies, Specs.contracts, Specs.contractTemplates, Specs.projects, Specs.tasks, Specs.workLogs]) {
         await tester.pumpWidget(MaterialApp(theme: AppTheme.lightTheme, home: ResourceListScreen(key: ValueKey(spec.id), spec: spec)));
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
         await tester.pump(const Duration(milliseconds: 200));
-        await tester.pump(const Duration(milliseconds: 200));
-        expect(find.byType(ResourceTile), findsWidgets, reason: spec.id);
+        if (withRows.contains(spec.id)) expect(find.byType(ResourceTile), findsWidgets, reason: spec.id);
         expect(tester.takeException(), isNull, reason: spec.id);
       }
     });

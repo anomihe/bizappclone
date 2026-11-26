@@ -4,7 +4,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 abstract class TokenStore {
   Future<String?> readToken();
   Future<String?> readEmail();
-  Future<void> save({required String token, required String email});
+
+  /// `admin` (business owner), `team` (staff) or `client` (customer).
+  Future<String?> readRole();
+  Future<void> save({required String token, required String email, String role = 'admin'});
   Future<void> clearToken();
   Future<void> clearAll();
 }
@@ -13,6 +16,7 @@ abstract class TokenStore {
 class SecureTokenStore implements TokenStore {
   static const _tokenKey = 'bizpaddi_api_token';
   static const _emailKey = 'bizpaddi_last_email';
+  static const _roleKey = 'bizpaddi_account_role';
   final FlutterSecureStorage _storage;
 
   SecureTokenStore([FlutterSecureStorage? storage])
@@ -28,9 +32,12 @@ class SecureTokenStore implements TokenStore {
   Future<String?> readEmail() => _storage.read(key: _emailKey);
 
   @override
-  Future<void> save({required String token, required String email}) async {
+  Future<String?> readRole() => _storage.read(key: _roleKey);
+  @override
+  Future<void> save({required String token, required String email, String role = 'admin'}) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _emailKey, value: email);
+    await _storage.write(key: _roleKey, value: role);
   }
 
   /// Signs out but keeps the email so "Welcome back" can greet the user.
@@ -48,14 +55,18 @@ class SecureTokenStore implements TokenStore {
 class MemoryTokenStore implements TokenStore {
   String? token;
   String? email;
+  String? role;
   @override
   Future<String?> readToken() async => token;
   @override
+  Future<String?> readRole() async => role;
+  @override
   Future<String?> readEmail() async => email;
   @override
-  Future<void> save({required String token, required String email}) async {
+  Future<void> save({required String token, required String email, String role = 'admin'}) async {
     this.token = token;
     this.email = email;
+    this.role = role;
   }
 
   @override
