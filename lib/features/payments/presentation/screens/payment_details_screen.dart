@@ -5,6 +5,7 @@ import '../../../../core/theme/palette.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
+import '../../../invoices/presentation/screens/credit_note_screens.dart';
 import '../../../invoices/presentation/screens/invoice_details_screen.dart';
 import '../../../orders/presentation/screens/order_details_screen.dart';
 import '../../../support/presentation/screens/help_support_screen.dart';
@@ -26,9 +27,23 @@ class PaymentDetailsScreen extends StatelessWidget {
 
     void receipt() => Navigator.push(context, MaterialPageRoute(builder: (_) => ReceiptScreen(payment: pay)));
 
-    final Widget? bottom = canReceipt
-        ? CustomButton(text: 'View Receipt', variant: ButtonVariant.accent, icon: const Icon(Icons.receipt_outlined), onPressed: receipt)
-        : null;
+    final viewReceipt = CustomButton(text: 'View Receipt', variant: ButtonVariant.accent, icon: const Icon(Icons.receipt_outlined), onPressed: receipt);
+    // Credit notes and refunds are issued against paid invoices (`POST /admin/accounting/invoices/{id}/…`).
+    final canCredit = pay.status == PaymentStatus.paid && invoice != null && invoice.kind == DocKind.invoice && invoice.serverId != null;
+    final Widget? bottom = !canReceipt
+        ? null
+        : !canCredit
+            ? viewReceipt
+            : Column(mainAxisSize: MainAxisSize.min, children: [
+                CustomButton(
+                  text: 'Issue Credit Note or Refund',
+                  variant: ButtonVariant.outline,
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  onPressed: () => showCreditOrRefundSheet(context, invoice),
+                ),
+                const SizedBox(height: 10),
+                viewReceipt,
+              ]);
 
     return InnerScaffold(
       title: 'Payments Details',

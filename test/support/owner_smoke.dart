@@ -2,6 +2,7 @@ import 'package:bizpaddi/core/data/biz_store.dart';
 import 'package:bizpaddi/core/theme/app_theme.dart';
 import 'sample_workspace.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/biometrics_screen.dart';
+import 'package:bizpaddi/features/auth/presentation/screens/choose_plan_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/login_screen.dart';
 import 'package:bizpaddi/features/auth/presentation/screens/otp_verification_screen.dart';
@@ -14,10 +15,14 @@ import 'package:bizpaddi/features/customers/presentation/screens/customer_detail
 import 'package:bizpaddi/features/customers/presentation/screens/customer_form_screen.dart';
 import 'package:bizpaddi/features/home/presentation/screens/main_navigation_screen.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/create_document_screen.dart';
+import 'package:bizpaddi/features/invoices/presentation/screens/create_payment_link_screen.dart';
+import 'package:bizpaddi/features/invoices/presentation/screens/credit_note_screens.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/document_preview_screen.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/invoice_details_screen.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/invoices_tab.dart';
+import 'package:bizpaddi/features/invoices/presentation/screens/payment_link_details_screen.dart';
 import 'package:bizpaddi/features/invoices/presentation/screens/quotation_details_screen.dart';
+import 'package:bizpaddi/features/invoices/presentation/screens/refund_screens.dart';
 import 'package:bizpaddi/features/more/presentation/screens/appearance_screen.dart';
 import 'package:bizpaddi/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:bizpaddi/features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -29,7 +34,9 @@ import 'package:bizpaddi/features/workspace/resource_specs.dart';
 import 'package:bizpaddi/features/workspace/workspace_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bizpaddi/features/business/presentation/screens/bank_settlement_screen.dart';
 import 'package:bizpaddi/features/business/presentation/screens/business_profile_screen.dart';
+import 'package:bizpaddi/features/business/presentation/screens/edit_business_profile_screen.dart';
 import 'package:bizpaddi/features/more/presentation/screens/settings_screen.dart';
 import 'package:bizpaddi/features/orders/presentation/screens/order_details_screen.dart';
 import 'package:bizpaddi/features/orders/presentation/screens/orders_screen.dart';
@@ -64,6 +71,7 @@ void ownerSmokeTests(List<bool> themes) {
     'register': () => const RegisterScreen(),
     'otp': () => OtpVerificationScreen(title: 'Verify your email', subtitle: 'We sent a code', onSubmit: (_) async => null, onVerified: (_) {}),
     'biometrics': () => const BiometricsScreen(),
+    'choose plan': () => const ChoosePlanScreen(),
     'all set': () => const RegistrationSuccessScreen(),
     'welcome back': () => const WelcomeBackScreen(),
     'forgot password': () => const ForgotPasswordScreen(),
@@ -88,6 +96,16 @@ void ownerSmokeTests(List<bool> themes) {
     'invoice part paid': () => InvoiceDetailsScreen(invoice: byStatus(InvoiceStatus.partlyPaid)),
     'invoice overdue': () => InvoiceDetailsScreen(invoice: byStatus(InvoiceStatus.overdue)),
     'invoice paid': () => InvoiceDetailsScreen(invoice: paid),
+    'new payment link': () => const CreatePaymentLinkScreen(),
+    'payment links list': () => const PaymentLinksScreen(),
+    'link active': () => PaymentLinkDetailsScreen(link: store.paymentLinks.firstWhere((l) => BizStatus.link(l).label == 'Active')),
+    'link paid': () => PaymentLinkDetailsScreen(link: store.paymentLinks.firstWhere((l) => BizStatus.link(l).label == 'Paid')),
+    'link expired': () => PaymentLinkDetailsScreen(link: store.paymentLinks.firstWhere((l) => BizStatus.link(l).label == 'Expired')),
+    'issue credit note': () => IssueCreditNoteScreen(invoice: paid),
+    'credit note preview': () => CreditNotePreviewScreen(invoice: paid, amount: 1000, reason: 'Cancelled Order'),
+    'credit note': () => CreditNoteScreen(invoice: paid, note: paid.creditNotes.first),
+    'request refund': () => RequestRefundScreen(invoice: paid),
+    'refund status': () => RefundStatusScreen(invoice: paid, refund: paid.refunds.first),
     'quotation': () => QuotationDetailsScreen(quotation: store.quotations.first),
     'quotations list': () => const QuotationsScreen(),
     'customer details': () => CustomerDetailsScreen(customer: store.customers.first),
@@ -111,7 +129,11 @@ void ownerSmokeTests(List<bool> themes) {
     'invite staff': () => const InviteStaffScreen(),
     'reports': () => const ReportsScreen(),
     'business profile': () => const BusinessProfileScreen(),
+    'edit business profile': () => const EditBusinessProfileScreen(),
+    'bank settlement': () => const BankSettlementScreen(),
+    'bank details': () => const BankDetailsScreen(),
     'help': () => const HelpSupportScreen(),
+    'support chat': () => const SupportChatScreen(),
     'about': () => const AboutScreen(),
     'privacy': () => const LegalScreen(doc: LegalDoc.privacy),
     'settings': () => const SettingsScreen(),

@@ -236,4 +236,54 @@ class BusinessRepository {
     return (j['recovery_codes'] as List? ?? const []).map((e) => '$e').toList();
   }
   Future<void> disableTwoFactor(String password) => api.post('$_base/2fa/disable', {'password': password});
+
+  // Payment links (customers pay at {base}/pay/{slug})
+  Future<List<Map<String, dynamic>>> paymentLinks() async => ApiClient.parsePage(await api.get('$_base/payment-links')).$1;
+  Future<Map<String, dynamic>> paymentLink(int id) async => await api.get('$_base/payment-links/$id') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> createPaymentLink(Map<String, dynamic> body) async => await api.post('$_base/payment-links', body) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> updatePaymentLink(int id, Map<String, dynamic> body) async =>
+      await api.patch('$_base/payment-links/$id', body) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> disablePaymentLink(int id) async => await api.post('$_base/payment-links/$id/disable') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> enablePaymentLink(int id) async => await api.post('$_base/payment-links/$id/enable') as Map<String, dynamic>;
+
+  // Credit notes & refunds
+  Future<List<Map<String, dynamic>>> creditNotes(int invoiceId) async =>
+      ApiClient.parsePage(await api.get('$_acc/credit-notes', query: {'invoice_id': invoiceId})).$1;
+  Future<Map<String, dynamic>> issueCreditNote(int invoiceId, double amount, String reason) async =>
+      await api.post('$_acc/invoices/$invoiceId/credit-notes', {'amount': amount, 'reason': reason}) as Map<String, dynamic>;
+  Future<List<Map<String, dynamic>>> refunds(int invoiceId) async => ApiClient.parsePage(await api.get('$_acc/refunds', query: {'invoice_id': invoiceId})).$1;
+  Future<Map<String, dynamic>> requestRefund(int invoiceId, double amount, String reason) async =>
+      await api.post('$_acc/invoices/$invoiceId/refunds', {'amount': amount, 'reason': reason}) as Map<String, dynamic>;
+  Future<void> cancelRefund(int id) => api.post('$_acc/refunds/$id/cancel');
+
+  // Business profile, logo, payout account
+  Future<Map<String, dynamic>> business() async => await api.get('$_base/business') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> updateBusiness(Map<String, dynamic> body) async => await api.put('$_base/business', body) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> uploadLogo(List<int> bytes, String filename) async =>
+      await api.upload('$_base/business/logo', fileField: 'logo', bytes: bytes, filename: filename) as Map<String, dynamic>;
+  Future<List<Map<String, dynamic>>> settlementBanks() async => ApiClient.parsePage(await api.get('$_base/banks')).$1;
+  Future<String> resolveAccount(String bankCode, String number) async {
+    final j = await api.post('$_base/settlement-account/resolve', {'bank_code': bankCode, 'account_number': number}) as Map<String, dynamic>;
+    return '${j['account_name'] ?? ''}';
+  }
+  Future<Map<String, dynamic>> settlementAccount() async => await api.get('$_base/settlement-account') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> sendSettlementOtp() async => await api.post('$_base/settlement-account/send-otp') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> saveSettlementAccount({required String bankCode, required String number, required String password, required String otp}) async =>
+      await api.put('$_base/settlement-account', {'bank_code': bankCode, 'account_number': number, 'password': password, 'otp': otp}) as Map<String, dynamic>;
+
+  // Notification preferences & sessions
+  Future<Map<String, dynamic>> notificationPreferences() async => await api.get('$_base/notification-preferences') as Map<String, dynamic>;
+  Future<void> saveNotificationPreferences(Map<String, bool> prefs) => api.put('$_base/notification-preferences', prefs);
+  Future<int> logoutOtherDevices() async {
+    final j = await api.post('$_base/sessions/logout-others') as Map<String, dynamic>;
+    return (j['revoked'] as num?)?.toInt() ?? 0;
+  }
+
+  // Chat with Bizpaddi support; replies to customer tickets
+  Future<List<Map<String, dynamic>>> supportMessages() async => ApiClient.parsePage(await api.get('$_base/support/messages')).$1;
+  Future<Map<String, dynamic>> sendSupportMessage(String message, {List<int>? bytes, String? filename}) async => bytes == null
+      ? await api.post('$_base/support/messages', {'message': message}) as Map<String, dynamic>
+      : await api.multipart('$_base/support/messages', fields: {'message': message}, files: {'attachment': (bytes, filename ?? 'photo.jpg')}) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> replyToTicket(Object id, String message) async =>
+      await api.post('$_base/tickets/$id/replies', {'message': message}) as Map<String, dynamic>;
 }

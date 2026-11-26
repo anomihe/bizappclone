@@ -331,7 +331,28 @@ class LiveSession implements BizRemote {
       _optional(business.storefront()),
       _optional(business.kyc()),
       _optional(business.billing()),
+      _optional(business.paymentLinks()),
+      _optional(business.business()),
+      _optional(business.settlementAccount()),
+      _optional(business.notificationPreferences()),
     ]);
+
+    final links = parts[5] as List<Map<String, dynamic>>?;
+    if (links != null) {
+      store.invoices.removeWhere((i) => i.kind == DocKind.paymentLink);
+      store.invoices.addAll(links.map((j) => ApiMappers.paymentLink(j, findCustomer: _customerById)));
+      store.invoices.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+    final biz = parts[6] as Map<String, dynamic>?;
+    if (biz != null) {
+      ApiMappers.applyBusiness(store.profile, biz);
+      store.storefront.hasLogo = store.profile.hasLogo;
+      store.account.businessName = store.profile.name.isEmpty ? store.account.businessName : store.profile.name;
+    }
+    final payout = parts[7] as Map<String, dynamic>?;
+    if (payout != null) ApiMappers.applySettlement(store.profile, payout);
+    final prefs = parts[8] as Map<String, dynamic>?;
+    if (prefs != null) _applyPrefs(prefs);
 
     final productsJson = parts[0] as List<Map<String, dynamic>>?;
     if (productsJson != null) {
@@ -565,6 +586,148 @@ class LiveSession implements BizRemote {
     store.refresh();
   }
 
+  Customer? _customerById(int? id) => store.customers.where((c) => c.serverId == id).firstOrNull;
+
+  // ---------------------------------------------------------------- payment links
+
+  /// Creates the link on the backend and adds it to the list.
+  Future<Invoice> createPaymentLink(Invoice draft) async {
+    final j = await business.createPaymentLink(ApiMappers.paymentLinkBody(draft));
+    final link = ApiMappers.paymentLink(j, findCustomer: _customerById);
+    link.customer ??= draft.customer;
+    store.invoices.insert(0, link);
+    store.refresh();
+    return link;
+  }
+
+  /// Updates [old] in place (screens keep a reference to it).
+  Invoice _replaceLink(Invoice old, Map<String, dynamic> j) {
+    final fresh = ApiMappers.paymentLink(j, findCustomer: _customerById);
+    old
+      ..status = fresh.status
+      ..dueDate = fresh.dueDate
+      ..linkUrl = fresh.linkUrl ?? old.linkUrl;
+    if (fresh.payments.isNotEmpty) {
+      old.payments
+        ..clear()
+        ..addAll(fresh.payments);
+    }
+    store.refresh();
+    return old;
+  }
+
+  Future<Invoice> refreshPaymentLink(Invoice link) async => _replaceLink(link, await business.paymentLink(link.serverId!));
+  Future<Invoice> disablePaymentLink(Invoice link) async => _replaceLink(link, await business.disablePaymentLink(link.serverId!));
+  Future<Invoice> enablePaymentLink(Invoice link) async => _replaceLink(link, await business.enablePaymentLink(link.serverId!));
+  Future<Invoice> setPaymentLinkExpiry(Invoice link, DateTime? expiry) async =>
+      _replaceLink(link, await business.updatePaymentLink(link.serverId!, {'expires_at': expiry?.toUtc().toIso8601String()}));
+
+  // ---------------------------------------------------------------- credit notes & refunds
+
+  /// Loads the invoice's credit notes and refunds from the backend.
+  Future<void> refreshCreditsAndRefunds(Invoice i) async {
+    if (i.serverId == null || i.kind != DocKind.invoice) return;
+    final notes = await _optional(business.creditNotes(i.serverId!));
+    final refunds = await _optional(business.refunds(i.serverId!));
+    if (notes != null) {
+      i.creditNotes
+        ..clear()
+        ..addAll(notes.map((j) => ApiMappers.creditNote(j, i.id)));
+    }
+    if (refunds != null) {
+      i.refunds
+        ..clear()
+        ..addAll(refunds.map((j) => ApiMappers.refund(j, i.id)).whereType<RefundRequest>());
+    }
+    store.refresh();
+  }
+
+  Future<CreditNote> issueCreditNote(Invoice i, double amount, String reason) async {
+    final note = ApiMappers.creditNote(await business.issueCreditNote(i.serverId!, amount, reason), i.id);
+    i.creditNotes.add(note);
+    store.refresh();
+    return note;
+  }
+
+  Future<RefundRequest> requestRefund(Invoice i, double amount, String reason) async {
+    final r = ApiMappers.refund(await business.requestRefund(i.serverId!, amount, reason), i.id)!;
+    i.refunds.add(r);
+    store.refresh();
+    return r;
+  }
+
+  // ---------------------------------------------------------------- business profile & payout account
+
+  Future<void> saveBusinessProfile() async {
+    ApiMappers.applyBusiness(store.profile, await business.updateBusiness(ApiMappers.businessBody(store.profile)));
+    store.account.businessName = store.profile.name;
+    store.refresh();
+  }
+
+  Future<void> uploadBusinessLogo(List<int> bytes, String filename) async {
+    final j = await business.uploadLogo(bytes, filename);
+    final url = ApiMappers.str(j['logo_url']);
+    store.profile
+      ..logoUrl = url.isEmpty ? null : url
+      ..hasLogo = url.isNotEmpty;
+    store.storefront.hasLogo = url.isNotEmpty;
+    store.refresh();
+  }
+
+  Future<void> refreshSettlementAccount() async {
+    ApiMappers.applySettlement(store.profile, await business.settlementAccount());
+    store.refresh();
+  }
+
+  Future<List<Map<String, dynamic>>> settlementBanks() => business.settlementBanks();
+  Future<String> resolveBankAccount(String bankCode, String number) => business.resolveAccount(bankCode, number);
+
+  /// Emails the owner a 6-digit code; returns where it went (masked email).
+  Future<String> sendSettlementCode() async => ApiMappers.str((await business.sendSettlementOtp())['sent_to']);
+
+  Future<void> saveSettlementAccount({required String bankCode, required String number, required String password, required String otp}) async {
+    await business.saveSettlementAccount(bankCode: bankCode, number: number, password: password, otp: otp);
+    ApiMappers.applySettlement(store.profile, await business.settlementAccount());
+    store.refresh();
+  }
+
+  // ---------------------------------------------------------------- notification preferences & sessions
+
+  static const _prefKeys = {
+    'Payment received': 'payments',
+    'Invoice overdue': 'invoices',
+    'New storefront orders': 'orders',
+    'Refund updates': 'refunds',
+    'Tips and product news': 'product_updates',
+  };
+
+  void _applyPrefs(Map<String, dynamic> j) {
+    for (final e in _prefKeys.entries) {
+      if (j[e.value] is bool) store.notificationPrefs[e.key] = j[e.value] as bool;
+    }
+  }
+
+  /// Saves one toggle (by its label in Settings).
+  Future<void> setNotificationPref(String label, bool on) async {
+    final key = _prefKeys[label];
+    if (key == null) return;
+    store.setNotificationPref(label, on);
+    try {
+      await business.saveNotificationPreferences({key: on});
+    } on ApiException {
+      store.setNotificationPref(label, !on);
+      rethrow;
+    }
+  }
+
+  Future<int> logoutOtherDevices() => business.logoutOtherDevices();
+
+  // ---------------------------------------------------------------- Bizpaddi support chat (owners)
+
+  Future<List<Map<String, dynamic>>> supportMessages() => business.supportMessages();
+  Future<Map<String, dynamic>> sendSupportMessage(String message, {List<int>? bytes, String? filename}) =>
+      business.sendSupportMessage(message, bytes: bytes, filename: filename);
+
   /// List endpoints omit line items; fetch them when an invoice is opened.
   Future<void> refreshInvoice(Invoice i) async {
     if (i.serverId == null || store.remote == null) return;
@@ -574,6 +737,7 @@ class LiveSession implements BizRemote {
       if (items.isNotEmpty) i.items = items;
       i.totalOverride = ApiMappers.num0(j['total_amount']);
       store.refresh();
+      if (i.status == InvoiceStatus.paid) unawaited(refreshCreditsAndRefunds(i));
     } on ApiException catch (e) {
       _report(e);
     }

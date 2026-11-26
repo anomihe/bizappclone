@@ -100,14 +100,13 @@ and revisit **B** if in-app upgrades matter for conversion. Either way, payments
 
 ## 6. Mobile integration status
 
-The app talks to **https://app.bizpaddi.com** by default ([api_config.dart](../../lib/core/api/api_config.dart)). Override at build time:
+The app **always** uses the backend; there is no demo mode, no demo login and no sample data in the app. It talks to **https://app.bizpaddi.com** unless another server is given at build time ([api_config.dart](../../lib/core/api/api_config.dart)):
 
 ```
-flutter run --dart-define=API_BASE_URL=https://staging.example.com   # another server
-flutter run --dart-define=DEMO_MODE=true                             # sample data, no network
+flutter run --dart-define=API_BASE_URL=https://staging.example.com
 ```
 
-Tests always run on demo data (`test/flutter_test_config.dart`) unless a test turns live mode on with a fake backend.
+Tests talk to an in-memory fake of the backend (`test/support/fake_backend.dart`, set up in `test/flutter_test_config.dart`), never the real server. The screen tests' sample business lives in `test/support/sample_workspace.dart`, so it isn't part of the app.
 
 Live mode (code in `lib/core/api/`):
 
@@ -126,7 +125,7 @@ Live mode (code in `lib/core/api/`):
 | Reset password with the code/link from the email | ✅ live ("I have a reset code") |
 | Reports → Account overview (`/dashboard` stats) | ✅ live |
 | Leads, Contacts, Campaigns | ✅ live — list, create, edit, delete (More → Customers & Marketing) |
-| Support tickets | ✅ live — list, view conversation, change status/priority, delete (no reply endpoint in the API) |
+| Support tickets | ✅ live — list, view conversation, reply (`POST /admin/tickets/{id}/replies`), change status/priority, delete |
 | Projects (+ status), Tasks (+ status), Milestones (+ status) | ✅ live — tasks/milestones are created inside a project (`project_id`) |
 | Project chat (team / customer): messages, photo attachments, edit within 5 min, delete, mark read, pause/close | ✅ live |
 | Work logs | ✅ live — list, view, edit (staff create them from the team app) |
@@ -137,7 +136,8 @@ Live mode (code in `lib/core/api/`):
 | **Not wired on purpose** | `settings` (exposes Billway/FCM secrets — see §4), roles & permissions editing (global, not per business) |
 | Home KPIs | Computed in the app from invoices + transactions (the dashboard API returns agency stats) |
 | Storefront & products, orders, KYC, plan/wallet, invoice/quote actions, sign-up, 2FA | ✅ live once `feature/mobile-api` is deployed (see [web-to-api.md](web-to-api.md)) |
-| Payment links, credit notes/refunds, business bank/settlement, business-profile editing, per-person staff permissions, support chat for owners | Hidden in live mode (no backend yet); demo only |
+| Payment links (create, share, expiry, disable; customers pay at `/pay/{slug}`), credit notes & refunds, business-profile editing + logo (also the store logo), payout (settlement) account with password + emailed code, notification settings, "log out of other devices", owner ↔ Bizpaddi support chat, "Choose how to start" after sign-up | ✅ live once `feature/mobile-api` is deployed — new routes listed in [web-to-api.md §9](web-to-api.md). Refunds are approved and support chats answered in the super-admin panel (**Refund Requests**, **Owner Support**) |
+| Per-person staff permissions | Shown read-only (the backend has global roles only; editing roles is not wired on purpose) |
 
 ### One app, three portals
 
@@ -156,7 +156,6 @@ Not used:
 
 Forgot / reset password tries each account type (owner, then staff, then customer), because the app doesn't know which one it is before login.
 
-**Demo mode:** log in with an email that starts with `staff` or `customer` to preview those apps on sample data.
 
 #### Backend gaps found while connecting the portals (not changed)
 

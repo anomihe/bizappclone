@@ -7,7 +7,8 @@ import '../../../../core/utils/live_actions.dart';
 import '../../../../core/utils/pick_file.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
-import '../../../store/presentation/widgets/store_widgets.dart';
+import 'bank_settlement_screen.dart';
+import 'edit_business_profile_screen.dart';
 
 class BusinessProfileScreen extends StatelessWidget {
   const BusinessProfileScreen({super.key});
@@ -70,13 +71,27 @@ class BusinessProfileScreen extends StatelessWidget {
             ],
             BpCard(
               child: Row(children: [
-                b.hasLogo ? const ProductThumb(photo: 2, size: 44) : InitialsAvatar(b.name, size: 44),
+                if (b.logoUrl != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(b.logoUrl!, width: 44, height: 44, fit: BoxFit.cover, errorBuilder: (_, _, _) => InitialsAvatar(b.name, size: 44)),
+                  )
+                else
+                  InitialsAvatar(b.name, size: 44),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(b.name, style: tx(context, 14, weight: FontWeight.w800)),
                     Text('Business Account', style: tx(context, 11.5, color: p.textMuted)),
                   ]),
+                ),
+                CustomButton(
+                  text: 'Edit',
+                  width: 82,
+                  height: 36,
+                  variant: ButtonVariant.outline,
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditBusinessProfileScreen())),
                 ),
               ]),
             ),
@@ -142,9 +157,39 @@ class BusinessProfileScreen extends StatelessWidget {
                 ),
             ]),
             section('Bank & Settlement Details', null, [
-              // There's no settlement-account API yet.
-              const InfoBanner('Payouts go to the settlement account on your Bizpaddi workspace. Changing it in the app is coming soon.',
-                  icon: Icons.account_balance_outlined),
+              if (b.bank == null)
+                BpCard(
+                  child: Column(children: [
+                    Icon(Icons.account_balance_outlined, color: p.textSecondary),
+                    const SizedBox(height: 6),
+                    Text('No settlement account added', style: tx(context, 13, weight: FontWeight.w700)),
+                    Text('Add a bank account to receive payouts.', style: tx(context, 11.5, color: p.textMuted)),
+                    const SizedBox(height: 10),
+                    CustomButton(
+                      text: 'Add Bank Details',
+                      width: 190,
+                      height: 38,
+                      variant: ButtonVariant.outline,
+                      icon: const Icon(Icons.add),
+                      onPressed: () => startBankChange(context),
+                    ),
+                  ]),
+                )
+              else
+                BpCard(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BankSettlementScreen())),
+                  child: Row(children: [
+                    LeadingIcon(Icons.account_balance_outlined, size: 34),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(b.bank!.name, style: tx(context, 13, weight: FontWeight.w700)),
+                        Text('${b.bank!.bank} · ${b.bank!.masked}', style: tx(context, 11.5, color: p.textMuted)),
+                      ]),
+                    ),
+                    Icon(Icons.chevron_right, color: p.textMuted),
+                  ]),
+                ),
             ]),
           ]),
         );

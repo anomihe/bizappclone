@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
+import '../../../../core/utils/live_actions.dart';
+import '../../../../core/utils/pick_file.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../invoices/presentation/widgets/invoice_sheets.dart';
@@ -142,8 +145,16 @@ class _StoreScreenState extends State<StoreScreen> {
 class _StorefrontTab extends StatelessWidget {
   const _StorefrontTab();
 
-  /// The banner is uploaded from the storefront editor (the API has no logo upload).
+  /// The banner is uploaded from the storefront editor.
   void _editStorefront(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditStorefrontScreen()));
+
+  /// The store logo is the business logo (`POST /admin/business/logo`).
+  Future<void> _uploadLogo(BuildContext context) async {
+    final f = await pickUploadFile(context, title: 'Store logo', maxBytes: 5 * 1024 * 1024);
+    if (f == null || !context.mounted) return;
+    showToast(context, 'Uploading logo…');
+    await runLiveAction(context, () => LiveSession.instance.uploadBusinessLogo(f.bytes, f.name), done: 'Logo uploaded');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +205,12 @@ class _StorefrontTab extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(color: p.card, shape: BoxShape.circle),
-                  child: InitialsAvatar(s.name, size: 52),
+                  child: BizStore.instance.profile.logoUrl == null
+                      ? InitialsAvatar(s.name, size: 52)
+                      : ClipOval(
+                          child: Image.network(BizStore.instance.profile.logoUrl!, width: 52, height: 52, fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => InitialsAvatar(s.name, size: 52)),
+                        ),
                 ),
               ),
             ]),
@@ -250,6 +266,8 @@ class _StorefrontTab extends StatelessWidget {
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomDomainScreen()))),
       const SizedBox(height: 8),
       const SectionLabel('Brand'),
+      row(Icons.image_outlined, 'Logo', s.hasLogo ? 'Added' : 'Not added', StatusPill(s.hasLogo ? BizStatus.uploaded : BizStatus.notUploaded),
+          () => _uploadLogo(context)),
       row(Icons.panorama_outlined, 'Banner', s.bannerUrl != null ? 'Added' : 'Not added', StatusPill(s.bannerUrl != null ? BizStatus.uploaded : BizStatus.notUploaded),
           () => _editStorefront(context)),
       const SizedBox(height: 12),

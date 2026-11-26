@@ -420,6 +420,148 @@ class ApiMappers {
         'currency': s.currency.length == 3 ? s.currency : 'NGN',
       };
 
+  // ------------------------------------------------------------ payment links
+
+  /// A backend payment link as the app's [Invoice] with kind paymentLink.
+  static Invoice paymentLink(Map<String, dynamic> j, {required Customer? Function(int?) findCustomer}) {
+    final status = str(j['effective_status']).isEmpty ? str(j['status']) : str(j['effective_status']);
+    final amount = num0(j['amount']);
+    final client = j['client'] is Map ? j['client'] as Map : null;
+    final link = Invoice(
+      id: 'srv-l-${j['id']}',
+      number: str(j['number']),
+      linkNumber: str(j['number']),
+      kind: DocKind.paymentLink,
+      customer: findCustomer(intOrNull(j['client_id'])),
+      customerNameOverride: str(j['customer_name']).isNotEmpty ? str(j['customer_name']) : (client == null ? null : str(client['name'])),
+      customerPhone: str(j['customer_phone']),
+      items: [LineItem(name: str(j['purpose']), unitPrice: amount, qty: 1)],
+      dueDate: date(j['expires_at']),
+      allowPartPayment: j['allow_part_payment'] == true || j['allow_part_payment'] == 1,
+      status: switch (status) {
+        'paid' => InvoiceStatus.paid,
+        'disabled' => InvoiceStatus.cancelled,
+        'pending' => InvoiceStatus.partlyPaid,
+        _ => InvoiceStatus.unpaid,
+      },
+      createdAt: date(j['created_at']) ?? DateTime.now(),
+      serverId: intOrNull(j['id']),
+    )..linkUrl = str(j['url']).isEmpty ? null : str(j['url']);
+    for (final t in (j['payments'] as List? ?? const []).whereType<Map<String, dynamic>>()) {
+      link.payments.add(Payment(
+        id: 'srv-t-${t['id']}',
+        invoiceId: link.id,
+        invoiceNumber: link.number,
+        customerName: link.customerName,
+        amount: num0(t['amount']),
+        providerCharge: 0,
+        serviceCharge: 0,
+        status: PaymentStatus.paid,
+        date: date(t['paid_at']) ?? date(t['created_at']) ?? DateTime.now(),
+        settled: true,
+        receiptNo: str(t['reference']),
+      ));
+    }
+    // A paid link without a transaction list (list endpoint): still count what was paid.
+    if (link.payments.isEmpty && num0(j['amount_paid']) > 0) {
+      link.payments.add(Payment(
+        id: 'srv-l-${j['id']}-paid',
+        invoiceId: link.id,
+        invoiceNumber: link.number,
+        customerName: link.customerName,
+        amount: num0(j['amount_paid']),
+        providerCharge: 0,
+        serviceCharge: 0,
+        status: PaymentStatus.paid,
+        date: date(j['paid_at']) ?? date(j['updated_at']) ?? DateTime.now(),
+        settled: true,
+        receiptNo: link.number,
+      ));
+    }
+    return link;
+  }
+
+  static Map<String, dynamic> paymentLinkBody(Invoice l) => {
+        'purpose': l.purpose,
+        'amount': l.items.isEmpty ? 0 : l.items.first.unitPrice,
+        if (l.customer?.serverId != null) 'client_id': l.customer!.serverId,
+        if (l.customerNameOverride != null && l.customerNameOverride!.isNotEmpty) 'customer_name': l.customerNameOverride,
+        if (l.customerPhone.isNotEmpty) 'customer_phone': l.customerPhone,
+        if (l.dueDate != null) 'expires_at': l.dueDate!.toUtc().toIso8601String(),
+        'allow_part_payment': l.allowPartPayment,
+      };
+
+  // ------------------------------------------------------------ credit notes & refunds
+
+  static CreditNote creditNote(Map<String, dynamic> j, String invoiceId) => CreditNote(
+        id: 'srv-cn-${j['id']}',
+        number: str(j['number']),
+        invoiceId: invoiceId,
+        amount: num0(j['amount']),
+        reason: str(j['reason']),
+        date: date(j['created_at']) ?? DateTime.now(),
+      );
+
+  /// Null for a cancelled refund (the app doesn't show those).
+  static RefundRequest? refund(Map<String, dynamic> j, String invoiceId) {
+    final stage = switch (str(j['stage'])) {
+      'approved' => RefundStage.approved,
+      'confirmed' => RefundStage.confirmed,
+      'refunded' => RefundStage.refunded,
+      'requested' => RefundStage.requested,
+      _ => null,
+    };
+    if (stage == null) return null;
+    return RefundRequest(
+      id: 'srv-rf-${j['id']}',
+      invoiceId: invoiceId,
+      amount: num0(j['amount']),
+      reason: str(j['reason']),
+      stage: stage,
+      createdAt: date(j['created_at']) ?? DateTime.now(),
+    );
+  }
+
+  // ------------------------------------------------------------ business profile & payout account
+
+  static void applyBusiness(BusinessProfile p, Map<String, dynamic> j) {
+    final (dial, phone) = splitPhone(str(j['phone']));
+    p
+      ..name = str(j['name'])
+      ..type = str(j['type'])
+      ..registrationNumber = str(j['registration_number'])
+      ..dialCode = dial
+      ..phone = phone
+      ..email = str(j['email'])
+      ..address = str(j['address'])
+      ..currency = str(j['currency']).isEmpty ? 'NGN' : str(j['currency'])
+      ..logoUrl = str(j['logo_url']).isEmpty ? null : str(j['logo_url'])
+      ..hasLogo = str(j['logo_url']).isNotEmpty;
+  }
+
+  static Map<String, dynamic> businessBody(BusinessProfile p) => {
+        'name': p.name.trim(),
+        'type': p.type.trim(),
+        'registration_number': p.registrationNumber.trim(),
+        'phone': p.phone.trim().isEmpty ? '' : '${p.dialCode} ${p.phone.trim()}',
+        'email': p.email.trim(),
+        'address': p.address.trim(),
+      };
+
+  static void applySettlement(BusinessProfile p, Map<String, dynamic> j) {
+    final a = j['account'];
+    p.bank = a is Map
+        ? BankAccount(bank: str(a['bank_name']), number: str(a['account_number_masked']), name: str(a['account_name']))
+        : null;
+    p.settlementBankCode = a is Map ? str(a['bank_code']) : null;
+    p.bankHistory
+      ..clear()
+      ..addAll([
+        for (final h in (j['history'] as List? ?? const []).whereType<Map>())
+          BankChange(str(h['title']), str(h['detail']), date(h['created_at']) ?? DateTime.now()),
+      ]);
+  }
+
   // ------------------------------------------------------------ billing
 
   /// Home banner state from `GET /admin/billing`. Pay-as-you-go businesses

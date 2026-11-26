@@ -5,21 +5,21 @@ import '../../../../core/theme/palette.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../../core/utils/biometrics.dart';
-import 'registration_success_screen.dart';
+import 'choose_plan_screen.dart';
 
 /// "Log in faster" — offer fingerprint / Face ID after sign-up.
 /// Uses the real OS prompt (local_auth).
 class BiometricsScreen extends StatelessWidget {
   const BiometricsScreen({super.key});
 
-  /// Real OS prompt, saved on this device. New businesses are pay-as-you-go
-  /// (no trial to choose), so go straight to the welcome screen.
+  /// Real OS prompt, saved on this device.
+  /// Then: how the new business starts (trial or pay as you go, and the plans).
   Future<void> _next(BuildContext context, bool enable) async {
     final on = enable && await Biometrics.setEnabled(true);
     BizStore.instance.setBiometrics(on);
     if (!context.mounted) return;
     if (enable) showToast(context, on ? 'Biometric login enabled' : 'Fingerprint / Face ID wasn’t confirmed. You can turn it on later in Security.');
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegistrationSuccessScreen()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ChoosePlanScreen()));
   }
 
   @override

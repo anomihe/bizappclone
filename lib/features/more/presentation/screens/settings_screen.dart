@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/utils/biometrics.dart';
+import '../../../../core/utils/live_actions.dart';
 import '../../../../core/widgets/ui_kit.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
@@ -37,7 +38,12 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
             child: Column(children: [
               for (final e in store.notificationPrefs.entries)
-                ToggleRow(title: e.key, value: e.value, onChanged: (v) => store.setNotificationPref(e.key, v)),
+                ToggleRow(
+                  title: e.key,
+                  value: e.value,
+                  // Saved to `PUT /admin/notification-preferences`; flips back if it fails.
+                  onChanged: (v) => runLiveAction(context, () => LiveSession.instance.setNotificationPref(e.key, v)),
+                ),
             ]),
           ),
         ]),
@@ -86,6 +92,20 @@ class SecurityScreen extends StatelessWidget {
               title: 'Two-step verification',
               subtitle: 'Ask for an authenticator code when you log in',
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFactorSettingsScreen())),
+            ),
+          if (LiveSession.instance.role == AccountRole.owner)
+            ActionTile(
+              icon: Icons.devices_other,
+              title: 'Log out of other devices',
+              subtitle: 'Keeps you signed in on this phone',
+              onTap: () async {
+                final ok = await showConfirmSheet(context,
+                    title: 'Log out other devices?', message: 'Anyone signed in elsewhere will need your password again.', confirmLabel: 'Log Them Out', cancelLabel: 'Cancel');
+                if (!ok || !context.mounted) return;
+                var count = 0;
+                final done = await runLiveAction(context, () async => count = await LiveSession.instance.logoutOtherDevices());
+                if (done && context.mounted) showToast(context, count == 0 ? 'No other devices were signed in' : 'Logged out of $count other ${count == 1 ? 'device' : 'devices'}');
+              },
             ),
           const SizedBox(height: 12),
           const SectionLabel('Danger zone'),

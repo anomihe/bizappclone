@@ -12,7 +12,10 @@ import '../../../payments/presentation/screens/receipt_screen.dart';
 import '../widgets/doc_header_card.dart';
 import '../widgets/invoice_sheets.dart';
 import 'create_document_screen.dart';
+import 'credit_note_screens.dart';
 import 'document_preview_screen.dart';
+import 'payment_link_details_screen.dart';
+import 'refund_screens.dart';
 
 /// "Invoice #0044" in every state, and the detail page for payment links.
 class InvoiceDetailsScreen extends StatefulWidget {
@@ -31,6 +34,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
   void initState() {
     super.initState();
     // Live mode: lists come without line items; load them now.
+    if (_isLink) return; // PaymentLinkDetailsScreen loads its own data.
     LiveSession.instance.refreshInvoice(widget.invoice);
     if (widget.justIssued) {
       // Offer the share sheet right after issuing — that's the next step.
@@ -39,6 +43,8 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
       });
     }
   }
+
+  bool get _isLink => widget.invoice.kind == DocKind.paymentLink;
 
   Future<void> _deleteDraft() async {
     final i = widget.invoice;
@@ -93,6 +99,8 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Payment links have their own detail layout.
+    if (_isLink) return PaymentLinkDetailsScreen(link: widget.invoice, justCreated: widget.justIssued);
     return ListenableBuilder(listenable: store, builder: (context, _) => _build(context));
   }
 
@@ -166,6 +174,43 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                 status: StatusStyle.payment(pay.status),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentDetailsScreen(payment: pay))),
               ),
+          ],
+          if (i.refunds.isNotEmpty || i.creditNotes.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            const SectionLabel('Refunds'),
+            for (final r in i.refunds)
+              RecordTile(
+                leading: const LeadingIcon(Icons.undo, color: AppColors.info),
+                title: r.stage == RefundStage.refunded ? 'Refunded' : 'Refund requested',
+                subtitle: r.reason,
+                amount: r.amount,
+                status: StatusStyle.refund(r.stage),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RefundStatusScreen(invoice: i, refund: r))),
+              ),
+            for (final cn in i.creditNotes)
+              RecordTile(
+                leading: LeadingIcon(Icons.description_outlined, color: p.textSecondary),
+                title: 'Credit Note ${cn.number}',
+                subtitle: 'Linked to invoice',
+                amount: cn.amount,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CreditNoteScreen(invoice: i, note: cn))),
+              ),
+          ],
+          if (status == InvoiceStatus.paid && i.refundableBalance > 0) ...[
+            const SizedBox(height: 14),
+            const SectionLabel('Credit & Refunds'),
+            ActionTile(
+              icon: Icons.receipt_long_outlined,
+              title: 'Issue credit note',
+              subtitle: 'Then request a refund',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => IssueCreditNoteScreen(invoice: i))),
+            ),
+            ActionTile(
+              icon: Icons.undo,
+              title: 'Request a refund',
+              subtitle: 'Send money back to the customer',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RequestRefundScreen(invoice: i))),
+            ),
           ],
           if (!closed && (status == InvoiceStatus.draft || open)) ...[
             const SizedBox(height: 14),

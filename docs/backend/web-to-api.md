@@ -189,16 +189,26 @@ Web: `TwoFactorAuthController.php`. This is TOTP from an authenticator app, not 
 
 ---
 
-## Not on the website either
+## 9. Added for the app (not on the website before)
 
-These still need the new endpoints in [api-spec.md](api-spec.md):
-- payment links (§3)
-- credit notes and refunds (§4)
-- business bank / settlement account (§7)
-- per-business reports (§10)
-- sessions (§13)
-- support ticket replies (§14)
-- a part-payment version of mark-paid (§2b)
+All under `/api/v1/admin` (Sanctum, scoped to the signed-in business) unless noted. Migration: `2026_11_26_000001_create_mobile_app_tables`.
+
+| App screen | Route | Body / notes |
+|---|---|---|
+| Payment links list / details | `GET /payment-links` (`?status=`), `GET /payment-links/{id}` (with payments) | `effective_status` is active, pending (part paid), paid, expired or disabled |
+| New payment link | `POST /payment-links` | `{ purpose, amount, client_id?, customer_name?, customer_phone?, expires_at?, allow_part_payment }` → `url` = `{APP_URL}/pay/{slug}` |
+| Change expiry / disable / enable | `PATCH /payment-links/{id}`, `POST …/disable`, `POST …/enable` | |
+| Customer pays a link | `GET /pay/{slug}` (public web page) | Shows a 15-minute SafeHaven virtual account; the SafeHaven webhook marks the link paid and records a transaction |
+| Credit notes | `GET /accounting/credit-notes?invoice_id=`, `POST /accounting/invoices/{id}/credit-notes` | `{ amount, reason }`, capped at what is still refundable |
+| Refunds | `GET /accounting/refunds?invoice_id=`, `POST /accounting/invoices/{id}/refunds`, `POST /accounting/refunds/{id}/cancel` | Stages requested → approved → confirmed → refunded (or cancelled), moved by Bizpaddi staff in super-admin → **Refund Requests** |
+| Business profile | `GET/PUT /business`, `POST /business/logo` (multipart `logo`) | name, type, registration_number, phone, email, address; the logo is also the store logo |
+| Payout account | `GET /banks`, `POST /settlement-account/resolve`, `POST /settlement-account/send-otp`, `GET/PUT /settlement-account` | PUT needs `{ bank_code, account_number, password, otp }`; the code is emailed and expires in 10 minutes; every change is logged and emailed to the owner |
+| Settings → notifications | `GET/PUT /notification-preferences` | payments, invoices, orders, refunds, product_updates |
+| Security → Log out of other devices | `POST /sessions/logout-others` | Revokes every other Sanctum token → `{ revoked }` |
+| Help → Chat with Support | `GET/POST /support/messages` | text or multipart `attachment`; Bizpaddi staff reply in super-admin → **Owner Support** |
+| Support ticket reply | `POST /tickets/{id}/replies` | `{ message }` |
+
+Still not built: per-business reports beyond the dashboard and a part-payment version of mark-paid.
 
 ## New security findings (in addition to [README §4](README.md))
 
@@ -214,7 +224,7 @@ These still need the new endpoints in [api-spec.md](api-spec.md):
 
 ---
 
-## App work (done; tested in `test/mobile_api_test.dart`)
+## App work (done; tested in `test/mobile_api_test.dart` and `test/owner_extras_test.dart`)
 
 | Area | App change |
 |---|---|

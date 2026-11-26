@@ -150,6 +150,9 @@ class Invoice {
   int? serverId;
   DateTime? dueDate;
   bool allowPartPayment;
+
+  /// Payment links: the public pay page from the backend (`https://…/pay/{slug}`).
+  String? linkUrl;
   String notes;
   InvoiceStatus _status;
   final DateTime createdAt;
@@ -200,10 +203,12 @@ class Invoice {
       .clamp(0, double.infinity)
       .toDouble();
   /// Live: the customer-portal pay page the backend also emails (customers sign in there).
-  /// Before it is saved (no server id) the link is a placeholder.
-  String get payLink => LiveLinks.host != null && serverId != null
+  /// Shows "Saving…" until the backend has saved it.
+  String get payLink => linkUrl != null
+      ? linkUrl!.replaceFirst(RegExp(r'^https?://'), '')
+      : LiveLinks.host != null && serverId != null
       ? '${LiveLinks.host}/dashboard/client/invoices/$serverId/pay'
-      : 'bizpaddi.com/pay/i${id.hashCode.abs() % 900 + 100}';
+      : 'Saving…';
 
   /// Payment link title: what it is for ("Gucci Bags").
   String get purpose => items.isEmpty ? 'Payment link' : items.first.name;
@@ -266,10 +271,10 @@ class Quotation {
   double get net => (subtotal - discount).clamp(0, double.infinity).toDouble();
   double get vat => addVat ? net * vatRate : 0;
   double get total => items.isEmpty && totalOverride != null ? totalOverride! : net + vat;
-  /// The quote page on the customer portal (placeholder until saved).
+  /// The quote page on the customer portal ("Saving…" until saved).
   String get link => LiveLinks.host != null && serverId != null
       ? '${LiveLinks.host}/dashboard/client/quotes/$serverId'
-      : 'bizpaddi.com/q/${id.hashCode.abs() % 900 + 100}';
+      : 'Saving…';
 
   /// Sent quotations flip to expired on their own once the validity ends.
   QuotationStatus get status {

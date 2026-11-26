@@ -228,6 +228,7 @@ class BusinessProfile {
   String address;
   String currency;
   bool hasLogo;
+  String? logoUrl;
   VerificationStatus verification;
 
   /// Document key → uploaded file name (null = not uploaded).
@@ -237,6 +238,9 @@ class BusinessProfile {
   final Map<String, String> documentStatus = {};
   final Map<String, String> documentNotes = {};
   BankAccount? bank;
+
+  /// Bank code of the saved payout account (for changing it).
+  String? settlementBankCode;
   final List<BankChange> bankHistory;
 
   BusinessProfile({

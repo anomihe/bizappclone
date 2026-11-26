@@ -8,6 +8,7 @@ import '../../../../core/widgets/ui_kit.dart';
 import '../../../auth/presentation/screens/welcome_back_screen.dart';
 import '../../../business/presentation/screens/business_profile_screen.dart';
 import '../../../invoices/presentation/screens/invoices_tab.dart';
+import '../../../invoices/presentation/screens/payment_link_details_screen.dart';
 import '../../../orders/presentation/screens/orders_screen.dart';
 import '../../../reports/presentation/screens/reports_screen.dart';
 import '../../../store/presentation/screens/store_screen.dart';
@@ -99,6 +100,7 @@ class MoreTab extends StatelessWidget {
                 const SizedBox(height: 16),
                 section('Sales', [
                   ActionTile(icon: Icons.request_quote_outlined, title: 'Quotations', subtitle: 'Create and track quotes', onTap: () => open(const QuotationsScreen())),
+                  ActionTile(icon: Icons.link, title: 'Payment links', subtitle: 'Links to get paid', onTap: () => open(const PaymentLinksScreen())),
                 ]),
                 section('Store', [
                   ActionTile(icon: Icons.storefront_outlined, title: 'Store Front & Products', subtitle: 'Your online shop', onTap: () => open(const StoreScreen())),

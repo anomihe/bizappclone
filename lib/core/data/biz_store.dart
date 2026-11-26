@@ -85,7 +85,7 @@ class BizStore extends ChangeNotifier {
     this.notifications
       ..clear()
       ..addAll(notifications);
-    // Not in the backend API yet: start empty rather than mixing in demo data.
+    // Filled from the store API by LiveSession.loadStoreAndCompliance.
     products.clear();
     orders.clear();
     storefront = Storefront(name: account.businessName, description: '', phone: account.phone, email: account.email, slug: 'store');

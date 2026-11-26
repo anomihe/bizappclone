@@ -398,19 +398,67 @@ class TicketsScreen extends StatelessWidget {
         detailBuilder: (s, item) => ResourceDetailScreen(spec: s, item: item, extra: _ticketConversation),
       );
 
-  static List<Widget> _ticketConversation(BuildContext context, Map<String, dynamic> item) {
+  static List<Widget> _ticketConversation(BuildContext context, Map<String, dynamic> item) => [
+        _TicketConversation(key: ValueKey('ticket-${item['id']}-${(item['messages'] as List?)?.length}'), item: item),
+      ];
+}
+
+/// The customer's ticket thread plus a reply box (`POST /admin/tickets/{id}/replies`).
+class _TicketConversation extends StatefulWidget {
+  final Map<String, dynamic> item;
+  const _TicketConversation({super.key, required this.item});
+
+  @override
+  State<_TicketConversation> createState() => _TicketConversationState();
+}
+
+class _TicketConversationState extends State<_TicketConversation> {
+  late final List<Map> _msgs = (widget.item['messages'] as List? ?? const []).whereType<Map>().toList();
+  final _reply = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _reply.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final text = _reply.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _sending = true);
+    try {
+      final m = await LiveSession.instance.business.replyToTicket(widget.item['id'], text);
+      if (!mounted) return;
+      setState(() {
+        _msgs.add(m);
+        _reply.clear();
+        if (widget.item['status'] == 'open') widget.item['status'] = 'in_progress';
+      });
+      showToast(context, 'Reply sent');
+    } catch (e) {
+      if (mounted) showToast(context, _err(e));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final p = context.p;
-    final msgs = (item['messages'] as List? ?? const []).whereType<Map>().toList();
-    if (msgs.isEmpty) return const [];
-    return [
+    final closed = widget.item['status'] == 'closed';
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const SizedBox(height: 18),
       const SectionLabel('Conversation'),
-      for (final m in msgs)
+      if (_msgs.isEmpty) Text('No messages yet.', style: tx(context, 12, color: p.textMuted)),
+      for (final m in _msgs)
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: BpCard(
-            color: p.cardAlt,
+            color: m['is_admin'] == true || m['is_admin'] == 1 ? p.primarySoft : p.cardAlt,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(m['is_admin'] == true || m['is_admin'] == 1 ? 'You' : 'Customer', style: tx(context, 11, weight: FontWeight.w700, color: p.textSecondary)),
+              const SizedBox(height: 2),
               Text(ApiMappers.str(m['message'] ?? m['content'] ?? m['body']), style: tx(context, 13.5, height: 1.4)),
               if (ApiMappers.date(m['created_at']) != null) ...[
                 const SizedBox(height: 4),
@@ -419,9 +467,15 @@ class TicketsScreen extends StatelessWidget {
             ]),
           ),
         ),
-      Text('Reply to the customer from bizpaddi.com — replies aren’t in the app API yet.', style: tx(context, 11.5, color: p.textMuted)),
-    ];
+      if (!closed) ...[
+        const SizedBox(height: 6),
+        CustomTextField(label: 'Reply', hint: 'Write to the customer', controller: _reply, maxLines: 3, onChanged: (_) => setState(() {})),
+        const SizedBox(height: 10),
+        CustomButton(text: 'Send Reply', isLoading: _sending, onPressed: _reply.text.trim().isEmpty || _sending ? null : _send),
+      ],
+    ]);
   }
+
 }
 
 // ============================================================ balance sheet

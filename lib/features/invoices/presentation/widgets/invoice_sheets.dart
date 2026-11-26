@@ -16,9 +16,6 @@ Future<Customer?> showChooseCustomerSheet(BuildContext context) async {
   final result = await showBpSheet<Object>(context, title: 'Choose Customer', builder: (_) => const _CustomerPicker());
   if (result is Customer) return result;
   if (result == 'add' && context.mounted) {
-    final allowed = await _showContactsPermission(context);
-    if (!context.mounted || allowed == null) return null;
-    if (allowed) showToast(context, 'Importing from contacts is coming soon. Add the details below.');
     return Navigator.push<Customer>(context, MaterialPageRoute(builder: (_) => const CustomerFormScreen()));
   }
   return null;
@@ -80,31 +77,6 @@ class _CustomerPickerState extends State<_CustomerPicker> {
       ]),
     );
   }
-}
-
-/// "Allow Bizpaddi to access your contacts?" — true = Allow, false = Not Now.
-Future<bool?> _showContactsPermission(BuildContext context) {
-  return showBpSheet<bool>(
-    context,
-    title: 'Choose from Phone Book',
-    builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
-      Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(color: ctx.p.primarySoft, shape: BoxShape.circle),
-        child: Icon(Icons.contact_phone_outlined, color: context.p.brand),
-      ),
-      const SizedBox(height: 12),
-      Text('Allow Bizpaddi to access your contacts?', textAlign: TextAlign.center, style: tx(ctx, 16, weight: FontWeight.w800)),
-      const SizedBox(height: 6),
-      Text('Bizpaddi only reads your contacts after you allow it, and only saves the ones you pick.',
-          textAlign: TextAlign.center, style: tx(ctx, 12.5, color: ctx.p.textSecondary, height: 1.4)),
-      const SizedBox(height: 20),
-      CustomButton(text: 'Allow', onPressed: () => Navigator.pop(ctx, true)),
-      const SizedBox(height: 10),
-      CustomButton(text: 'Not Now', variant: ButtonVariant.soft, onPressed: () => Navigator.pop(ctx, false)),
-    ]),
-  );
 }
 
 // ------------------------------------------------------------------ line item

@@ -494,6 +494,196 @@ class FakeBackend {
       twoFactorEnabled = false;
       return ok({'enabled': false});
     }
+    return _newMobileRoutes(req, path, body);
+  }
+
+  // ---------------------------------------------------------------- payment links, credit/refunds, business, payouts, support
+
+  final paymentLinks = <Map<String, dynamic>>[
+    {'id': 51, 'number': 'PL-0001', 'slug': 'gucci-bags-a1b2', 'purpose': 'Gucci Bags', 'amount': '25000.00', 'amount_paid': '0.00', 'client_id': null, 'customer_name': null, 'customer_phone': '', 'allow_part_payment': false, 'status': 'active', 'effective_status': 'active', 'expires_at': null, 'url': 'https://app.bizpaddi.com/pay/gucci-bags-a1b2', 'created_at': '2026-11-23T09:00:00.000000Z', 'payments': []},
+  ];
+  final creditNotes = <Map<String, dynamic>>[];
+  final refunds = <Map<String, dynamic>>[];
+  Map<String, dynamic> business = {'name': 'Ada Fabrics', 'type': 'Fashion', 'registration_number': 'RC123456', 'phone': '+234 8035550142', 'email': 'ada@shop.ng', 'address': '12 Allen Ave, Ikeja', 'currency': 'NGN', 'logo_url': null};
+  Map<String, dynamic>? payoutAccount;
+  final payoutHistory = <Map<String, dynamic>>[];
+  String? settlementOtp;
+  Map<String, bool> notificationPrefs = {'payments': true, 'invoices': true, 'orders': true, 'refunds': true, 'product_updates': false};
+  int otherSessions = 2;
+  final supportMessages = <Map<String, dynamic>>[
+    {'id': 1, 'sender_type': 'support', 'message': 'Hi Ada, how can we help?', 'attachment_url': null, 'created_at': '2026-11-22T09:00:00.000000Z'},
+  ];
+
+  http.Response? _newMobileRoutes(http.Request req, String path, Map<String, dynamic> Function() body) {
+    final m = req.method;
+    const admin = '/api/v1/admin';
+    http.Response notFound() => http.Response(jsonEncode({'success': false, 'message': 'Not found.'}), 404);
+
+    // Payment links
+    if (path == '$admin/payment-links') {
+      if (m == 'GET') return ok(page(paymentLinks));
+      final b = body();
+      if ((b['purpose'] ?? '').toString().trim().isEmpty) return validation({'purpose': ['The purpose field is required.']});
+      final id = 52 + paymentLinks.length;
+      final l = <String, dynamic>{
+        ...b,
+        'id': id,
+        'number': 'PL-${id.toString().padLeft(4, '0')}',
+        'slug': 'link-$id',
+        'amount': '${b['amount']}',
+        'amount_paid': '0.00',
+        'status': 'active',
+        'effective_status': 'active',
+        'url': 'https://app.bizpaddi.com/pay/link-$id',
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+        'payments': [],
+      };
+      paymentLinks.insert(0, l);
+      return ok(l, 201);
+    }
+    final pl = RegExp(r'^/api/v1/admin/payment-links/(\d+)(?:/(disable|enable))?$').firstMatch(path);
+    if (pl != null) {
+      final l = paymentLinks.where((x) => '${x['id']}' == pl.group(1)).firstOrNull;
+      if (l == null) return notFound();
+      switch (pl.group(2)) {
+        case 'disable':
+          l['status'] = l['effective_status'] = 'disabled';
+        case 'enable':
+          l['status'] = l['effective_status'] = 'active';
+        default:
+          if (m == 'PATCH') l.addAll(body());
+      }
+      return ok(l);
+    }
+
+    // Credit notes & refunds
+    double refundable(int invoiceId) {
+      final used = [...creditNotes, ...refunds.where((r) => r['stage'] != 'cancelled')]
+          .where((x) => x['invoice_id'] == invoiceId)
+          .fold<double>(0, (s, x) => s + double.parse('${x['amount']}'));
+      return 37000 - used;
+    }
+
+    if (path == '$admin/accounting/credit-notes' && m == 'GET') {
+      final id = int.tryParse(req.url.queryParameters['invoice_id'] ?? '');
+      return ok([for (final c in creditNotes) if (id == null || c['invoice_id'] == id) c]);
+    }
+    if (path == '$admin/accounting/refunds' && m == 'GET') {
+      final id = int.tryParse(req.url.queryParameters['invoice_id'] ?? '');
+      return ok([for (final r in refunds) if (id == null || r['invoice_id'] == id) r]);
+    }
+    final cr = RegExp(r'^/api/v1/admin/accounting/invoices/(\d+)/(credit-notes|refunds)$').firstMatch(path);
+    if (cr != null && m == 'POST') {
+      final invoiceId = int.parse(cr.group(1)!);
+      final b = body();
+      final amount = (b['amount'] as num).toDouble();
+      if (amount > refundable(invoiceId)) return validation({'amount': ['The amount is more than what can still be refunded on this invoice.']});
+      final isNote = cr.group(2) == 'credit-notes';
+      final list = isNote ? creditNotes : refunds;
+      final row = {
+        'id': 700 + creditNotes.length + refunds.length,
+        'invoice_id': invoiceId,
+        'amount': amount.toStringAsFixed(2),
+        'reason': b['reason'],
+        if (isNote) 'number': 'CN-${(creditNotes.length + 1).toString().padLeft(4, '0')}' else 'stage': 'requested',
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      };
+      list.add(row);
+      return ok(row, 201);
+    }
+    final cancel = RegExp(r'^/api/v1/admin/accounting/refunds/(\d+)/cancel$').firstMatch(path);
+    if (cancel != null) {
+      final r = refunds.where((x) => '${x['id']}' == cancel.group(1)).firstOrNull;
+      if (r == null) return notFound();
+      r['stage'] = 'cancelled';
+      return ok(r);
+    }
+
+    // Business profile & logo
+    if (path == '$admin/business') {
+      if (m == 'GET') return ok(business);
+      final b = body();
+      if ('${b['name'] ?? ''}'.trim().isEmpty) return validation({'name': ['The name field is required.']});
+      business = {...business, ...b};
+      return ok(business);
+    }
+    if (path == '$admin/business/logo' && m == 'POST') {
+      if (!_hasFile(req, 'logo')) return validation({'logo': ['The logo field is required.']});
+      business['logo_url'] = 'https://x.test/storage/logos/logo.png';
+      return ok({'logo_url': business['logo_url']});
+    }
+
+    // Payout (settlement) account
+    if (path == '$admin/banks' && m == 'GET') {
+      return ok([
+        {'name': 'Access Bank', 'code': '044'},
+        {'name': 'GTBank', 'code': '058'},
+      ]);
+    }
+    if (path == '$admin/settlement-account/resolve') {
+      final b = body();
+      if (b['account_number'] == '0000000000') return validation({'account_number': ['We couldn’t find that account.']});
+      return ok({'account_name': 'ADA FABRICS LTD'});
+    }
+    if (path == '$admin/settlement-account/send-otp') {
+      settlementOtp = '246810';
+      return ok({'expires_in': 600, 'sent_to': 'a***@shop.ng'});
+    }
+    if (path == '$admin/settlement-account') {
+      if (m == 'GET') return ok({'account': payoutAccount, 'history': payoutHistory});
+      final b = body();
+      if (b['password'] != 'secret123') return validation({'password': ['Your password is incorrect.']});
+      if (settlementOtp == null || b['otp'] != settlementOtp) return validation({'otp': ['The code is wrong or has expired.']});
+      settlementOtp = null;
+      final bank = b['bank_code'] == '058' ? 'GTBank' : 'Access Bank';
+      final number = '${b['account_number']}';
+      payoutAccount = {'bank_code': b['bank_code'], 'bank_name': bank, 'account_number_masked': '******${number.substring(6)}', 'account_name': 'ADA FABRICS LTD'};
+      payoutHistory.insert(0, {'title': payoutHistory.isEmpty ? 'Payout account added' : 'Payout account changed', 'detail': '$bank · ******${number.substring(6)}', 'created_at': DateTime.now().toUtc().toIso8601String()});
+      return ok({'account': payoutAccount, 'history': payoutHistory});
+    }
+
+    // Notification preferences & sessions
+    if (path == '$admin/notification-preferences') {
+      if (m == 'PUT') notificationPrefs = {...notificationPrefs, ...body().map((k, v) => MapEntry(k, v == true))};
+      return ok(notificationPrefs);
+    }
+    if (path == '$admin/sessions/logout-others' && m == 'POST') {
+      final n = otherSessions;
+      otherSessions = 0;
+      return ok({'revoked': n});
+    }
+
+    // Replies to customer tickets
+    final reply = RegExp(r'^/api/v1/admin/tickets/(\d+)/replies$').firstMatch(path);
+    if (reply != null && m == 'POST') {
+      final t = resources['tickets']!.where((x) => '${x['id']}' == reply.group(1)).firstOrNull;
+      if (t == null) return notFound();
+      final text = '${body()['message'] ?? ''}';
+      if (text.trim().isEmpty) return validation({'message': ['The message field is required.']});
+      final msg = {'id': 990, 'message': text, 'is_admin': true, 'created_at': DateTime.now().toUtc().toIso8601String()};
+      (t['messages'] as List).add(msg);
+      if (t['status'] == 'open') t['status'] = 'in_progress';
+      return ok(msg, 201);
+    }
+
+    // Owner ↔ Bizpaddi support chat
+    if (path == '$admin/support/messages') {
+      if (m == 'GET') return ok(supportMessages);
+      final multipart = req.headers['content-type']?.startsWith('multipart/') ?? false;
+      final text = multipart ? _field(req, 'message') : '${body()['message'] ?? ''}';
+      final file = multipart && _hasFile(req, 'attachment');
+      if (text.trim().isEmpty && !file) return validation({'message': ['Type a message or attach a file.']});
+      final msg = {
+        'id': supportMessages.length + 1,
+        'sender_type': 'owner',
+        'message': text,
+        'attachment_url': file ? 'https://x.test/storage/support-attachments/a.jpg' : null,
+        'attachment_name': file ? 'photo.jpg' : null,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      };
+      supportMessages.add(msg);
+      return ok(msg, 201);
+    }
     return null;
   }
 }

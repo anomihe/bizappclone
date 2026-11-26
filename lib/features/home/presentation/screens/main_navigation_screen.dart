@@ -12,6 +12,7 @@ import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../customers/presentation/screens/customer_form_screen.dart';
 import '../../../customers/presentation/screens/customers_tab.dart';
 import '../../../invoices/presentation/screens/create_document_screen.dart';
+import '../../../invoices/presentation/screens/create_payment_link_screen.dart';
 import '../../../invoices/presentation/screens/invoices_tab.dart';
 import '../../../more/presentation/screens/more_tab.dart';
 import '../../../payments/presentation/screens/payments_tab.dart';
@@ -190,6 +191,9 @@ class CreateActions {
   static Future<void> newQuotation(BuildContext context) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => CreateDocumentScreen.quotation()));
 
+  static Future<void> newPaymentLink(BuildContext context) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePaymentLinkScreen()));
+
   static Future<void> newCustomer(BuildContext context) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerFormScreen()));
 }
@@ -220,6 +224,8 @@ class CreateNewFab extends StatelessWidget {
         CreateActions.newInvoice(context);
       case 'quotation':
         CreateActions.newQuotation(context);
+      case 'link':
+        CreateActions.newPaymentLink(context);
       case 'customer':
         CreateActions.newCustomer(context);
       case 'product':
@@ -248,6 +254,7 @@ class _CreateMenu extends StatelessWidget {
   static const _options = [
     ('invoice', Icons.receipt_long_outlined, 'Invoice'),
     ('quotation', Icons.request_quote_outlined, 'Quotation'),
+    ('link', Icons.link, 'Payment Link'),
     ('customer', Icons.person_add_alt_outlined, 'New Customer'),
     ('product', Icons.inventory_2_outlined, 'New Product'),
   ];
