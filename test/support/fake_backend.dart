@@ -27,7 +27,7 @@ class FakeBackend {
     'contacts': [],
     'campaigns': [],
     'tickets': [
-      {'id': 8, 'subject': 'Paid but still unpaid', 'status': 'open', 'priority': 'high', 'client': {'name': 'Mama Chidi Stores'}, 'messages': [{'message': 'I transferred yesterday.', 'created_at': '2026-11-22T09:00:00.000000Z'}]},
+      {'id': 8, 'subject': 'Paid but still unpaid', 'status': 'open', 'priority': 'high', 'client': {'name': 'Mama Chidi Stores'}, 'messages': <Map<String, dynamic>>[{'message': 'I transferred yesterday.', 'created_at': '2026-11-22T09:00:00.000000Z'}]},
     ],
     'departments': [],
     'accounting/service-orders': [],

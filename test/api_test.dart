@@ -123,7 +123,7 @@ void main() {
       expect(tokens.email, 'ada@shop.ng');
       expect(store.account.ownerFullName, 'Ada Obi');
       expect(store.customers.map((c) => c.name), ['Mama Chidi Stores']);
-      expect(store.invoices.map((i) => i.number), ['INV-0021', 'INV-0022']);
+      expect(store.invoices.where((i) => i.kind == DocKind.invoice).map((i) => i.number), ['INV-0021', 'INV-0022']);
       // Billway payment attached to its invoice; the salary debit is ignored.
       final inv21 = store.invoices.firstWhere((i) => i.serverId == 21);
       expect(inv21.paid, 20000);

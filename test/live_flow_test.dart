@@ -51,7 +51,7 @@ void main() {
     await settle(tester);
 
     expect(find.byType(MainNavigationScreen), findsOneWidget);
-    expect(find.text('Ada Obi'), findsWidgets); // business name from the profile
+    expect(find.text('Ada Fabrics'), findsWidgets); // business name from GET /admin/business
     expect(tester.takeException(), isNull);
   });
 

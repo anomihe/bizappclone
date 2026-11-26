@@ -104,11 +104,17 @@ class AsyncViewState<T> extends State<AsyncView<T>> {
     final d = _data;
     if (d == null) {
       if (_loading) return const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator()));
-      return EmptyState(
-        icon: Icons.cloud_off,
-        title: 'Couldn’t load this',
-        message: _error,
-        action: CustomButton(text: 'Try Again', width: 160, onPressed: reload),
+      // Scrollable so it fits short screens (phone landscape) and can be pulled to retry.
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(children: [
+          EmptyState(
+            icon: Icons.cloud_off,
+            title: 'Couldn’t load this',
+            message: _error,
+            action: CustomButton(text: 'Try Again', width: 160, onPressed: reload),
+          ),
+        ]),
       );
     }
     if (widget.isEmpty?.call(d) == true && widget.empty != null) {
