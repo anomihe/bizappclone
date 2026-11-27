@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/live_session.dart';
+import '../../../../core/api/mappers.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/palette.dart';
@@ -93,6 +95,8 @@ class _HomeTabState extends State<HomeTab> {
     final top = <Widget>[
       _banner(),
       if (store.invoices.isEmpty && !_firstInvoiceDismissed) _firstInvoiceCard(),
+      _walletCard(),
+      gap,
       _periodChips(),
       gap,
     ];
@@ -239,6 +243,52 @@ class _HomeTabState extends State<HomeTab> {
           CustomButton(text: 'Create Invoice', height: 42, onPressed: () => CreateActions.newInvoice(context)),
         ]),
       ),
+    );
+  }
+
+  Widget _walletCard() {
+    final p = context.p;
+    return ValueListenableBuilder<Map<String, dynamic>?>(
+      valueListenable: LiveSession.instance.billing,
+      builder: (context, billing, _) {
+        final balance = ApiMappers.num0(billing?['wallet_balance']);
+        final payg = ApiMappers.str(billing?['billing_model']) != 'subscription';
+        final sub = billing?['subscription'] is Map ? billing!['subscription'] as Map : null;
+        final planName = ApiMappers.str((sub?['plan'] as Map?)?['name']);
+        final modeLabel = payg ? 'Pay as you go' : (planName.isEmpty ? 'Subscription' : planName);
+
+        return BpCard(
+          color: p.card,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BillingScreen())),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(children: [
+            LeadingIcon(Icons.account_balance_wallet_outlined, color: p.brand, size: 38),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Operating Wallet · $modeLabel', style: tx(context, 11.5, color: p.textSecondary)),
+                const SizedBox(height: 2),
+                MoneyText(balance, size: 20),
+              ]),
+            ),
+            if (BillingScreen.canPay)
+              FilledButton.icon(
+                onPressed: () => BillingScreen.topUp(context),
+                icon: const Icon(Icons.add, size: 16),
+                label: Text('Top Up', style: tx(context, 12.5, weight: FontWeight.w700, color: Colors.white)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: p.brand,
+                  foregroundColor: Colors.white,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              )
+            else
+              Icon(Icons.chevron_right, color: p.textSecondary),
+          ]),
+        );
+      },
     );
   }
 

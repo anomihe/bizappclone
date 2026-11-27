@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
 import '../../../../core/layout/responsive.dart';
@@ -7,7 +8,19 @@ import '../../../../core/widgets/custom_button.dart';
 import 'welcome_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  static const _seenKey = 'bizpaddi_onboarding_seen';
+
   const OnboardingScreen({super.key});
+
+  static Future<bool> hasSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_seenKey) ?? false;
+  }
+
+  static Future<void> markSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_seenKey, true);
+  }
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -63,6 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _goToWelcome() {
+    OnboardingScreen.markSeen();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const WelcomeScreen(),

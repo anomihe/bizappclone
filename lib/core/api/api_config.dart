@@ -12,7 +12,7 @@ class ApiConfig {
   /// The business app's own account type at login (staff and customers get their own homes).
   static const accountType = 'admin';
 
-  static const timeout = Duration(seconds: 20);
+  static const timeout = Duration(seconds: 30);
 
   /// Laravel paginates lists 20–50 per page; cap how many pages we pull on load.
   static const maxPages = 5;

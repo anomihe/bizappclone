@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../core/api/live_session.dart';
 import '../../../../core/data/biz_store.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/biometrics.dart';
 import '../../../../core/widgets/bizpaddi_logo.dart';
+import '../../../../core/widgets/ui_kit.dart';
 import '../../../auth/presentation/screens/welcome_back_screen.dart';
+import '../../../home/presentation/screens/main_navigation_screen.dart';
 import '../../../onboarding/presentation/screens/onboarding_screen.dart';
+import '../../../onboarding/presentation/screens/welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool startWithGreen;
@@ -33,22 +38,53 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // Stage 2: White/Themed splash for 1.4 seconds, then proceed to onboarding
-    // Live mode: a saved login goes to "Welcome back" instead of onboarding.
-    final returning = await LiveSession.instance.hasSavedSession();
-    if (returning) BizStore.instance.hasRememberedUser = true;
-    await Future.delayed(const Duration(milliseconds: 1400));
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => returning ? const WelcomeBackScreen() : const OnboardingScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+    // Stage 2: White/Themed splash (at least 1.4s), while checking saved session.
+    final minDelay = Future.delayed(const Duration(milliseconds: 1400));
+    final hasToken = await LiveSession.instance.hasSavedSession();
+    final savedEmail = await LiveSession.instance.savedEmail();
+    final bioOn = await Biometrics.isEnabled();
+    final seenOnboarding = await OnboardingScreen.hasSeen();
+
+    if (hasToken || savedEmail != null) {
+      BizStore.instance.hasRememberedUser = true;
     }
+
+    // Auto-resume saved token unless the user explicitly enabled biometric lock.
+    if (hasToken && !bioOn) {
+      try {
+        await Future.wait([LiveSession.instance.resume(), minDelay]);
+        await OnboardingScreen.markSeen();
+        if (mounted) MainNavigationScreen.go(context);
+        return;
+      } on ApiException catch (e) {
+        if (e.isUnauthorized) {
+          await LiveSession.instance.tokens.clearToken();
+        }
+        await minDelay;
+        if (!mounted) return;
+        showToast(context, e.isUnauthorized ? 'Your session ended. Please log in again.' : e.message);
+      }
+    } else {
+      await minDelay;
+    }
+
+    if (!mounted) return;
+    final Widget next;
+    if (hasToken || savedEmail != null) {
+      next = const WelcomeBackScreen();
+    } else if (seenOnboarding) {
+      next = const WelcomeScreen();
+    } else {
+      next = const OnboardingScreen();
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => next,
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
   }
 
   @override

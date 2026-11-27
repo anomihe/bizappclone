@@ -21,12 +21,21 @@ class BillingScreen extends StatefulWidget {
   /// Whether this build may start a payment (see class docs).
   static bool get canPay => kIsWeb || defaultTargetPlatform != TargetPlatform.iOS;
 
+  /// Prompts for an amount, creates the Billway virtual account, and shows
+  /// transfer details. Usable from both Home and Wallet & Billing.
+  static Future<void> topUp(BuildContext context, {Future<void> Function()? onPaid}) async {
+    final t = await _askAndCreateTopUp(context);
+    if (t == null || !context.mounted) return;
+    await _showTransferSheet(context, t, 'Top up your wallet', onPaid: onPaid ?? LiveSession.instance.refreshBilling);
+  }
+
   @override
   State<BillingScreen> createState() => _BillingScreenState();
 }
 
 class _BillingScreenState extends State<BillingScreen> {
   bool _loading = false;
+  int? _activatingPlanId;
   String? _error;
 
   Map<String, dynamic>? get _data => LiveSession.instance.billing.value;
@@ -50,85 +59,20 @@ class _BillingScreenState extends State<BillingScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _topUp() async {
-    final amount = await _askAmount(context);
-    if (amount == null || !mounted) return;
-    try {
-      final t = await LiveSession.instance.business.topUp(amount);
-      if (mounted) await _showTransfer(t, 'Top up your wallet');
-    } on ApiException catch (e) {
-      if (mounted) showToast(context, e.message);
-    }
-  }
+  Future<void> _topUp() => BillingScreen.topUp(context, onPaid: _refresh);
 
   Future<void> _activate(Map plan) async {
     final id = ApiMappers.intOrNull(plan['id']);
-    if (id == null) return;
+    if (id == null || _activatingPlanId != null) return;
+    setState(() => _activatingPlanId = id);
     try {
       final t = await LiveSession.instance.business.checkoutPlan(id);
-      if (mounted) await _showTransfer(t, 'Activate ${plan['name']}');
+      if (mounted) await _showTransferSheet(context, t, 'Activate ${plan['name']}', onPaid: _refresh);
     } on ApiException catch (e) {
       if (mounted) showToast(context, e.message);
+    } finally {
+      if (mounted) setState(() => _activatingPlanId = null);
     }
-  }
-
-  /// Bank details for the transfer, then "I've sent it" checks the payment.
-  Future<void> _showTransfer(Map<String, dynamic> t, String title) async {
-    final reference = ApiMappers.str(t['reference']);
-    var checking = false;
-    await showBpSheet(
-      context,
-      showHandle: true,
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, setSheet) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(title, style: tx(sheet, 16, weight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          Text('Transfer exactly this amount to the account below. It usually arrives in a few minutes.',
-              style: tx(sheet, 12.5, color: sheet.p.textSecondary, height: 1.4)),
-          const SizedBox(height: 14),
-          BpCard(
-            child: Column(children: [
-              InfoRow(label: 'Amount', valueWidget: MoneyText(ApiMappers.num0(t['amount']))),
-              InfoRow(label: 'Bank', value: ApiMappers.str(t['bank_name'])),
-              InfoRow(
-                label: 'Account number',
-                value: ApiMappers.str(t['account_number']),
-                bold: true,
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: ApiMappers.str(t['account_number'])));
-                  showToast(sheet, 'Account number copied');
-                },
-              ),
-              InfoRow(label: 'Account name', value: ApiMappers.str(t['account_name'])),
-            ]),
-          ),
-          const SizedBox(height: 16),
-          CustomButton(
-            text: 'I’ve Sent the Money',
-            isLoading: checking,
-            onPressed: () async {
-              setSheet(() => checking = true);
-              try {
-                final s = await LiveSession.instance.business.paymentStatus(reference);
-                if (!sheet.mounted) return;
-                if (s['status'] == 'successful') {
-                  Navigator.pop(sheet);
-                  if (!mounted) return;
-                  showToast(context, 'Payment received. Thank you!');
-                  _refresh();
-                } else {
-                  showToast(sheet, 'We haven’t received it yet. Give it a few minutes and check again.');
-                }
-              } on ApiException catch (e) {
-                if (sheet.mounted) showToast(sheet, e.message);
-              } finally {
-                if (sheet.mounted) setSheet(() => checking = false);
-              }
-            },
-          ),
-        ]),
-      ),
-    );
   }
 
   @override
@@ -207,12 +151,17 @@ class _BillingScreenState extends State<BillingScreen> {
                     child: Row(children: [
                       Icon(Icons.check_circle, size: 14, color: p.brand),
                       const SizedBox(width: 6),
-                      Expanded(child: Text('$f', style: tx(context, 12, color: p.textSecondary))),
+                      Expanded(child: Text('$f'.replaceAll(RegExp(r'<[^>]*>'), ''), style: tx(context, 12, color: p.textSecondary))),
                     ]),
                   ),
                 if (BillingScreen.canPay) ...[
                   const SizedBox(height: 12),
-                  CustomButton(text: 'Activate ${ApiMappers.str(plan['name'])}', variant: ButtonVariant.outline, onPressed: () => _activate(plan)),
+                  CustomButton(
+                    text: 'Activate ${ApiMappers.str(plan['name'])}',
+                    variant: ButtonVariant.outline,
+                    isLoading: _activatingPlanId != null && _activatingPlanId == ApiMappers.intOrNull(plan['id']),
+                    onPressed: _activatingPlanId != null ? null : () => _activate(plan),
+                  ),
                 ],
               ]),
             ),
@@ -243,15 +192,20 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 }
 
-Future<double?> _askAmount(BuildContext context) async {
+/// Prompts for the amount and creates the Billway transfer account while
+/// keeping a loading spinner + inline error inside the sheet.
+Future<Map<String, dynamic>?> _askAndCreateTopUp(BuildContext context) async {
   final c = TextEditingController();
-  double? result;
+  Map<String, dynamic>? created;
+  var loading = false;
+  String? apiError;
+
   await showBpSheet(
     context,
     showHandle: true,
     builder: (sheet) => StatefulBuilder(
       builder: (sheet, setSheet) {
-        final v = double.tryParse(c.text.replaceAll(',', ''));
+        final v = double.tryParse(c.text.replaceAll(',', '').trim());
         return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('Top up wallet', style: tx(sheet, 16, weight: FontWeight.w800)),
           const SizedBox(height: 12),
@@ -261,22 +215,105 @@ Future<double?> _askAmount(BuildContext context) async {
             controller: c,
             prefixText: '₦ ',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            errorText: v != null && v < 500 ? 'The minimum top-up is ₦500' : null,
-            onChanged: (_) => setSheet(() {}),
+            errorText: v != null && v < 500 ? 'The minimum top-up is ₦500' : apiError,
+            onChanged: (_) => setSheet(() => apiError = null),
           ),
           const SizedBox(height: 16),
           CustomButton(
             text: 'Continue',
-            onPressed: v == null || v < 500
+            isLoading: loading,
+            onPressed: loading || v == null || v < 500
                 ? null
-                : () {
-                    result = v;
-                    Navigator.pop(sheet);
+                : () async {
+                    setSheet(() {
+                      loading = true;
+                      apiError = null;
+                    });
+                    try {
+                      created = await LiveSession.instance.business.topUp(v);
+                      if (sheet.mounted) Navigator.pop(sheet);
+                    } on ApiException catch (e) {
+                      if (sheet.mounted) {
+                        setSheet(() {
+                          loading = false;
+                          apiError = e.message;
+                        });
+                      }
+                    }
                   },
           ),
         ]);
       },
     ),
   );
-  return result;
+  c.dispose();
+  return created;
+}
+
+/// Bank details for the transfer, then "I've sent it" checks the payment.
+Future<void> _showTransferSheet(
+  BuildContext context,
+  Map<String, dynamic> t,
+  String title, {
+  Future<void> Function()? onPaid,
+}) async {
+  final reference = ApiMappers.str(t['reference']);
+  final acct = ApiMappers.str(t['account_number']);
+  var checking = false;
+
+  await showBpSheet(
+    context,
+    showHandle: true,
+    builder: (sheet) => StatefulBuilder(
+      builder: (sheet, setSheet) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(title, style: tx(sheet, 16, weight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        Text('Transfer exactly this amount to the account below. It usually arrives in a few minutes.',
+            style: tx(sheet, 12.5, color: sheet.p.textSecondary, height: 1.4)),
+        const SizedBox(height: 14),
+        BpCard(
+          child: Column(children: [
+            InfoRow(label: 'Amount', valueWidget: MoneyText(ApiMappers.num0(t['amount']))),
+            InfoRow(label: 'Bank', value: ApiMappers.str(t['bank_name'])),
+            InfoRow(
+              label: 'Account number',
+              valueWidget: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(acct, style: tx(sheet, 13, weight: FontWeight.w800)),
+                const SizedBox(width: 6),
+                Icon(Icons.copy_rounded, size: 14, color: sheet.p.brand),
+              ]),
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: acct));
+                showToast(sheet, 'Account number copied');
+              },
+            ),
+            InfoRow(label: 'Account name', value: ApiMappers.str(t['account_name'])),
+          ]),
+        ),
+        const SizedBox(height: 16),
+        CustomButton(
+          text: 'I’ve Sent the Money',
+          isLoading: checking,
+          onPressed: () async {
+            setSheet(() => checking = true);
+            try {
+              final s = await LiveSession.instance.business.paymentStatus(reference);
+              if (!sheet.mounted) return;
+              if (s['status'] == 'successful') {
+                Navigator.pop(sheet);
+                if (context.mounted) showToast(context, 'Payment received. Thank you!');
+                await onPaid?.call();
+              } else {
+                showToast(sheet, 'We haven’t received it yet. Give it a few minutes and check again.');
+              }
+            } on ApiException catch (e) {
+              if (sheet.mounted) showToast(sheet, e.message);
+            } finally {
+              if (sheet.mounted) setSheet(() => checking = false);
+            }
+          },
+        ),
+      ]),
+    ),
+  );
 }
