@@ -796,6 +796,7 @@ class LiveSession implements BizRemote {
           final number = ApiMappers.str(j['invoice_number']);
           if (number.isNotEmpty) i.number = number;
           store.refresh();
+          unawaited(_optional(refreshBilling()));
         } else {
           await business.updateInvoice(i.serverId!, body);
         }
@@ -810,6 +811,7 @@ class LiveSession implements BizRemote {
           final number = ApiMappers.str(j['quote_number']);
           if (number.isNotEmpty) q.number = number;
           store.refresh();
+          unawaited(_optional(refreshBilling()));
         } else {
           await business.updateQuote(q.serverId!, body);
         }

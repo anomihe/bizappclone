@@ -32,13 +32,18 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     }
   }
 
-  void _share() {
+  Future<void> _share() async {
     final q = widget.quotation;
+    if (q.serverId == null && BizStore.instance.remote != null) {
+      await runLiveAction(context, () => LiveSession.instance.saveQuotation(q));
+      if (!mounted || q.serverId == null) return;
+    }
     showShareSheet(
       context,
       title: 'Share Quotation',
       heading: '${q.customer?.name ?? ''} · ${q.number}',
       link: q.link,
+      linkBuilder: () => q.link,
       amount: q.total,
       footnote: 'Your customer can view and accept the quotation on a web page.',
     );

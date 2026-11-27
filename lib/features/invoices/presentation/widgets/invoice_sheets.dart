@@ -249,6 +249,7 @@ Future<void> showSharePayLinkSheet(BuildContext context, Invoice invoice) => sho
       title: 'Share Pay link',
       heading: '${invoice.customerName} · ${invoice.number}',
       link: invoice.payLink,
+      linkBuilder: () => invoice.payLink,
       amount: invoice.balance > 0 ? invoice.balance : invoice.total,
       footnote: 'The customer pays on a web page. No app or login needed.',
     );
@@ -256,52 +257,69 @@ Future<void> showSharePayLinkSheet(BuildContext context, Invoice invoice) => sho
 /// Share card with WhatsApp / Telegram / Instagram / Copy Link.
 /// Opening other apps needs `share_plus` or `url_launcher`; until those are
 /// added every target copies the link.
-Future<void> showShareSheet(BuildContext context, {required String title, required String heading, required String link, required num amount, String? footnote}) {
+Future<void> showShareSheet(
+  BuildContext context, {
+  required String title,
+  required String heading,
+  required String link,
+  String Function()? linkBuilder,
+  required num amount,
+  String? footnote,
+}) {
   return showBpSheet(
     context,
     title: title,
-    builder: (ctx) {
-      final p = ctx.p;
-      void share(String app) {
-        Clipboard.setData(ClipboardData(text: 'https://$link'));
-        Navigator.pop(ctx);
-        showToast(context, app == 'Copy Link' ? 'Link copied' : 'Link copied — paste it in $app');
-      }
+    builder: (ctx) => ListenableBuilder(
+      listenable: BizStore.instance,
+      builder: (ctx, _) {
+        final p = ctx.p;
+        final currentLink = linkBuilder?.call() ?? link;
+        final ready = currentLink.isNotEmpty && currentLink != 'Saving…';
 
-      Widget target(IconData icon, Color color, String label) => Expanded(
-            child: InkWell(
-              onTap: () => share(label),
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                    child: Icon(icon, color: color, size: 20),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(label, style: tx(ctx, 11, color: p.textSecondary)),
+        void share(String app) {
+          if (!ready) {
+            showToast(ctx, 'Still saving link — please wait a moment and try again.');
+            return;
+          }
+          Clipboard.setData(ClipboardData(text: 'https://$currentLink'));
+          Navigator.pop(ctx);
+          showToast(context, app == 'Copy Link' ? 'Link copied' : 'Link copied — paste it in $app');
+        }
+
+        Widget target(IconData icon, Color color, String label) => Expanded(
+              child: InkWell(
+                onTap: () => share(label),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(label, style: tx(ctx, 11, color: p.textSecondary)),
+                  ]),
+                ),
+              ),
+            );
+
+        return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: p.accentSoft, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.accent)),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(heading, style: tx(ctx, 13, weight: FontWeight.w700)),
+                  Text(currentLink, style: tx(ctx, 11.5, color: p.textSecondary)),
                 ]),
               ),
-            ),
-          );
-
-      return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: p.accentSoft, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.accent)),
-          child: Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(heading, style: tx(ctx, 13, weight: FontWeight.w700)),
-                Text(link, style: tx(ctx, 11.5, color: p.textSecondary)),
-              ]),
-            ),
-            MoneyText(amount, size: 14, color: context.p.brand),
-          ]),
-        ),
+              MoneyText(amount, size: 14, color: context.p.brand),
+            ]),
+          ),
         const SizedBox(height: 16),
         Row(children: [
           target(Icons.chat, const Color(0xFF25D366), 'WhatsApp'),
@@ -313,7 +331,9 @@ Future<void> showShareSheet(BuildContext context, {required String title, requir
           const SizedBox(height: 10),
           Text(footnote, textAlign: TextAlign.center, style: tx(ctx, 11, color: p.textMuted)),
         ],
-      ]);
-    },
+        ],
+      );
+      },
+    ),
   );
 }
