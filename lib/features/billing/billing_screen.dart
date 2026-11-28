@@ -259,6 +259,10 @@ Future<void> _showTransferSheet(
 }) async {
   final reference = ApiMappers.str(t['reference']);
   final acct = ApiMappers.str(t['account_number']);
+  if (acct.isEmpty) {
+    showToast(context, 'Could not get a virtual account number. Please try again.');
+    return;
+  }
   var checking = false;
 
   await showBpSheet(
